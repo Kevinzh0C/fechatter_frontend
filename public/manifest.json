@@ -1,0 +1,19 @@
+{
+  "name": "Fechatter",
+  "short_name": "Fechatter",
+  "description": "A modern chat application built with Vue.js and Rust",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#7c3aed",
+  "theme_color": "#7c3aed",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/vite.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "categories": ["social", "communication"]
+} 
