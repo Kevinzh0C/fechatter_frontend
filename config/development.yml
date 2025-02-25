@@ -18,7 +18,7 @@ api:
   # 开发环境使用相对路径，通过Vite代理到HTTPS后端
   gateway_url: "http://localhost:5173"
 
-  # 使用相对路径，让Vite代理处理SSL证书问题
+  # 使用相对路径，让Vite代理处理SSL证书问题（与生产环境路径保持一致）
   base_url: "/api"
   file_url: "/files"
   sse_url: "/events"
@@ -36,6 +36,7 @@ cors:
   - "http://localhost:5173" # Vite开发端口
   - "http://localhost:1420" # 备用端口
   - "http://127.0.0.1:5173"
+  - "https://fechatter-frontend-j19109swu-zhkevin46-gmailcoms-projects.vercel.app" # 最新部署域名
   - "https://fechatter-frontend-cahw21vjh-zhkevin46-gmailcoms-projects.vercel.app"
   - "https://*.vercel.app" # 所有Vercel部署域名
   credentials: true

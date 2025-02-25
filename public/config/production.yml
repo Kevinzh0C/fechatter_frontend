@@ -12,16 +12,16 @@ frontend:
   port: 3000
   host: "0.0.0.0"
 
-# API配置 - 生产环境直连后端HTTPS服务
+# API配置 - 生产环境通过Vercel代理访问后端
 api:
-  # Gateway地址 - HTTPS端口
-  gateway_url: "https://45.77.178.85:8443"
+  # Gateway地址 - 通过Vercel代理
+  gateway_url: ""
 
-  # 生产环境使用完整HTTPS URLs
-  base_url: "https://45.77.178.85:8443/api"
-  file_url: "https://45.77.178.85:8443/files"
-  sse_url: "https://45.77.178.85:8443/events"
-  notify_url: "https://45.77.178.85:8443/notify"
+  # 生产环境使用Vercel代理相对路径（模拟本地Vite代理）
+  base_url: "/api/proxy"
+  file_url: "/api/proxy/files"
+  sse_url: "/api/proxy/events"
+  notify_url: "/api/proxy/notify"
 
   # 请求配置
   timeout: 15000
@@ -32,7 +32,9 @@ api:
 cors:
   enabled: true
   origins:
+  - "https://fechatter-frontend-j19109swu-zhkevin46-gmailcoms-projects.vercel.app" # 最新部署域名
   - "https://fechatter-frontend-cahw21vjh-zhkevin46-gmailcoms-projects.vercel.app"
+  - "https://fechatter-frontend-h00f7pv8z-zhkevin46-gmailcoms-projects.vercel.app"
   - "https://*.vercel.app" # 所有Vercel部署域名
   - "https://fechatter.vercel.app"
   credentials: true
