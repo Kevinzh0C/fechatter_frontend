@@ -14,10 +14,13 @@ function detectRuntimeEnvironment() {
     const hostname = window.location.hostname;
     const port = window.location.port;
     
-    // Vercel dev typically runs on port 3000
-    if ((hostname === 'localhost' && port === '3000') || 
-        hostname.includes('vercel.app') || 
-        hostname.includes('vercel.dev')) {
+    // Vercel dev can run on port 3000, 3001, or other ports
+    if (hostname === 'localhost' && (port === '3000' || port === '3001' || port === '3002')) {
+      return 'vercel';
+    }
+    
+    // Vercel production domains
+    if (hostname.includes('vercel.app') || hostname.includes('vercel.dev')) {
       return 'vercel';
     }
     
@@ -57,8 +60,8 @@ export async function getApiBaseUrl() {
         return config.base_url || '/api';
         
       case 'vercel':
-        // Use Vercel proxy paths in production
-        return config.base_url || '/api/proxy';
+        // Use relative paths in Vercel (Vercel functions handle the proxy)
+        return config.base_url || '/api';
         
       case 'production':
         // Use direct backend URLs for other production environments
@@ -74,9 +77,8 @@ export async function getApiBaseUrl() {
     const environment = detectRuntimeEnvironment();
     switch (environment) {
       case 'development':
-        return '/api';
       case 'vercel':
-        return '/api/proxy';
+        return '/api';
       default:
         return 'https://45.77.178.85:8443/api';
     }
@@ -95,13 +97,13 @@ export async function getFileUrl() {
       case 'development':
         return config.file_url || '/files';
       case 'vercel':
-        return config.file_url || '/api/proxy/files';
+        return config.file_url || '/api/files';
       default:
         return config.file_url || 'https://45.77.178.85:8443/files';
     }
   } catch (error) {
     const environment = detectRuntimeEnvironment();
-    return environment === 'vercel' ? '/api/proxy/files' : '/files';
+    return environment === 'vercel' || environment === 'development' ? '/api/files' : '/files';
   }
 }
 
@@ -117,13 +119,13 @@ export async function getSseUrl() {
       case 'development':
         return config.sse_url || '/events';
       case 'vercel':
-        return config.sse_url || '/api/proxy/events';
+        return config.sse_url || '/api/events';
       default:
         return config.sse_url || 'https://45.77.178.85:8443/events';
     }
   } catch (error) {
     const environment = detectRuntimeEnvironment();
-    return environment === 'vercel' ? '/api/proxy/events' : '/events';
+    return environment === 'vercel' || environment === 'development' ? '/api/events' : '/events';
   }
 }
 
@@ -139,13 +141,13 @@ export async function getNotifyUrl() {
       case 'development':
         return config.notify_url || '/notify';
       case 'vercel':
-        return config.notify_url || '/api/proxy/notify';
+        return config.notify_url || '/api/notify';
       default:
         return config.notify_url || 'https://45.77.178.85:8443/notify';
     }
   } catch (error) {
     const environment = detectRuntimeEnvironment();
-    return environment === 'vercel' ? '/api/proxy/notify' : '/notify';
+    return environment === 'vercel' || environment === 'development' ? '/api/notify' : '/notify';
   }
 }
 

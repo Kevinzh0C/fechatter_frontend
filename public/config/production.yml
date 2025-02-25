@@ -1,68 +1,74 @@
 # Fechatter Frontend - Production Configuration
-# 生产环境：Vercel部署直连后端服务
+# 生产环境：与开发环境保持一致的配置
 
 app:
   name: "Fechatter"
   version: "1.0.0"
   environment: "production"
-  debug: false
+  debug: true
 
-# 前端服务器配置（生产环境由Vercel管理）
+# 前端服务器配置
 frontend:
-  port: 3000
-  host: "0.0.0.0"
+  port: 5173 # Vite默认端口
+  host: "localhost"
+  hmr_port: 1421
 
-# API配置 - 生产环境通过Vercel代理访问后端
+# API配置 - 生产环境也使用相对路径，通过Vite/Vercel代理访问HTTPS后端
 api:
-  # Gateway地址 - 通过Vercel代理
-  gateway_url: ""
+  # 生产环境使用相对路径，通过代理到HTTPS后端
+  gateway_url: "http://localhost:5173"
 
-  # 生产环境使用Vercel代理相对路径（模拟本地Vite代理）
-  base_url: "/api/proxy"
-  file_url: "/api/proxy/files"
-  sse_url: "/api/proxy/events"
-  notify_url: "/api/proxy/notify"
+  # 使用相对路径，让代理处理SSL证书问题（与开发环境路径保持一致）
+  base_url: "/api"
+  file_url: "/files"
+  sse_url: "/events"
+  notify_url: "/notify"
 
   # 请求配置
   timeout: 15000
   max_retries: 3
   retry_delay: 1000
 
-# CORS配置 - 生产环境
+# CORS配置 - 支持本地开发和Vercel部署
 cors:
   enabled: true
   origins:
+  - "http://localhost:5173" # Vite开发端口
+  - "http://localhost:1420" # 备用端口
+  - "http://127.0.0.1:5173"
   - "https://fechatter-frontend-kto9xf8u5-zhkevin46-gmailcoms-projects.vercel.app" # 最新部署域名
   - "https://fechatter-frontend-j19109swu-zhkevin46-gmailcoms-projects.vercel.app"
   - "https://fechatter-frontend-cahw21vjh-zhkevin46-gmailcoms-projects.vercel.app"
-  - "https://fechatter-frontend-h00f7pv8z-zhkevin46-gmailcoms-projects.vercel.app"
   - "https://*.vercel.app" # 所有Vercel部署域名
-  - "https://fechatter.vercel.app"
   credentials: true
 
-# 开发工具（生产环境禁用）
+# 开发工具 - 生产环境也启用，保持与开发环境一致
 dev_tools:
-  enable_devtools: false
-  enable_source_maps: false
-  hot_reload: false
+  enable_devtools: true
+  enable_source_maps: true
+  hot_reload: true
 
-# 日志配置
+# 日志配置 - 生产环境也启用调试日志
 logging:
-  level: "warn"
-  enable_network_logs: false
-  enable_api_logs: false
+  level: "debug"
+  enable_network_logs: true
+  enable_api_logs: true
 
-# 测试账户配置 - 生产环境也保留用于演示
+# 测试账户配置 - 生产环境保持与开发环境一致
 test_accounts:
 - email: "test@fechatter.com"
   password: "test123"
   name: "Test User"
-  description: "演示账户"
+  description: "主要测试账户"
 - email: "dev@fechatter.com"
   password: "dev123"
   name: "Dev User"
-  description: "开发演示账户"
+  description: "开发测试账户"
 - email: "admin@fechatter.com"
   password: "admin123"
   name: "Admin User"
-  description: "管理员演示账户"
+  description: "管理员测试账户"
+- email: "super@test.com"
+  password: "password"
+  name: "Super User"
+  description: "超级用户测试账户"
