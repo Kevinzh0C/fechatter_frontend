@@ -6,6 +6,13 @@
 // Backend configuration
 const BACKEND_BASE_URL = 'https://45.77.178.85:8443';
 
+// Disable body parsing to handle raw data
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
+
 // CORS headers
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -23,6 +30,9 @@ export default async function handler(req, res) {
     });
     return res.status(204).end();
   }
+  
+  // Debug logging
+  console.log(`🔍 [Vercel Proxy] ${req.method} ${req.url} - Body type: ${typeof req.body}`);
   
   try {
     // Extract path from dynamic route
@@ -46,15 +56,15 @@ export default async function handler(req, res) {
       headers: forwardHeaders
     };
     
-    // Add body for POST/PUT/PATCH requests
+    // Get request body for POST/PUT/PATCH requests
     if (req.method !== 'GET' && req.method !== 'HEAD') {
-      if (req.body) {
-        if (typeof req.body === 'string') {
-          requestOptions.body = req.body;
-        } else {
-          requestOptions.body = JSON.stringify(req.body);
-          requestOptions.headers['content-type'] = 'application/json';
-        }
+      const chunks = [];
+      for await (const chunk of req) {
+        chunks.push(chunk);
+      }
+      const body = Buffer.concat(chunks);
+      if (body.length > 0) {
+        requestOptions.body = body;
       }
     }
     
