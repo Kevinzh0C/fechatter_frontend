@@ -1,9 +1,10 @@
 /**
  * Vercel API Proxy - Forward all /api requests to ngrok backend
  * Fixed: Add ngrok headers to bypass free tier data restrictions
+ * Updated: New ngrok URL pointing directly to backend port 6688
  */
 
-const BACKEND_URL = 'https://62f5-45-77-178-85.ngrok-free.app';
+const BACKEND_URL = 'https://59d2-45-77-178-85.ngrok-free.app';
 
 export default async function handler(req, res) {
   const { path } = req.query;

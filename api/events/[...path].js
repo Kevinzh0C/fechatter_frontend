@@ -2,7 +2,7 @@
  * Vercel Events Proxy - Forward all /events requests to ngrok backend
  */
 
-const BACKEND_URL = 'https://62f5-45-77-178-85.ngrok-free.app';
+const BACKEND_URL = 'https://59d2-45-77-178-85.ngrok-free.app';
 
 export default async function handler(req, res) {
   const { path } = req.query;
