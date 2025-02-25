@@ -1,27 +1,28 @@
 # Fechatter Frontend - Production Configuration
-# 生产环境：Vercel部署直连后端服务
+# 生产环境：与开发环境保持一致的配置
 
 app:
   name: "Fechatter"
   version: "1.0.0"
   environment: "production"
-  debug: false
+  debug: true
 
-# 前端服务器配置（生产环境由Vercel管理）
+# 前端服务器配置
 frontend:
-  port: 3000
-  host: "0.0.0.0"
+  port: 5173 # Vite默认端口
+  host: "localhost"
+  hmr_port: 1421
 
-# API配置 - 生产环境直连后端HTTPS
+# API配置 - 生产环境也使用相对路径，通过Vite/Vercel代理访问HTTPS后端
 api:
-  # 🚀 后端服务器HTTPS地址 (Docker ngrok HTTP->HTTPS)
-  gateway_url: "https://62f5-45-77-178-85.ngrok-free.app"
+  # 生产环境使用相对路径，通过代理到HTTPS后端
+  gateway_url: "http://localhost:5173"
 
-  # 生产环境使用Docker ngrok HTTP->HTTPS转换
-  base_url: "https://62f5-45-77-178-85.ngrok-free.app/api"
-  file_url: "https://62f5-45-77-178-85.ngrok-free.app/files"
-  sse_url: "https://62f5-45-77-178-85.ngrok-free.app/events"
-  notify_url: "https://62f5-45-77-178-85.ngrok-free.app/notify"
+  # 使用相对路径，让代理处理SSL证书问题（与开发环境路径保持一致）
+  base_url: "/api"
+  file_url: "/files"
+  sse_url: "/events"
+  notify_url: "/notify"
 
   # 请求配置
   timeout: 15000

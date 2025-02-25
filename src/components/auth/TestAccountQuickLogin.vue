@@ -59,15 +59,15 @@ export default {
     // Load test accounts from YAML configuration
     onMounted(async () => {
       try {
-        // Check if user has hidden test accounts
-        const isHidden = localStorage.getItem('fechatter_hide_test_accounts') === 'true'
-        
         const hasTestConfig = await hasTestAccountConfig()
         if (hasTestConfig) {
           testAccounts.value = await getTestAccounts()
-          // Show test accounts unless explicitly hidden
-          showTestAccounts.value = !isHidden
+          // Always show test accounts when configuration is available
+          showTestAccounts.value = true
           console.log('🚀 Test accounts loaded:', testAccounts.value.length)
+          console.log('🚀 Test accounts config found, showing quick login panel')
+        } else {
+          console.log('⚠️ No test accounts configuration found')
         }
       } catch (error) {
         console.warn('Failed to load test accounts:', error)

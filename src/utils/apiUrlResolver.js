@@ -5,44 +5,36 @@
 
 import { getApiConfig } from './yamlConfigLoader.js';
 
+// ngrok URL for production backend
+const NGROK_URL = 'https://ca90-45-77-178-85.ngrok-free.app';
+
 /**
  * Detect current runtime environment
  */
 function detectRuntimeEnvironment() {
-  // Check if running in Vercel (both dev and production)
+  // Check if running in browser
   if (typeof window !== 'undefined') {
     const hostname = window.location.hostname;
     const port = window.location.port;
-    
-    // Vercel dev can run on port 3000, 3001, or other ports
-    if (hostname === 'localhost' && (port === '3000' || port === '3001' || port === '3002')) {
-      return 'vercel';
-    }
     
     // Vercel production domains
     if (hostname.includes('vercel.app') || hostname.includes('vercel.dev')) {
       return 'vercel';
     }
     
-    // Local Vite dev server on port 5173
+    // Local Vite dev server
     if ((hostname === 'localhost' || hostname === '127.0.0.1') && port === '5173') {
       return 'development';
     }
   }
   
   // Check environment variables
-  if (typeof process !== 'undefined' && process.env) {
-    if (process.env.VERCEL || process.env.VERCEL_ENV) {
-      return 'vercel';
-    }
+  if (typeof process !== 'undefined' && process.env?.VERCEL) {
+    return 'vercel';
   }
   
-  // Check Vite environment
-  if (import.meta.env.DEV) {
-    return 'development';
-  }
-  
-  return 'production';
+  // Default to development
+  return 'development';
 }
 
 /**
@@ -60,8 +52,8 @@ export async function getApiBaseUrl() {
         return config.base_url || '/api';
         
       case 'vercel':
-        // Use relative paths in Vercel (Vercel functions handle the proxy)
-        return config.base_url || '/api';
+        // Direct ngrok connection for Vercel environments
+        return `${NGROK_URL}/api`;
         
       case 'production':
         // Use direct backend URLs for other production environments
@@ -77,8 +69,9 @@ export async function getApiBaseUrl() {
     const environment = detectRuntimeEnvironment();
     switch (environment) {
       case 'development':
-      case 'vercel':
         return '/api';
+      case 'vercel':
+        return `${NGROK_URL}/api`;
       default:
         return 'https://45.77.178.85:8443/api';
     }
@@ -97,13 +90,20 @@ export async function getFileUrl() {
       case 'development':
         return config.file_url || '/files';
       case 'vercel':
-        return config.file_url || '/api/files';
+        return `${NGROK_URL}/files`;
       default:
         return config.file_url || 'https://45.77.178.85:8443/files';
     }
   } catch (error) {
     const environment = detectRuntimeEnvironment();
-    return environment === 'vercel' || environment === 'development' ? '/api/files' : '/files';
+    switch (environment) {
+      case 'development':
+        return '/files';
+      case 'vercel':
+        return `${NGROK_URL}/files`;
+      default:
+        return '/files';
+    }
   }
 }
 
@@ -119,13 +119,20 @@ export async function getSseUrl() {
       case 'development':
         return config.sse_url || '/events';
       case 'vercel':
-        return config.sse_url || '/api/events';
+        return `${NGROK_URL}/events`;
       default:
         return config.sse_url || 'https://45.77.178.85:8443/events';
     }
   } catch (error) {
     const environment = detectRuntimeEnvironment();
-    return environment === 'vercel' || environment === 'development' ? '/api/events' : '/events';
+    switch (environment) {
+      case 'development':
+        return '/events';
+      case 'vercel':
+        return `${NGROK_URL}/events`;
+      default:
+        return '/events';
+    }
   }
 }
 
@@ -141,13 +148,20 @@ export async function getNotifyUrl() {
       case 'development':
         return config.notify_url || '/notify';
       case 'vercel':
-        return config.notify_url || '/api/notify';
+        return `${NGROK_URL}/notify`;
       default:
         return config.notify_url || 'https://45.77.178.85:8443/notify';
     }
   } catch (error) {
     const environment = detectRuntimeEnvironment();
-    return environment === 'vercel' || environment === 'development' ? '/api/notify' : '/notify';
+    switch (environment) {
+      case 'development':
+        return '/notify';
+      case 'vercel':
+        return `${NGROK_URL}/notify`;
+      default:
+        return '/notify';
+    }
   }
 }
 

@@ -71,17 +71,25 @@ function parseSimpleYAML(text) {
  * Detect current environment
  */
 function detectEnvironment() {
-  // Check if we're in development mode
-  if (import.meta.env.DEV) {
-    return 'development';
-  }
-  
-  // Check if we're running on localhost
+  // Check if running in browser
   if (typeof window !== 'undefined') {
     const hostname = window.location.hostname;
-    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    const port = window.location.port;
+    
+    // Vercel production domains
+    if (hostname.includes('vercel.app') || hostname.includes('vercel.dev')) {
+      return 'production';
+    }
+    
+    // Local Vite dev server
+    if ((hostname === 'localhost' || hostname === '127.0.0.1') && port === '5173') {
       return 'development';
     }
+  }
+  
+  // Check environment variables
+  if (typeof process !== 'undefined' && process.env?.VERCEL) {
+    return 'production';
   }
   
   // Default to production for deployed environments

@@ -72,18 +72,18 @@ export default defineConfig({
       allow: ['..']
     },
 
-    // 🔗 Simplified proxy configuration with ngrok tunnel
-    // All requests now go through the ngrok HTTPS tunnel
+    // 🔗 Nginx proxy configuration via ngrok tunnel
+    // All requests now go through nginx proxy via ngrok HTTPS tunnel
     proxy: {
-      // All API requests to ngrok tunnel
+      // All API requests to nginx via ngrok tunnel
       '/api': {
-        target: 'https://62f5-45-77-178-85.ngrok-free.app',
+        target: 'https://ca90-45-77-178-85.ngrok-free.app',
         changeOrigin: true,
         secure: true, // ngrok provides valid SSL
         timeout: 10000,
         configure: (proxy, options) => {
           proxy.on('error', (err, req, res) => {
-            console.error('🚨 ngrok API Proxy error:', err.message);
+            console.error('🚨 nginx API Proxy error:', err.message);
             if (!res.headersSent) {
               res.writeHead(503, {
                 'Content-Type': 'application/json',
@@ -91,40 +91,40 @@ export default defineConfig({
               });
               res.end(JSON.stringify({
                 error: 'Backend service unavailable',
-                code: 'NGROK_PROXY_ERROR',
+                code: 'NGINX_PROXY_ERROR',
                 development: true
               }));
             }
           });
           proxy.on('proxyReq', (proxyReq, req, res) => {
-            console.log(`🔗 [ngrok] API: ${req.method} ${sanitizeUrl(req.url)}`);
+            console.log(`🔗 [nginx] API: ${req.method} ${sanitizeUrl(req.url)}`);
           });
         }
       },
-      // File service through ngrok
+      // File service through nginx via ngrok
       '/files': {
-        target: 'https://62f5-45-77-178-85.ngrok-free.app',
+        target: 'https://ca90-45-77-178-85.ngrok-free.app',
         changeOrigin: true,
         secure: true,
         timeout: 15000
       },
-      // SSE events through ngrok
+      // SSE events through nginx via ngrok
       '/events': {
-        target: 'https://62f5-45-77-178-85.ngrok-free.app',
+        target: 'https://ca90-45-77-178-85.ngrok-free.app',
         changeOrigin: true,
         secure: true,
         timeout: 0,
         configure: (proxy, options) => {
           proxy.on('proxyReq', (proxyReq, req, res) => {
-            console.log(`🔗 [ngrok] SSE: ${req.method} ${sanitizeUrl(req.url)}`);
+            console.log(`🔗 [nginx] SSE: ${req.method} ${sanitizeUrl(req.url)}`);
             proxyReq.setHeader('Accept', 'text/event-stream');
             proxyReq.setHeader('Cache-Control', 'no-cache');
           });
         }
       },
-      // Notifications through ngrok
+      // Notifications through nginx via ngrok
       '/notify': {
-        target: 'https://62f5-45-77-178-85.ngrok-free.app',
+        target: 'https://ca90-45-77-178-85.ngrok-free.app',
         changeOrigin: true,
         secure: true,
         timeout: 10000
