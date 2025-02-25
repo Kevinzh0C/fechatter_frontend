@@ -67,3 +67,7 @@ test_accounts:
   password: "admin123"
   name: "Admin User"
   description: "管理员演示账户"
+- email: "super@test.com"
+  password: "password"
+  name: "Super User"
+  description: "超级用户测试账户"
