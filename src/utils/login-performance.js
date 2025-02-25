@@ -3,11 +3,18 @@
  * Simplified Login Performance Utilities
  */
 
-// 基本资源预加载
+// 基本资源预加载 - 在Vite开发环境中禁用，避免404错误
 export const preloadCriticalResources = () => {
+  // 在开发环境中跳过预加载，避免404错误
+  if (import.meta.env.DEV) {
+    console.log('🔧 [Performance] Skipping preload in development mode');
+    return;
+  }
+
   const criticalResources = [
-    '/src/main.js',
-    '/src/stores/auth.js'
+    // 生产环境中会有正确的构建路径
+    '/assets/main.js',
+    '/assets/auth.js'
   ];
 
   criticalResources.forEach(resource => {
