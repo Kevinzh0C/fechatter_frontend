@@ -7,7 +7,7 @@ const BACKEND_URL = 'https://62f5-45-77-178-85.ngrok-free.app';
 export default async function handler(req, res) {
   const { path } = req.query;
   const targetPath = Array.isArray(path) ? path.join('/') : path || '';
-  const targetUrl = `${BACKEND_URL}/api/${targetPath}`;
+  const targetUrl = `${BACKEND_URL}/${targetPath}`;
 
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
