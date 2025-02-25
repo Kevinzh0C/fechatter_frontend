@@ -12,16 +12,16 @@ frontend:
   port: 3000
   host: "0.0.0.0"
 
-# API配置 - 生产环境通过ngrok HTTPS隧道
+# API配置 - 生产环境直连后端HTTPS
 api:
-  # 🚀 NGROK隧道地址 - 从ngrok输出复制URL替换下面的地址
-  gateway_url: "https://example-ngrok-url.ngrok.io"
+  # 🚀 后端服务器HTTPS地址
+  gateway_url: "https://45.77.178.85:8443"
 
-  # 生产环境使用ngrok隧道
-  base_url: "https://example-ngrok-url.ngrok.io/api"
-  file_url: "https://example-ngrok-url.ngrok.io/files"
-  sse_url: "https://example-ngrok-url.ngrok.io/events"
-  notify_url: "https://example-ngrok-url.ngrok.io/notify"
+  # 生产环境使用后端HTTPS
+  base_url: "https://45.77.178.85:8443/api"
+  file_url: "https://45.77.178.85:8443/files"
+  sse_url: "https://45.77.178.85:8443/events"
+  notify_url: "https://45.77.178.85:8443/notify"
 
   # 请求配置
   timeout: 15000
@@ -32,6 +32,7 @@ api:
 cors:
   enabled: true
   origins:
+  - "https://fechatter-frontend-7xkk7m3a8-zhkevin46-gmailcoms-projects.vercel.app" # 当前部署域名
   - "https://fechatter-frontend-kto9xf8u5-zhkevin46-gmailcoms-projects.vercel.app" # 最新部署域名
   - "https://fechatter-frontend-j19109swu-zhkevin46-gmailcoms-projects.vercel.app"
   - "https://fechatter-frontend-cahw21vjh-zhkevin46-gmailcoms-projects.vercel.app"
