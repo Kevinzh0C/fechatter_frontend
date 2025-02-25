@@ -14,14 +14,14 @@ frontend:
 
 # API配置 - 生产环境直连后端HTTPS
 api:
-  # 🚀 后端服务器HTTPS地址
-  gateway_url: "https://45.77.178.85:8443"
+  # 🚀 后端服务器HTTPS地址 (HTTP->HTTPS via ngrok)
+  gateway_url: "https://e42f-2001-19f0-7001-3f08-5400-5ff-fe7e-9800.ngrok-free.app"
 
-  # 生产环境使用后端HTTPS
-  base_url: "https://45.77.178.85:8443/api"
-  file_url: "https://45.77.178.85:8443/files"
-  sse_url: "https://45.77.178.85:8443/events"
-  notify_url: "https://45.77.178.85:8443/notify"
+  # 生产环境使用ngrok HTTP->HTTPS转换
+  base_url: "https://e42f-2001-19f0-7001-3f08-5400-5ff-fe7e-9800.ngrok-free.app/api"
+  file_url: "https://e42f-2001-19f0-7001-3f08-5400-5ff-fe7e-9800.ngrok-free.app/files"
+  sse_url: "https://e42f-2001-19f0-7001-3f08-5400-5ff-fe7e-9800.ngrok-free.app/events"
+  notify_url: "https://e42f-2001-19f0-7001-3f08-5400-5ff-fe7e-9800.ngrok-free.app/notify"
 
   # 请求配置
   timeout: 15000
