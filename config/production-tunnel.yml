@@ -1,0 +1,76 @@
+# Fechatter Frontend - Production Configuration (Cloudflare Tunnel)
+# 生产环境：使用Cloudflare Tunnel提供的免费HTTPS域名
+
+app:
+  name: "Fechatter"
+  version: "1.0.0"
+  environment: "production"
+  debug: false
+
+# 前端服务器配置（生产环境由Vercel管理）
+frontend:
+  port: 3000
+  host: "0.0.0.0"
+
+# API配置 - 生产环境使用Cloudflare Tunnel域名
+api:
+  # 使用Cloudflare Tunnel提供的HTTPS域名
+  # 格式: https://random-words-1234.trycloudflare.com
+  # 注意: 这个URL需要从tunnel启动后获得并手动更新
+  gateway_url: "https://YOUR_TUNNEL_URL.trycloudflare.com"
+
+  # 生产环境API路径
+  base_url: "https://YOUR_TUNNEL_URL.trycloudflare.com/api"
+  file_url: "https://YOUR_TUNNEL_URL.trycloudflare.com/files"
+  sse_url: "https://YOUR_TUNNEL_URL.trycloudflare.com/events"
+  notify_url: "https://YOUR_TUNNEL_URL.trycloudflare.com/notify"
+
+  # 请求配置
+  timeout: 15000
+  max_retries: 3
+  retry_delay: 1000
+
+# CORS配置 - 生产环境
+cors:
+  enabled: true
+  origins:
+  - "https://*.vercel.app" # 所有Vercel部署域名
+  - "https://fechatter.vercel.app" # 如果有自定义Vercel域名
+  credentials: true
+
+# 开发工具（生产环境禁用）
+dev_tools:
+  enable_devtools: false
+  enable_source_maps: false
+  hot_reload: false
+
+# 日志配置
+logging:
+  level: "warn"
+  enable_network_logs: false
+  enable_api_logs: false
+
+# 测试账户配置 - 生产环境保留用于演示
+test_accounts:
+- email: "test@fechatter.com"
+  password: "test123"
+  name: "Test User"
+  description: "演示账户"
+- email: "dev@fechatter.com"
+  password: "dev123"
+  name: "Dev User"
+  description: "开发演示账户"
+- email: "admin@fechatter.com"
+  password: "admin123"
+  name: "Admin User"
+  description: "管理员演示账户"
+
+# Cloudflare Tunnel配置说明
+tunnel:
+  provider: "cloudflare"
+  type: "temporary" # 或 "permanent"
+  instructions: |
+    1. 在后端服务器运行: cloudflared tunnel --url http://localhost:6688
+    2. 复制生成的 *.trycloudflare.com URL
+    3. 更新此配置文件中的 YOUR_TUNNEL_URL
+    4. 重新部署前端 

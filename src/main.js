@@ -58,6 +58,9 @@ import analytics from './services/analytics-client.js'
 // Import YAML Configuration Loader
 import { initializeYAMLConfig } from './utils/yamlConfigLoader.js'
 
+// Import API URL Resolver for environment debugging
+import { getEnvironmentInfo } from './utils/apiUrlResolver.js'
+
 // Enhanced console state detection function
 function detectConsoleAccess() {
   let devtools = {
@@ -79,12 +82,12 @@ function detectConsoleAccess() {
 // Enhanced console state detection
 const devtools = detectConsoleAccess();
 
-// --- 🛡️ SIMPLIFIED SAFETY INITIALIZATION ---
+// --- SIMPLIFIED SAFETY INITIALIZATION ---
 // Simplified safety - no external dependency needed
 const simplifiedSafety = {
   initialize: (devtools) => {
     if (import.meta.env.DEV) {
-      console.log('🛡️ Simplified Safety active (Development Mode)');
+      console.log('Security layer active (Development Mode)');
     }
   },
   getSecurityStatus: () => ({
@@ -95,17 +98,17 @@ const simplifiedSafety = {
 };
 
 simplifiedSafety.initialize(devtools);
-console.log('🛡️ Production Safety Wrapper active');
+console.log('Production Safety Wrapper active');
 
-// --- 📊 PERFORMANCE MONITORING ---
+// --- PERFORMANCE MONITORING ---
 performanceMonitor.initialize();
-console.log('📊 Performance Monitor loaded - use window.perfAnalytics() to view stats');
+console.log('Performance Monitor loaded - use window.perfAnalytics() to view stats');
 
-// --- 🔧 SYSTEM MONITORING ---
+// --- SYSTEM MONITORING ---
 if (import.meta.env.DEV) {
-  console.log('🔧 System Monitor initialized - use window.debugSystem() for health check');
-  console.log('📊 Available debug commands: debugSystem(), debugMessageService(), debugCache(), debugComponents(), debugPerformance(), debugMemory(), debugFullReport()');
-  console.log('🏥 Quick Health Check available - use window.quickHealthCheck() for instant status overview');
+  console.log('System Monitor initialized - use window.debugSystem() for health check');
+  console.log('Available debug commands: debugSystem(), debugMessageService(), debugCache(), debugComponents(), debugPerformance(), debugMemory(), debugFullReport()');
+  console.log('Quick Health Check available - use window.quickHealthCheck() for instant status overview');
 }
 
 // --- 🚀 INITIALIZE CORE APPLICATION ---
@@ -140,9 +143,10 @@ if (import.meta.env.DEV) {
   import('./utils/messageServiceDiagnostics'); // Import UnifiedMessageService diagnostics
   import('./utils/fetchMoreMessagesTest'); // Import fetchMoreMessages fix verification
   import('./utils/systemHealthValidator'); // Import system health validator
-  import('./utils/sseDebugger'); // 🚀 Import SSE debugger for comprehensive SSE diagnosis
+  import('./utils/sseDebugger'); // Import SSE debugger for comprehensive SSE diagnosis
+  import('./utils/environmentTest'); // Import environment testing utility
 
-  // 🆕 NEW: Import advanced UX systems for development
+  // Import advanced UX systems for development
   import('./services/ProgressiveLoadManager.js'); // Import progressive loading system
   import('./services/MessageSessionGrouper.js'); // Import message grouping system
 }
@@ -156,13 +160,13 @@ if (import.meta.env.DEV) {
 
 // Initialize security measures
 if (import.meta.env.DEV) {
-  console.log('🔒 Initializing Fechatter Security Layer...')
+  console.log('Initializing Fechatter Security Layer...')
 }
 
 // Apply simplified safety policies
 const securityStatus = simplifiedSafety.getSecurityStatus()
 if (import.meta.env.DEV) {
-  console.log('🛡️ Security Status:', securityStatus)
+  console.log('Security Status:', securityStatus)
 }
 
 // Set up global error handling with security considerations
@@ -190,31 +194,31 @@ async function initializeStores() {
     // Initialize auth state from storage
     await authStore.initialize()
 
-    // 🚀 ENHANCED: More strict SSE connection validation
+    // Enhanced SSE connection validation
     if (import.meta.env.DEV) {
-      console.log('🔍 [SSE] Checking SSE initialization conditions...');
-      console.log('🔍 [SSE] authStore.isAuthenticated:', authStore.isAuthenticated);
-      console.log('🔍 [SSE] authStore.token exists:', !!authStore.token);
-      console.log('🔍 [SSE] Current route:', router.currentRoute.value?.path);
+      console.log('[SSE] Checking SSE initialization conditions...');
+      console.log('[SSE] authStore.isAuthenticated:', authStore.isAuthenticated);
+      console.log('[SSE] authStore.token exists:', !!authStore.token);
+      console.log('[SSE] Current route:', router.currentRoute.value?.path);
       if (authStore.token) {
-        console.log('🔍 [SSE] Token preview:', authStore.token.substring(0, 20) + '...');
+        console.log('[SSE] Token preview:', authStore.token.substring(0, 20) + '...');
       }
     }
 
-    // 🚀 CRITICAL FIX: More comprehensive authentication validation
+    // More comprehensive authentication validation
     const isUserLoggedIn = authStore.isAuthenticated &&
       authStore.token &&
       authStore.user &&
       authStore.token.length > 50; // Ensure token is substantial
 
-    // 🚀 ADDITIONAL: Don't initialize SSE on login/register pages
+    // Don't initialize SSE on login/register pages
     const currentPath = router.currentRoute.value?.path || window.location.pathname;
     const isOnAuthPage = currentPath.includes('/login') ||
       currentPath.includes('/register') ||
       currentPath === '/';
 
     if (import.meta.env.DEV) {
-      console.log('🔍 [SSE] Enhanced validation:');
+      console.log('[SSE] Enhanced validation:');
       console.log('  - isUserLoggedIn:', isUserLoggedIn);
       console.log('  - isOnAuthPage:', isOnAuthPage);
       console.log('  - currentPath:', currentPath);
@@ -223,9 +227,9 @@ async function initializeStores() {
     if (isUserLoggedIn && !isOnAuthPage) {
       try {
         if (import.meta.env.DEV) {
-          console.log('🔗 [SSE] ✅ ALL CONDITIONS MET! Initializing SSE connection...');
-          console.log('🔗 [SSE] User:', authStore.user?.email || 'Unknown');
-          console.log('🔗 [SSE] minimalSSE service:', !!minimalSSE);
+          console.log('[SSE] ALL CONDITIONS MET! Initializing SSE connection...');
+          console.log('[SSE] User:', authStore.user?.email || 'Unknown');
+          console.log('[SSE] minimalSSE service:', !!minimalSSE);
         }
 
         minimalSSE.connect(authStore.token);
@@ -234,11 +238,11 @@ async function initializeStores() {
         setTimeout(() => {
           const sseStatus = minimalSSE.getStatus();
           if (import.meta.env.DEV) {
-            console.log('📡 [SSE] Startup connection status:', sseStatus);
-            console.log('📡 [SSE] EventSource exists:', !!minimalSSE.eventSource);
+            console.log('[SSE] Startup connection status:', sseStatus);
+            console.log('[SSE] EventSource exists:', !!minimalSSE.eventSource);
             if (minimalSSE.eventSource) {
-              console.log('📡 [SSE] EventSource URL:', minimalSSE.eventSource.url);
-              console.log('📡 [SSE] EventSource readyState:', minimalSSE.eventSource.readyState);
+              console.log('[SSE] EventSource URL:', minimalSSE.eventSource.url);
+              console.log('[SSE] EventSource readyState:', minimalSSE.eventSource.readyState);
             }
           }
         }, 2000);
@@ -350,12 +354,16 @@ initializeStores().then(() => {
 // Mount application with security checks
 async function mountApp() {
   try {
-    // 🔧 Initialize YAML configuration first
+    // Initialize YAML configuration first
     try {
       await initializeYAMLConfig();
-      console.log('✅ YAML Configuration loaded successfully');
+      console.log('YAML Configuration loaded successfully');
+      
+      // Log environment info for debugging
+      const envInfo = getEnvironmentInfo();
+      console.log('Environment Info:', envInfo);
     } catch (configError) {
-      console.warn('⚠️ YAML Configuration failed, using fallback:', configError);
+      console.warn('YAML Configuration failed, using fallback:', configError);
     }
     
     await initializeStores()

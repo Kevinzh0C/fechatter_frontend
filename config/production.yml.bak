@@ -12,16 +12,16 @@ frontend:
   port: 3000
   host: "0.0.0.0"
 
-# API配置 - 生产环境通过Vercel代理访问后端
+# API配置 - 生产环境通过ngrok HTTPS隧道
 api:
-  # Gateway地址 - 通过Vercel代理
-  gateway_url: ""
+  # 🚀 NGROK隧道地址 - 从ngrok输出复制URL替换下面的地址
+  gateway_url: "https://REPLACE_WITH_NGROK_URL.ngrok.io"
 
-  # 生产环境使用Vercel代理相对路径（模拟本地Vite代理）
-  base_url: "/api/proxy"
-  file_url: "/api/proxy/files"
-  sse_url: "/api/proxy/events"
-  notify_url: "/api/proxy/notify"
+  # 生产环境使用ngrok隧道
+  base_url: "https://REPLACE_WITH_NGROK_URL.ngrok.io/api"
+  file_url: "https://REPLACE_WITH_NGROK_URL.ngrok.io/files"
+  sse_url: "https://REPLACE_WITH_NGROK_URL.ngrok.io/events"
+  notify_url: "https://REPLACE_WITH_NGROK_URL.ngrok.io/notify"
 
   # 请求配置
   timeout: 15000

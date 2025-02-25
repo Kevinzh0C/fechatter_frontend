@@ -36,7 +36,8 @@ cors:
   - "http://localhost:5173" # Vite开发端口
   - "http://localhost:1420" # 备用端口
   - "http://127.0.0.1:5173"
-  - "https://fechatter-frontend-j19109swu-zhkevin46-gmailcoms-projects.vercel.app" # 最新部署域名
+  - "https://fechatter-frontend-kto9xf8u5-zhkevin46-gmailcoms-projects.vercel.app" # 最新部署域名
+  - "https://fechatter-frontend-j19109swu-zhkevin46-gmailcoms-projects.vercel.app"
   - "https://fechatter-frontend-cahw21vjh-zhkevin46-gmailcoms-projects.vercel.app"
   - "https://*.vercel.app" # 所有Vercel部署域名
   credentials: true

@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { getApiConfig } from '../utils/yamlConfigLoader.js';
+import { getApiBaseUrl } from '../utils/apiUrlResolver.js';
 
 /**
  * Production-level API client with authentication and error handling
@@ -36,11 +37,12 @@ async function initializeApiClient() {
   
   configPromise = (async () => {
     try {
+      // Use the new URL resolver for environment-aware API URLs
+      const baseURL = await getApiBaseUrl();
       const apiConfig = await getApiConfig();
-      const baseURL = apiConfig.base_url || '/api';
       const timeout = apiConfig.timeout || 30000;
       
-      // Recreate axios instance with YAML config
+      // Recreate axios instance with resolved URL
       api = axios.create({
         baseURL,
         timeout,
@@ -49,7 +51,7 @@ async function initializeApiClient() {
         }
       });
       
-      console.log('🔧 API client initialized with YAML config:', { baseURL, timeout });
+      console.log('API client initialized with resolved URL:', { baseURL, timeout });
       
       // Setup interceptors after recreation
       setupInterceptors();
@@ -57,7 +59,7 @@ async function initializeApiClient() {
       configInitialized = true;
       
     } catch (error) {
-      console.warn('Failed to load YAML API config, using fallback:', error);
+      console.warn('Failed to load API config, using fallback:', error);
       setupInterceptors();
       configInitialized = true;
     }

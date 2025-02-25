@@ -1,12 +1,11 @@
 {
   "buildCommand": "yarn build",
   "outputDirectory": "dist",
+  "cleanUrls": false,
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/((?!favicon|manifest|.*\\.).*)",
       "destination": "/index.html"
     }
-  ],
-  "cleanUrls": false,
-  "trailingSlash": false
+  ]
 }

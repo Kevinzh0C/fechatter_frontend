@@ -12,48 +12,34 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const projectRoot = path.resolve(__dirname, '..');
-const configDir = path.join(projectRoot, 'config');
-const publicConfigDir = path.join(projectRoot, 'public', 'config');
-
-// Ensure public/config directory exists
-if (!fs.existsSync(publicConfigDir)) {
-  fs.mkdirSync(publicConfigDir, { recursive: true });
-  console.log('📁 Created public/config directory');
-}
-
-// Copy configuration files
-const configFiles = [
-  'development.yml',
-  'production.yml'
+// Configuration files to copy
+const configs = [
+  { src: 'config/development.yml', dest: 'public/config/development.yml' },
+  { src: 'config/production.yml', dest: 'public/config/production.yml' }
 ];
 
-console.log('🔄 Copying configuration files...');
+// Ensure destination directory exists
+const destDir = path.dirname(configs[0].dest);
+if (!fs.existsSync(destDir)) {
+  fs.mkdirSync(destDir, { recursive: true });
+}
 
-configFiles.forEach(fileName => {
-  const sourcePath = path.join(configDir, fileName);
-  const destPath = path.join(publicConfigDir, fileName);
+console.log('Copying configuration files...');
 
+// Copy each configuration file
+configs.forEach(({ src, dest }) => {
   try {
-    if (fs.existsSync(sourcePath)) {
-      fs.copyFileSync(sourcePath, destPath);
-      console.log(`✅ Copied ${fileName} to public/config/`);
+    if (fs.existsSync(src)) {
+      fs.copyFileSync(src, dest);
+      const stats = fs.statSync(dest);
+      console.log(`✓ ${path.basename(dest)} (${stats.size} bytes)`);
     } else {
-      console.warn(`⚠️  Source file not found: ${fileName}`);
+      console.warn(`⚠ Source file not found: ${src}`);
     }
   } catch (error) {
-    console.error(`❌ Failed to copy ${fileName}:`, error.message);
+    console.error(`✗ Failed to copy ${src}:`, error.message);
+    process.exit(1);
   }
 });
 
-console.log('🎉 Configuration files copied successfully!');
-
-// Verify files are accessible
-console.log('\n📋 Available configurations:');
-configFiles.forEach(fileName => {
-  const destPath = path.join(publicConfigDir, fileName);
-  if (fs.existsSync(destPath)) {
-    const stats = fs.statSync(destPath);
-    console.log(`  ✓ ${fileName} (${stats.size} bytes)`);
-  }
-}); 
+console.log('Configuration files ready!'); 

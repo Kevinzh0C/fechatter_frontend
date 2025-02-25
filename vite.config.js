@@ -59,8 +59,8 @@ export default defineConfig({
 
   // 2. tauri expects a fixed port, fail if that port is not available
   server: {
-    port: 5173,
-    strictPort: true,
+    port: process.env.PORT ? parseInt(process.env.PORT) : 5173,
+    strictPort: !process.env.PORT, // Allow dynamic port for Vercel dev
     host: host || false,
     open: false, // 🚀 CHANGED: 不自动打开浏览器，显示URL供手动打开
     cors: true,
@@ -308,7 +308,9 @@ export default defineConfig({
   },
 
   define: {
-    'import.meta.env.DEV': JSON.stringify(process.env.NODE_ENV === 'development')
+    'import.meta.env.DEV': JSON.stringify(process.env.NODE_ENV === 'development'),
+    __VERCEL_ENV__: JSON.stringify(process.env.VERCEL_ENV || 'development'),
+    __BUILD_TIME__: JSON.stringify(new Date().toISOString())
   },
 
   // Include WASM files as assets
@@ -328,7 +330,7 @@ export default defineConfig({
     chunkSizeWarningLimit: 1000,
     target: 'esnext',
     outDir: 'dist',
-    sourcemap: true
+    sourcemap: process.env.NODE_ENV === 'development'
   },
 
   // Suppress specific warnings
@@ -338,5 +340,8 @@ export default defineConfig({
       'this-is-undefined-in-esm': 'silent',
       'import-is-undefined': 'silent'
     }
-  }
+  },
+
+  // Environment variables prefix
+  envPrefix: ['VITE_', 'VERCEL_']
 }); 
