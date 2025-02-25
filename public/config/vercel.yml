@@ -1,0 +1,85 @@
+# Fechatter Frontend - Vercel Production Configuration
+# 专门为Vercel部署优化，保留所有开发功能
+
+app:
+  name: "Fechatter"
+  version: "1.0.0"
+  environment: "development" # 强制开发模式以启用测试账户
+  debug: true # 启用调试功能
+
+# 前端部署配置
+frontend:
+  domain: "fechatter-frontend-cxdtby9ch-zhkevin46-gmailcoms-projects.vercel.app"
+  port: 443
+  protocol: "https"
+
+# API配置 - 使用HTTPS连接
+api:
+  # Gateway地址 - HTTPS端口 (与本地保持一致)
+  gateway_url: "https://45.77.178.85:8443"
+
+  # 所有API端点都使用HTTPS
+  base_url: "https://45.77.178.85:8443/api"
+  file_url: "https://45.77.178.85:8443/files"
+  sse_url: "https://45.77.178.85:8443/events"
+  notify_url: "https://45.77.178.85:8443/notify"
+
+  # 请求配置 - 加长超时以适应网络延迟
+  timeout: 30000
+  max_retries: 5
+  retry_delay: 2000
+
+# CORS配置 - 支持Vercel域名
+cors:
+  enabled: true
+  origins:
+  - "https://fechatter-frontend-cxdtby9ch-zhkevin46-gmailcoms-projects.vercel.app"
+  - "https://*.vercel.app"
+  - "http://localhost:5173" # 保留本地开发支持
+  credentials: true
+
+# 开发工具 - 在Vercel上也启用
+dev_tools:
+  enable_devtools: true # 强制启用开发工具
+  enable_source_maps: true # 启用源码映射以便调试
+  hot_reload: false # Vercel上不需要热重载
+
+# 日志配置 - 详细日志用于调试
+logging:
+  level: "debug" # 保持调试级别日志
+  enable_network_logs: true # 启用网络日志
+  enable_api_logs: true # 启用API日志
+
+# 🎯 测试账户配置 - 完全保留本地功能
+test_accounts:
+- email: "test@fechatter.com"
+  password: "test123"
+  name: "Test User"
+  description: "主要测试账户"
+- email: "dev@fechatter.com"
+  password: "dev123"
+  name: "Dev User"
+  description: "开发测试账户"
+- email: "admin@fechatter.com"
+  password: "admin123"
+  name: "Admin User"
+  description: "管理员测试账户"
+
+# 🚀 Vercel特定配置
+vercel:
+  enable_test_accounts: true # 强制启用测试账户
+  enable_debug_tools: true # 强制启用调试工具
+  enable_console_access: true # 启用控制台访问
+  preserve_dev_features: true # 保留所有开发特性
+
+# 性能配置
+performance:
+  enable_compression: true
+  enable_caching: false # 开发模式禁用缓存
+  cache_duration: 0
+
+# 安全配置 - 开发友好
+security:
+  enable_csp: false # 开发模式禁用CSP
+  enable_https_only: true
+  enable_hsts: false # 开发模式禁用HSTS 

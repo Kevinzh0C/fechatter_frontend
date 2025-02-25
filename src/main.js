@@ -10,6 +10,8 @@ import minimalMessagePersistence from './utils/minimalMessagePersistence';
 import minimalSSE from './services/sse-minimal';
 // Import extension error suppressor to handle browser extension errors
 import './utils/extensionErrorSuppressor.js';
+// 🌐 VERCEL: Import Vercel environment detector FIRST to setup proper environment
+import './utils/vercelEnvironmentDetector.js';
 
 // 🎨 AESTHETIC RESTORATION: Import unified design system FIRST to override conflicts
 import './styles/unified-aesthetic-system.css';
