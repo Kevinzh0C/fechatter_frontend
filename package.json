@@ -16,7 +16,7 @@
     "docker:deploy": "chmod +x scripts/docker-complete-deploy.sh && scripts/docker-complete-deploy.sh",
     "build": "node scripts/copy-configs.js && vite build",
     "build:dev": "node scripts/copy-configs.js && npx vue-tsc && npx vite build --mode development",
-    "vercel-build": "node scripts/copy-configs.js && vite build",
+    "vercel-build": "vite build",
     "preview": "vite preview",
     "test": "vitest",
     "test:ui": "vitest --ui",

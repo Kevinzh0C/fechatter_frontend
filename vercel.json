@@ -1,5 +1,5 @@
 {
-  "buildCommand": "yarn build",
+  "buildCommand": "yarn generate-proto && yarn copy-configs && yarn vercel-build",
   "outputDirectory": "dist",
   "cleanUrls": false,
   "rewrites": [
