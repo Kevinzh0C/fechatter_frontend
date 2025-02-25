@@ -5,6 +5,10 @@ import { getApiConfig } from '../utils/yamlConfigLoader.js';
  * Production-level API client with authentication and error handling
  */
 
+// Configuration promise to ensure all requests wait for config
+let configInitialized = false;
+let configPromise = null;
+
 // Initialize with fallback
 let api = axios.create({
   baseURL: '/api', // Fallback
@@ -20,31 +24,48 @@ let api = axios.create({
 });
 
 // Initialize API client with YAML configuration
-(async () => {
-  try {
-    const apiConfig = await getApiConfig();
-    const baseURL = apiConfig.base_url || '/api';
-    const timeout = apiConfig.timeout || 30000;
-    
-    // Recreate axios instance with YAML config
-    api = axios.create({
-      baseURL,
-      timeout,
-      headers: {
-        'Accept': 'application/json'
-      }
-    });
-    
-    console.log('🔧 API client initialized with YAML config:', { baseURL, timeout });
-    
-    // Re-apply interceptors after recreation
-    setupInterceptors();
-    
-  } catch (error) {
-    console.warn('Failed to load YAML API config, using fallback:', error);
-    setupInterceptors();
+async function initializeApiClient() {
+  if (configInitialized) {
+    return api;
   }
-})();
+  
+  if (configPromise) {
+    await configPromise;
+    return api;
+  }
+  
+  configPromise = (async () => {
+    try {
+      const apiConfig = await getApiConfig();
+      const baseURL = apiConfig.base_url || '/api';
+      const timeout = apiConfig.timeout || 30000;
+      
+      // Recreate axios instance with YAML config
+      api = axios.create({
+        baseURL,
+        timeout,
+        headers: {
+          'Accept': 'application/json'
+        }
+      });
+      
+      console.log('🔧 API client initialized with YAML config:', { baseURL, timeout });
+      
+      // Setup interceptors after recreation
+      setupInterceptors();
+      
+      configInitialized = true;
+      
+    } catch (error) {
+      console.warn('Failed to load YAML API config, using fallback:', error);
+      setupInterceptors();
+      configInitialized = true;
+    }
+  })();
+  
+  await configPromise;
+  return api;
+}
 
 // Function to setup interceptors (to avoid duplication)
 function setupInterceptors() {
@@ -213,4 +234,17 @@ api.interceptors.response.use(
 
 } // End of setupInterceptors function
 
-export default api;
+// Create a proxy that ensures initialization before any API call
+const apiProxy = new Proxy({}, {
+  get(target, prop) {
+    if (typeof api[prop] === 'function') {
+      return async (...args) => {
+        await initializeApiClient();
+        return api[prop](...args);
+      };
+    }
+    return api[prop];
+  }
+});
+
+export default apiProxy;
