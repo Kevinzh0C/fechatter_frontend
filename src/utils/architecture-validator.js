@@ -1,12 +1,12 @@
 /**
- * 架构验证工具 - 验证前端是否正确通过Gateway连接
- * Fechatter Architecture Validator
+ * Architecture Validator - Modern Proxy-Based Configuration
+ * Validates frontend architecture for both development and production environments
  */
 
 import { getApiConfig } from '@/utils/configLoader';
 
 /**
- * 验证前端架构配置是否正确
+ * Validate frontend architecture configuration
  */
 export async function validateArchitecture() {
   console.group('🏗️ Fechatter Architecture Validation');
@@ -19,133 +19,139 @@ export async function validateArchitecture() {
   };
 
   try {
-    // 1. 验证配置加载
+    // 1. Validate configuration loading
     const config = getApiConfig();
 
     if (!config || Object.keys(config).length === 0) {
-      addResult(results, 'error', 'Configuration', '配置加载失败', 'YAML配置文件未正确加载');
+      addResult(results, 'error', 'Configuration', 'Configuration loading failed', 'YAML config file not loaded properly');
     } else {
-      addResult(results, 'success', 'Configuration', '配置加载成功', `Environment: ${config.environment || 'unknown'}`);
+      addResult(results, 'success', 'Configuration', 'Configuration loaded successfully', `Environment: ${config.environment || 'unknown'}`);
     }
 
-    // 2. 验证Gateway URL配置
-    const expectedGatewayUrl = 'http://45.77.178.85:8080';
+    // 2. Validate API configuration based on environment
+    const isDev = import.meta.env.DEV;
+    const isProduction = import.meta.env.PROD;
 
-    if (config.gateway_url === expectedGatewayUrl) {
-      addResult(results, 'success', 'Gateway URL', 'Gateway地址正确', config.gateway_url);
-    } else {
-      addResult(results, 'error', 'Gateway URL', 'Gateway地址错误', `期望: ${expectedGatewayUrl}, 实际: ${config.gateway_url}`);
+    if (isDev) {
+      // Development environment: relative paths through Vite proxy
+      const expectedEndpoints = [
+        { name: 'API Base URL', key: 'base_url', expected: '/api' },
+        { name: 'File URL', key: 'file_url', expected: '/files' },
+        { name: 'SSE URL', key: 'sse_url', expected: '/events' },
+        { name: 'Notify URL', key: 'notify_url', expected: '/notify' }
+      ];
+      
+      expectedEndpoints.forEach(endpoint => {
+        if (config[endpoint.key] === endpoint.expected) {
+          addResult(results, 'success', endpoint.name, 'Development endpoint configured correctly', config[endpoint.key]);
+        } else {
+          addResult(results, 'warning', endpoint.name, 'Development endpoint configuration mismatch',
+            `Expected: ${endpoint.expected}, Actual: ${config[endpoint.key]}`);
+        }
+      });
+    } else if (isProduction) {
+      // Production environment: Vercel proxy paths
+      const expectedEndpoints = [
+        { name: 'API Base URL', key: 'base_url', expected: '/api/proxy' },
+        { name: 'File URL', key: 'file_url', expected: '/api/proxy/files' },
+        { name: 'SSE URL', key: 'sse_url', expected: '/api/proxy/events' },
+        { name: 'Notify URL', key: 'notify_url', expected: '/api/proxy/notify' }
+      ];
+      
+      expectedEndpoints.forEach(endpoint => {
+        if (config[endpoint.key] === endpoint.expected) {
+          addResult(results, 'success', endpoint.name, 'Production endpoint configured correctly', config[endpoint.key]);
+        } else {
+          addResult(results, 'warning', endpoint.name, 'Production endpoint configuration mismatch',
+            `Expected: ${endpoint.expected}, Actual: ${config[endpoint.key]}`);
+        }
+      });
     }
 
-    // 3. 验证所有端点都指向Gateway
-    const expectedEndpoints = [
-      { name: 'Gateway URL', key: 'gateway_url', expected: 'http://45.77.178.85:8080' },
-      { name: 'API Base URL', key: 'base_url', expected: 'http://45.77.178.85:8080/api' },
-      { name: 'File URL', key: 'file_url', expected: 'http://45.77.178.85:8080/files' },
-      { name: 'SSE URL', key: 'sse_url', expected: 'http://45.77.178.85:8080/events' },
-      { name: 'Notify URL', key: 'notify_url', expected: 'http://45.77.178.85:8080' }
-    ];
-
-    expectedEndpoints.forEach(endpoint => {
-      if (config[endpoint.key] === endpoint.expected) {
-        addResult(results, 'success', endpoint.name, '端点配置正确', config[endpoint.key]);
-      } else {
-        addResult(results, 'error', endpoint.name, '端点配置错误',
-          `期望: ${endpoint.expected}, 实际: ${config[endpoint.key]}`);
-      }
-    });
-
-    // 4. 验证Vite代理配置（运行时检测）
+    // 3. Validate proxy configuration (development only)
     if (import.meta.env.DEV) {
       try {
-        // 检查代理是否工作 - 使用相对URL测试Vite代理
+        // Test if proxy is working using relative URL
         const proxyTest = await fetch('/health', {
           method: 'HEAD',
-          timeout: 3000
+          signal: AbortSignal.timeout(3000)
         }).catch(() => null);
 
         if (proxyTest && proxyTest.ok) {
-          addResult(results, 'success', 'Vite Proxy', 'Health代理工作正常', '/health -> Gateway');
+          addResult(results, 'success', 'Vite Proxy', 'Health proxy working correctly', '/health -> Backend via HTTPS');
         } else {
-          // 如果代理不工作，测试直接连接Gateway（仅用于诊断）
-          const directTest = await fetch('/health', {
-            method: 'HEAD',
-            timeout: 3000
-          }).catch(() => null);
-
-          if (directTest) {
-            addResult(results, 'warning', 'Vite Proxy', 'Health端点可访问但可能有配置问题', '请检查vite.config.js proxy配置');
-          } else {
-            addResult(results, 'error', 'Vite Proxy', 'Health端点不可访问', '请检查Gateway是否运行和代理配置');
-          }
+          addResult(results, 'warning', 'Vite Proxy', 'Health endpoint not accessible', 'Check if backend server is running');
+        }
       } catch (error) {
-        addResult(results, 'warning', 'Vite Proxy', '代理测试失败', error.message);
+        addResult(results, 'warning', 'Vite Proxy', 'Proxy test failed', error.message);
       }
+    }
 
-    // 5. 验证SSE服务配置
+    // 4. Validate SSE service configuration
     try {
       const sseModule = await import('@/services/sse');
       if (sseModule.default) {
-        addResult(results, 'success', 'SSE Service', 'SSE服务模块加载正常', 'Ready for Gateway connection');
+        addResult(results, 'success', 'SSE Service', 'SSE service module loaded correctly', 'Ready for backend connection');
       }
     } catch (error) {
-      addResult(results, 'error', 'SSE Service', 'SSE服务模块加载失败', error.message);
+      addResult(results, 'error', 'SSE Service', 'SSE service module loading failed', error.message);
     }
 
-    // 6. 生成报告
+    // 5. Generate report
     const summary = generateSummary(results);
     if (import.meta.env.DEV) {
-      console.log('\n📊 验证摘要:');
-    if (import.meta.env.DEV) {
-      console.log(`❌ 失败: ${results.failed}`);
-    if (import.meta.env.DEV) {
-      console.log(`⚠️ 警告: ${results.warnings}`);
+      console.log('\n📊 Validation Summary:');
+      console.log(`✅ Passed: ${results.passed}`);
+      console.log(`❌ Failed: ${results.failed}`);
+      console.log(`⚠️ Warnings: ${results.warnings}`);
     }
 
     if (results.failed === 0) {
       if (import.meta.env.DEV) {
-        console.log('\n🎉 架构验证通过！前端已正确配置通过Gateway连接。');
+        console.log('\n🎉 Architecture validation passed! Frontend correctly configured for proxy-based backend connection.');
       }
     } else {
       if (import.meta.env.DEV) {
-        console.log('\n🚨 架构验证失败！请检查以下问题:');
-      results.details.filter(d => d.level === 'error').forEach(detail => {
-        if (import.meta.env.DEV) {
+        console.log('\n🚨 Architecture validation failed! Please check the following issues:');
+        results.details.filter(d => d.level === 'error').forEach(detail => {
           console.log(`   ❌ ${detail.component}: ${detail.message}`);
-        }
-      });
+        });
+      }
+    }
 
     console.groupEnd();
     return summary;
 
   } catch (error) {
     if (import.meta.env.DEV) {
-      console.error('架构验证过程中发生错误:', error);
+      console.error('Error during architecture validation:', error);
+    }
     console.groupEnd();
     return { success: false, error: error.message };
   }
+}
 
 /**
- * 测试实际连接路径
+ * Test actual connection paths
  */
 export async function testConnectionPaths() {
   console.group('🔍 Connection Path Testing');
 
   const tests = [
     {
-      name: 'Gateway Health Check (via proxy)',
+      name: 'Health Check (via proxy)',
       url: '/health',
-      description: '测试Gateway健康检查（通过vite代理）'
+      description: 'Test backend health check through proxy'
     },
     {
-      name: 'API通过Gateway',
+      name: 'API through proxy',
       url: '/api/health',
-      description: '测试API请求是否通过Gateway'
+      description: 'Test API requests through proxy'
     },
     {
-      name: 'SSE通过Gateway',
+      name: 'SSE through proxy',
       url: '/events',
-      description: '测试SSE端点是否可达（通过vite代理）',
+      description: 'Test SSE endpoint accessibility through proxy',
       method: 'HEAD'
     }
   ];
@@ -160,7 +166,7 @@ export async function testConnectionPaths() {
 
       const response = await fetch(test.url, {
         method: test.method || 'GET',
-        timeout: 5000
+        signal: AbortSignal.timeout(5000)
       });
 
       if (response.ok || response.status === 401) { // 401 is OK, means service is reachable
@@ -168,10 +174,10 @@ export async function testConnectionPaths() {
           name: test.name,
           success: true,
           status: response.status,
-          message: `${test.description} - 连接成功`
+          message: `${test.description} - Connection successful`
         });
         if (import.meta.env.DEV) {
-          console.log(`   ✅ ${test.name}: 连接成功 (${response.status})`);
+          console.log(`   ✅ ${test.name}: Connection successful (${response.status})`);
         }
       } else {
         results.push({
@@ -183,23 +189,26 @@ export async function testConnectionPaths() {
         if (import.meta.env.DEV) {
           console.log(`   ❌ ${test.name}: HTTP ${response.status}`);
         }
+      }
     } catch (error) {
       results.push({
         name: test.name,
         success: false,
         error: error.message,
-        message: `${test.description} - 连接失败: ${error.message}`
+        message: `${test.description} - Connection failed: ${error.message}`
       });
       if (import.meta.env.DEV) {
-        console.log(`   ❌ ${test.name}: 连接失败 - ${error.message}`);
+        console.log(`   ❌ ${test.name}: Connection failed - ${error.message}`);
       }
+    }
+  }
 
   console.groupEnd();
   return results;
 }
 
 /**
- * 添加验证结果
+ * Add validation result
  */
 function addResult(results, level, component, message, details) {
   results.details.push({
@@ -221,9 +230,10 @@ function addResult(results, level, component, message, details) {
       results.warnings++;
       break;
   }
+}
 
 /**
- * 生成验证摘要
+ * Generate validation summary
  */
 function generateSummary(results) {
   return {
@@ -238,7 +248,7 @@ function generateSummary(results) {
 }
 
 /**
- * 导出验证报告
+ * Export validation report
  */
 export function exportValidationReport(summary) {
   const report = {
@@ -261,31 +271,31 @@ export function exportValidationReport(summary) {
 }
 
 /**
- * 生成修复建议
+ * Generate fix recommendations
  */
 function generateRecommendations(summary) {
   const recommendations = [];
 
   if (summary.failed > 0) {
     recommendations.push(
-      '1. 检查 fechatter_frontend/config/development.yml 配置是否正确',
-      '2. 确认 vite.config.js 中的代理配置指向Gateway (8080端口)',
-      '3. 验证Gateway服务是否在8080端口正常运行',
-      '4. 检查SSE服务是否使用了配置的Gateway URL'
+      '1. Check fechatter_frontend/config/development.yml configuration',
+      '2. Verify vite.config.js proxy configuration points to HTTPS backend',
+      '3. Ensure backend server is running on 45.77.178.85:8443',
+      '4. Check SSE service uses configured backend URL'
     );
   }
 
   if (summary.warnings > 0) {
     recommendations.push(
-      '5. 检查网络连接和服务状态',
-      '6. 验证开发环境代理配置'
+      '5. Check network connectivity and service status',
+      '6. Verify development environment proxy configuration'
     );
   }
 
   return recommendations;
 }
 
-// 在开发环境下自动暴露到全局
+// Expose to global in development environment
 if (import.meta.env.DEV && typeof window !== 'undefined') {
   window.validateArchitecture = validateArchitecture;
   window.testConnectionPaths = testConnectionPaths;

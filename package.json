@@ -1,8 +1,9 @@
 {
   "name": "fechatter_frontend",
   "private": true,
-  "version": "0.1.0",
+  "version": "1.0.0",
   "type": "module",
+  "description": "Modern team chat application with proxy-based backend integration",
   "scripts": {
     "dev": "node scripts/copy-configs.js && echo '\n🚀 启动 Fechatter 开发服务器...\n💡 服务器启动后，请手动打开浏览器访问显示的 URL\n📱 主要访问地址: http://localhost:5173\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n' && npx vite",
     "dev:auto-open": "node scripts/copy-configs.js && npx vite --open",
