@@ -1,5 +1,5 @@
 # Fechatter Frontend - Development Configuration
-# 开发环境：前端通过Vite代理访问后端服务
+# Development environment: Frontend accesses backend through Vite proxy
 
 app:
   name: "Fechatter"
@@ -7,81 +7,81 @@ app:
   environment: "development"
   debug: true
 
-# 前端服务器配置
+# Frontend server configuration
 frontend:
-  port: 5173 # Vite默认端口
+  port: 5173 # Default Vite port
   host: "localhost"
   hmr_port: 1421
 
-# API配置 - Vercel部署使用HTTPS直连后端
+# API configuration - Vercel deployment uses HTTPS direct backend connection
 api:
-  # Gateway地址 - HTTPS端口
+  # Gateway address - HTTPS port
   gateway_url: "https://45.77.178.85:8443"
 
-  # Vercel部署使用完整HTTPS URLs
+  # Vercel deployment uses full HTTPS URLs
   base_url: "https://45.77.178.85:8443/api"
   file_url: "https://45.77.178.85:8443/files"
   sse_url: "https://45.77.178.85:8443/events"
   notify_url: "https://45.77.178.85:8443/notify"
 
-  # 请求配置
+  # Request configuration
   timeout: 15000
   max_retries: 3
   retry_delay: 1000
 
-# CORS配置 - 支持本地开发和Vercel部署
+# CORS configuration - Support local development and Vercel deployment
 cors:
   enabled: true
   origins:
-  - "http://localhost:5173" # Vite开发端口
-  - "http://localhost:1420" # 备用端口
+  - "http://localhost:5173" # Vite development port
+  - "http://localhost:1420" # Backup port
   - "http://127.0.0.1:5173"
   - "https://fechatter-frontend-cahw21vjh-zhkevin46-gmailcoms-projects.vercel.app"
-  - "https://*.vercel.app" # 所有Vercel部署域名
+  - "https://*.vercel.app" # All Vercel deployment domains
   credentials: true
 
-# 开发工具
+# Development tools
 dev_tools:
   enable_devtools: true
   enable_source_maps: true
   hot_reload: true
 
-# 日志配置
+# Logging configuration
 logging:
   level: "debug"
   enable_network_logs: true
   enable_api_logs: true
 
-# 测试账户配置 - 开发环境快速登录
+# Test account configuration - Development environment quick login
 test_accounts:
 - email: "test@fechatter.com"
   password: "test123"
   name: "Test User"
-  description: "主要测试账户"
+  description: "Primary test account"
 - email: "dev@fechatter.com"
   password: "dev123"
   name: "Dev User"
-  description: "开发测试账户"
+  description: "Development test account"
 - email: "admin@fechatter.com"
   password: "admin123"
   name: "Admin User"
-  description: "管理员测试账户"
+  description: "Administrator test account"
 
-# 🚀 Vercel特定配置
+# Vercel specific configuration
 vercel:
-  enable_test_accounts: true # 强制启用测试账户
-  enable_debug_tools: true # 强制启用调试工具
-  enable_console_access: true # 启用控制台访问
-  preserve_dev_features: true # 保留所有开发特性
+  enable_test_accounts: true # Force enable test accounts
+  enable_debug_tools: true # Force enable debug tools
+  enable_console_access: true # Enable console access
+  preserve_dev_features: true # Preserve all development features
 
-# 性能配置
+# Performance configuration
 performance:
   enable_compression: true
-  enable_caching: false # 开发模式禁用缓存
+  enable_caching: false # Development mode disable caching
   cache_duration: 0
 
-# 安全配置 - 开发友好
+# Security configuration - Development friendly
 security:
-  enable_csp: false # 开发模式禁用CSP
+  enable_csp: false # Development mode disable CSP
   enable_https_only: true
-  enable_hsts: false # 开发模式禁用HSTS 
+  enable_hsts: false # Development mode disable HSTS 

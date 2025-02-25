@@ -28,16 +28,17 @@ export function setupGlobalRouterErrorHandling(router) {
       return;
     }
 
-    // For other errors, redirect to error page if not already there
-    if (!router.currentRoute.value.path.startsWith('/error')) {
+    // For other errors, only redirect if not on error page and not on Vercel initial load
+    if (!router.currentRoute.value.path.startsWith('/error') && 
+        !window.location.hostname.includes('vercel.app')) {
       router.push('/error/500').catch(() => {
-        // Fallback if error page navigation also fails
         console.error('[Router] Failed to navigate to error page');
       });
     }
   });
 
-  // Setup navigation timeout handling
+  // Disabled aggressive navigation timeout for Vercel deployments
+  // The 30-second timeout was causing false positives during initial load
   let navigationTimeout;
 
   router.beforeEach((to, from, next) => {
@@ -46,15 +47,24 @@ export function setupGlobalRouterErrorHandling(router) {
       clearTimeout(navigationTimeout);
     }
 
-    // Set navigation timeout (30 seconds)
-    navigationTimeout = setTimeout(() => {
-      console.error('[Router] Navigation timeout');
-      if (!router.currentRoute.value.path.startsWith('/error')) {
-        router.push('/error/500').catch(() => {
-          console.error('[Router] Failed to navigate to error page after timeout');
-        });
-      }
-    }, 30000);
+    // Only set timeout for non-Vercel environments or after initial load
+    const isVercel = window.location.hostname.includes('vercel.app');
+    const isInitialLoad = from.name === undefined;
+    
+    if (!isVercel || !isInitialLoad) {
+      // Longer timeout for Vercel, shorter for local development
+      const timeoutDuration = isVercel ? 60000 : 10000; // 60s for Vercel, 10s for local
+      
+      navigationTimeout = setTimeout(() => {
+        console.warn('[Router] Navigation timeout - this may be normal during initial Vercel load');
+        // Don't redirect on timeout for Vercel initial loads
+        if (!isVercel && !router.currentRoute.value.path.startsWith('/error')) {
+          router.push('/error/500').catch(() => {
+            console.error('[Router] Failed to navigate to error page after timeout');
+          });
+        }
+      }, timeoutDuration);
+    }
 
     next();
   });
