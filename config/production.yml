@@ -33,6 +33,7 @@ cors:
   enabled: true
   origins:
   - "https://fechatter-frontend-cahw21vjh-zhkevin46-gmailcoms-projects.vercel.app"
+  - "https://fechatter-frontend-h00f7pv8z-zhkevin46-gmailcoms-projects.vercel.app"
   - "https://*.vercel.app" # 所有Vercel部署域名
   - "https://fechatter.vercel.app"
   credentials: true
