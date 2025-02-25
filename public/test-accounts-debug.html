@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Accounts Debug</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .success { background: #d4edda; border-color: #c3e6cb; }
+        .error { background: #f8d7da; border-color: #f5c6cb; }
+        .info { background: #d1ecf1; border-color: #bee5eb; }
+        pre { background: #f8f9fa; padding: 10px; overflow: auto; }
+        button { padding: 10px 15px; margin: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Test Accounts Debug Tool</h1>
+        <p>Current URL: <span id="currentUrl"></span></p>
+        
+        <div class="test-section">
+            <h3>1. Environment Detection</h3>
+            <button onclick="testEnvironment()">Test Environment</button>
+            <div id="envResult"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>2. Configuration Loading</h3>
+            <button onclick="testConfigLoading()">Test Config Loading</button>
+            <div id="configResult"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>3. Test Accounts Extraction</h3>
+            <button onclick="testTestAccounts()">Test Test Accounts</button>
+            <div id="accountsResult"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>4. Component Simulation</h3>
+            <button onclick="simulateComponent()">Simulate Component Logic</button>
+            <div id="componentResult"></div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('currentUrl').textContent = window.location.href;
+        
+        function clearResults(elementId) {
+            document.getElementById(elementId).innerHTML = '';
+        }
+        
+        function addResult(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            const div = document.createElement('div');
+            div.className = `test-section ${type}`;
+            div.innerHTML = `<pre>${message}</pre>`;
+            element.appendChild(div);
+        }
+        
+        async function testEnvironment() {
+            clearResults('envResult');
+            addResult('envResult', '🔄 Testing environment detection...', 'info');
+            
+            const info = {
+                'hostname': window.location.hostname,
+                'port': window.location.port,
+                'protocol': window.location.protocol,
+                'isDev': 'Unknown (not in Vue context)',
+                'userAgent': navigator.userAgent.substring(0, 100) + '...'
+            };
+            
+            addResult('envResult', `Environment Info:\n${JSON.stringify(info, null, 2)}`, 'success');
+            
+            // Test environment detection logic
+            let detectedEnv = 'unknown';
+            const hostname = window.location.hostname;
+            const port = window.location.port;
+            
+            if (hostname === 'localhost' || hostname === '127.0.0.1') {
+                if (port === '5173' || port === '3000' || port === '3001' || port === '3002') {
+                    detectedEnv = 'development';
+                }
+            } else if (hostname.includes('vercel.app') || hostname.includes('vercel.dev')) {
+                detectedEnv = 'production';
+            } else {
+                detectedEnv = 'development'; // Default
+            }
+            
+            addResult('envResult', `Detected Environment: ${detectedEnv}`, 'success');
+        }
+        
+        async function testConfigLoading() {
+            clearResults('configResult');
+            addResult('configResult', '🔄 Testing configuration loading...', 'info');
+            
+            try {
+                // Detect environment first
+                let environment = 'development';
+                const hostname = window.location.hostname;
+                const port = window.location.port;
+                
+                if (hostname.includes('vercel.app')) {
+                    environment = 'production';
+                } else if (hostname === 'localhost' && (port === '5173' || port === '3000')) {
+                    environment = 'development';
+                }
+                
+                const configFile = `${environment}.yml`;
+                addResult('configResult', `Loading config file: /config/${configFile}`, 'info');
+                
+                const response = await fetch(`/config/${configFile}`);
+                addResult('configResult', `Response status: ${response.status} ${response.statusText}`, 
+                    response.ok ? 'success' : 'error');
+                
+                if (response.ok) {
+                    const yamlText = await response.text();
+                    addResult('configResult', `Config loaded successfully (${yamlText.length} chars)`, 'success');
+                    addResult('configResult', `Config preview:\n${yamlText.substring(0, 500)}...`, 'info');
+                    
+                    // Store for next test
+                    window.testConfig = yamlText;
+                }
+            } catch (error) {
+                addResult('configResult', `❌ Config loading error: ${error.message}`, 'error');
+            }
+        }
+        
+        function parseSimpleYAML(text) {
+            const lines = text.split('\n');
+            const result = {};
+            let currentObj = result;
+            const stack = [result];
+            
+            for (let line of lines) {
+                if (line.trim().startsWith('#') || !line.trim()) continue;
+                
+                const indent = line.length - line.trimStart().length;
+                const indentLevel = Math.floor(indent / 2);
+                
+                while (stack.length > indentLevel + 1) {
+                    stack.pop();
+                }
+                currentObj = stack[stack.length - 1];
+                
+                line = line.trim();
+                
+                if (line.includes(':')) {
+                    const [key, ...valueParts] = line.split(':');
+                    const value = valueParts.join(':').trim();
+                    
+                    if (value) {
+                        let parsedValue = value;
+                        if (value.startsWith('"') && value.endsWith('"')) {
+                            parsedValue = value.slice(1, -1);
+                        } else if (value === 'true') {
+                            parsedValue = true;
+                        } else if (value === 'false') {
+                            parsedValue = false;
+                        } else if (!isNaN(value) && value !== '') {
+                            parsedValue = Number(value);
+                        }
+                        
+                        currentObj[key.trim()] = parsedValue;
+                    } else {
+                        currentObj[key.trim()] = {};
+                        stack.push(currentObj[key.trim()]);
+                    }
+                } else if (line.startsWith('- ')) {
+                    const lastKey = Object.keys(currentObj).pop();
+                    if (!Array.isArray(currentObj[lastKey])) {
+                        currentObj[lastKey] = [];
+                    }
+                    const value = line.substring(2).trim();
+                    let parsedValue = value;
+                    if (value.startsWith('"') && value.endsWith('"')) {
+                        parsedValue = value.slice(1, -1);
+                    }
+                    currentObj[lastKey].push(parsedValue);
+                }
+            }
+            
+            return result;
+        }
+        
+        async function testTestAccounts() {
+            clearResults('accountsResult');
+            addResult('accountsResult', '🔄 Testing test accounts extraction...', 'info');
+            
+            if (!window.testConfig) {
+                addResult('accountsResult', '❌ No config loaded. Run "Test Config Loading" first.', 'error');
+                return;
+            }
+            
+            try {
+                const config = parseSimpleYAML(window.testConfig);
+                addResult('accountsResult', `✅ YAML parsed successfully`, 'success');
+                addResult('accountsResult', `Config structure:\n${JSON.stringify(Object.keys(config), null, 2)}`, 'info');
+                
+                if (config.test_accounts) {
+                    addResult('accountsResult', `✅ Found test_accounts: ${config.test_accounts.length} accounts`, 'success');
+                    addResult('accountsResult', `Test accounts:\n${JSON.stringify(config.test_accounts, null, 2)}`, 'success');
+                } else {
+                    addResult('accountsResult', '❌ No test_accounts found in config', 'error');
+                    addResult('accountsResult', `Available keys: ${Object.keys(config).join(', ')}`, 'info');
+                }
+            } catch (error) {
+                addResult('accountsResult', `❌ YAML parsing error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function simulateComponent() {
+            clearResults('componentResult');
+            addResult('componentResult', '🔄 Simulating component logic...', 'info');
+            
+            const fallbackTestAccounts = [
+                {
+                    email: "test@fechatter.com",
+                    password: "test123",
+                    name: "Test User",
+                    description: "Primary test account"
+                },
+                {
+                    email: "dev@fechatter.com", 
+                    password: "dev123",
+                    name: "Dev User",
+                    description: "Development test account"
+                },
+                {
+                    email: "admin@fechatter.com",
+                    password: "admin123", 
+                    name: "Admin User",
+                    description: "Administrator test account"
+                }
+            ];
+            
+            let testAccounts = [];
+            let hasTestConfig = false;
+            
+            try {
+                // Simulate config loading
+                if (window.testConfig) {
+                    const config = parseSimpleYAML(window.testConfig);
+                    if (config.test_accounts && config.test_accounts.length > 0) {
+                        testAccounts = config.test_accounts;
+                        hasTestConfig = true;
+                        addResult('componentResult', '✅ Using config accounts', 'success');
+                    } else {
+                        testAccounts = fallbackTestAccounts;
+                        addResult('componentResult', '⚠️ Config accounts empty, using fallback', 'info');
+                    }
+                } else {
+                    testAccounts = fallbackTestAccounts;
+                    addResult('componentResult', '⚠️ No config loaded, using fallback', 'info');
+                }
+                
+                // Simulate component state
+                const componentState = {
+                    testAccounts: testAccounts,
+                    showTestAccounts: true, // Always true in our forced version
+                    hasTestConfig: hasTestConfig,
+                    configLoaded: true
+                };
+                
+                addResult('componentResult', `Component would show: ${componentState.showTestAccounts}`, 'success');
+                addResult('componentResult', `Accounts available: ${componentState.testAccounts.length}`, 'success');
+                addResult('componentResult', `Component state:\n${JSON.stringify(componentState, null, 2)}`, 'info');
+                
+                // Simulate rendering logic
+                if (componentState.showTestAccounts && componentState.testAccounts.length > 0) {
+                    addResult('componentResult', '✅ Component SHOULD BE VISIBLE', 'success');
+                    
+                    let accountsHtml = '<div style="margin-top: 15px;"><strong>Accounts that would render:</strong><ul>';
+                    componentState.testAccounts.forEach(account => {
+                        accountsHtml += `<li>${account.name} (${account.email}) - ${account.description}</li>`;
+                    });
+                    accountsHtml += '</ul></div>';
+                    
+                    addResult('componentResult', accountsHtml, 'success');
+                } else {
+                    addResult('componentResult', '❌ Component would NOT be visible', 'error');
+                }
+                
+            } catch (error) {
+                addResult('componentResult', `❌ Simulation error: ${error.message}`, 'error');
+            }
+        }
+    </script>
+</body>
+</html> 

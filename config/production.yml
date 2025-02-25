@@ -29,17 +29,13 @@ api:
   max_retries: 3
   retry_delay: 1000
 
-# CORS配置 - 生产环境
+# CORS配置 - 注意：实际CORS由后端nginx控制，这里仅作为前端参考
 cors:
   enabled: true
   origins:
-  - "https://fechatter-frontend-7xkk7m3a8-zhkevin46-gmailcoms-projects.vercel.app" # 当前部署域名
-  - "https://fechatter-frontend-kto9xf8u5-zhkevin46-gmailcoms-projects.vercel.app" # 最新部署域名
-  - "https://fechatter-frontend-j19109swu-zhkevin46-gmailcoms-projects.vercel.app"
-  - "https://fechatter-frontend-cahw21vjh-zhkevin46-gmailcoms-projects.vercel.app"
-  - "https://fechatter-frontend-h00f7pv8z-zhkevin46-gmailcoms-projects.vercel.app"
-  - "https://*.vercel.app" # 所有Vercel部署域名
-  - "https://fechatter.vercel.app"
+  # 动态Vercel域名通配符（后端nginx使用正则匹配）
+  - "https://*.vercel.app"
+  - "https://fechatter_frontend.vercel.app"
   credentials: true
 
 # 开发工具（生产环境禁用）

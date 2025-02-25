@@ -472,6 +472,7 @@ const verifyAuthStateReady = async () => {
 };
 
 onMounted(() => {
+  console.log('🔍 [Login.vue] Component mounted, starting initialization...')
   mounted.value = true;
 
   // 🚀 启用性能优化
@@ -483,6 +484,9 @@ onMounted(() => {
   // 🎯 添加键盘事件监听器
   document.addEventListener('keydown', handleKeyDown);
 
+  console.log('🔍 [Login.vue] Looking for TestAccountQuickLogin component...')
+  console.log('🔍 [Login.vue] Components available:', Object.keys(components))
+
   // 使用 requestAnimationFrame 优化初始化
   requestAnimationFrame(() => {
     // 聚焦邮箱输入框
@@ -492,6 +496,7 @@ onMounted(() => {
     // 延迟显示开发提示（避免阻塞初始渲染）
     setTimeout(() => {
       showDevHints.value = import.meta.env.DEV;
+      console.log('🔍 [Login.vue] showDevHints set to:', showDevHints.value)
 
       // 开发环境下显示性能分析
       if (import.meta.env.DEV) {
@@ -500,6 +505,15 @@ onMounted(() => {
         }, 1000);
       }
     }, 100);
+
+    // 检查TestAccountQuickLogin组件是否存在
+    setTimeout(() => {
+      const testAccountElement = document.querySelector('.test-accounts-panel');
+      console.log('🔍 [Login.vue] TestAccountQuickLogin panel element found:', !!testAccountElement);
+      
+      const quickLoginElement = document.querySelector('[data-testid*="test"], [class*="test-account"], .test-accounts-panel');
+      console.log('🔍 [Login.vue] Any test account related element found:', !!quickLoginElement);
+    }, 2000);
   });
 
   // 预加载错误组件（在空闲时间）

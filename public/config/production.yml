@@ -29,45 +29,41 @@ api:
   max_retries: 3
   retry_delay: 1000
 
-# CORS配置 - 支持本地开发和Vercel部署
+# CORS配置 - 注意：实际CORS由后端nginx控制，这里仅作为前端参考
 cors:
   enabled: true
   origins:
-  - "http://localhost:5173" # Vite开发端口
-  - "http://localhost:1420" # 备用端口
-  - "http://127.0.0.1:5173"
-  - "https://fechatter-frontend-kto9xf8u5-zhkevin46-gmailcoms-projects.vercel.app" # 最新部署域名
-  - "https://fechatter-frontend-j19109swu-zhkevin46-gmailcoms-projects.vercel.app"
-  - "https://fechatter-frontend-cahw21vjh-zhkevin46-gmailcoms-projects.vercel.app"
-  - "https://*.vercel.app" # 所有Vercel部署域名
+  # 动态Vercel域名通配符（后端nginx使用正则匹配）
+  - "https://*.vercel.app"
+  - "https://fechatter_frontend.vercel.app"
   credentials: true
 
-# 开发工具 - 生产环境也启用，保持与开发环境一致
+# 开发工具（生产环境禁用）
 dev_tools:
-  enable_devtools: true
-  enable_source_maps: true
-  hot_reload: true
+  enable_devtools: false
+  enable_source_maps: false
+  hot_reload: false
 
-# 日志配置 - 生产环境也启用调试日志
+# 日志配置
 logging:
-  level: "debug"
-  enable_network_logs: true
-  enable_api_logs: true
+  level: "warn"
+  enable_network_logs: false
+  enable_api_logs: false
 
-# 测试账户配置 - 生产环境保持与开发环境一致
+# 测试账户配置 - 生产环境也保留用于演示
 test_accounts:
 - email: "test@fechatter.com"
   password: "test123"
   name: "Test User"
-  description: "主要测试账户"
+  description: "演示账户"
 - email: "dev@fechatter.com"
   password: "dev123"
   name: "Dev User"
-  description: "开发测试账户"
+  description: "开发演示账户"
 - email: "admin@fechatter.com"
   password: "admin123"
   name: "Admin User"
-  description: "管理员测试账户"
+  description: "管理员演示账户"
 - email: "super@test.com"
   password: "password"
   name: "Super User"

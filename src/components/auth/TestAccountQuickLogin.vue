@@ -35,11 +35,19 @@
     </div>
   </div>
 
-  <!-- Show button when test accounts are hidden -->
-  <div v-else-if="testAccounts.length > 0 && !showTestAccounts" class="show-test-accounts">
-    <button @click="showTestAccountsPanel" class="show-button">
-      🚀 Show Test Accounts
+  <!-- Force Show button when test accounts are hidden or not loaded -->
+  <div v-else class="show-test-accounts">
+    <button @click="forceShowTestAccounts" class="show-button">
+      🚀 Show Test Accounts ({{ testAccounts.length }} available)
     </button>
+    <div class="debug-info" v-if="debugMode">
+      <p>Debug Info:</p>
+      <p>showTestAccounts: {{ showTestAccounts }}</p>
+      <p>testAccounts.length: {{ testAccounts.length }}</p>
+      <p>hasTestConfig: {{ hasTestConfig }}</p>
+      <p>configLoaded: {{ configLoaded }}</p>
+      <p>lastError: {{ lastError }}</p>
+    </div>
   </div>
 </template>
 
@@ -55,22 +63,90 @@ export default {
     const testAccounts = ref([])
     const showTestAccounts = ref(false)
     const isLoggingIn = ref(null)
+    const hasTestConfig = ref(false)
+    const configLoaded = ref(false)
+    const lastError = ref('')
+    const debugMode = ref(import.meta.env.DEV)
+
+    // Fallback test accounts - ALWAYS available
+    const fallbackTestAccounts = [
+      {
+        email: "test@fechatter.com",
+        password: "test123",
+        name: "Test User",
+        description: "Primary test account"
+      },
+      {
+        email: "dev@fechatter.com", 
+        password: "dev123",
+        name: "Dev User",
+        description: "Development test account"
+      },
+      {
+        email: "admin@fechatter.com",
+        password: "admin123", 
+        name: "Admin User",
+        description: "Administrator test account"
+      }
+    ]
+
+    // Force display test accounts with fallback
+    const forceShowTestAccounts = () => {
+      console.log('🚀 [TestAccountQuickLogin] Force showing test accounts')
+      
+      if (testAccounts.value.length === 0) {
+        console.log('🚀 [TestAccountQuickLogin] No config accounts, using fallback')
+        testAccounts.value = fallbackTestAccounts
+      }
+      
+      showTestAccounts.value = true
+      localStorage.removeItem('fechatter_hide_test_accounts')
+      console.log('🚀 [TestAccountQuickLogin] Test accounts now visible with', testAccounts.value.length, 'accounts')
+    }
 
     // Load test accounts from YAML configuration
     onMounted(async () => {
+      console.log('🔍 [TestAccountQuickLogin] Component mounted, starting to load test accounts...')
+      
       try {
-        const hasTestConfig = await hasTestAccountConfig()
-        if (hasTestConfig) {
-          testAccounts.value = await getTestAccounts()
-          // Always show test accounts when configuration is available
-          showTestAccounts.value = true
-          console.log('🚀 Test accounts loaded:', testAccounts.value.length)
-          console.log('🚀 Test accounts config found, showing quick login panel')
+        console.log('🔍 [TestAccountQuickLogin] Checking if test account config exists...')
+        hasTestConfig.value = await hasTestAccountConfig()
+        console.log('🔍 [TestAccountQuickLogin] hasTestConfig result:', hasTestConfig.value)
+        
+        if (hasTestConfig.value) {
+          console.log('🔍 [TestAccountQuickLogin] Loading test accounts list...')
+          const configAccounts = await getTestAccounts()
+          console.log('🔍 [TestAccountQuickLogin] Loaded config accounts:', configAccounts)
+          
+          if (configAccounts && configAccounts.length > 0) {
+            testAccounts.value = configAccounts
+            console.log('🔍 [TestAccountQuickLogin] Using config accounts:', testAccounts.value.length)
+          } else {
+            console.log('🔍 [TestAccountQuickLogin] Config accounts empty, using fallback')
+            testAccounts.value = fallbackTestAccounts
+          }
         } else {
-          console.log('⚠️ No test accounts configuration found')
+          console.log('⚠️ [TestAccountQuickLogin] No test accounts configuration found, using fallback')
+          testAccounts.value = fallbackTestAccounts
         }
+        
+        configLoaded.value = true
+        
+        // ALWAYS show test accounts - never hide them
+        showTestAccounts.value = true
+        console.log('🚀 [TestAccountQuickLogin] FORCED showTestAccounts to true')
+        console.log('🚀 Test accounts loaded:', testAccounts.value.length)
+        console.log('🚀 Test accounts config found, showing quick login panel')
+        
       } catch (error) {
-        console.warn('Failed to load test accounts:', error)
+        console.error('❌ [TestAccountQuickLogin] Failed to load test accounts:', error)
+        console.error('❌ [TestAccountQuickLogin] Error stack:', error.stack)
+        lastError.value = error.message
+        
+        // Even on error, show fallback accounts
+        testAccounts.value = fallbackTestAccounts
+        showTestAccounts.value = true
+        console.log('🔄 [TestAccountQuickLogin] Using fallback accounts due to error')
       }
     })
 
@@ -125,10 +201,15 @@ export default {
       testAccounts,
       showTestAccounts,
       isLoggingIn,
+      hasTestConfig,
+      configLoaded,
+      lastError,
+      debugMode,
       getInitials,
       quickLogin,
       hideTestAccounts,
-      showTestAccountsPanel
+      showTestAccountsPanel,
+      forceShowTestAccounts
     }
   }
 }
@@ -295,6 +376,22 @@ export default {
   .test-accounts-panel {
     background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
   }
+}
+
+/* Debug info styles */
+.debug-info {
+  margin-top: 12px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-family: 'Monaco', 'Menlo', monospace;
+}
+
+.debug-info p {
+  margin: 4px 0;
+  line-height: 1.4;
 }
 
 /* Mobile responsiveness */
