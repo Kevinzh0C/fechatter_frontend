@@ -4,7 +4,23 @@
   "cleanUrls": false,
   "rewrites": [
     {
-      "source": "/((?!favicon|manifest|.*\\.).*)",
+      "source": "/api/(.*)",
+      "destination": "/api/api/[...path]"
+    },
+    {
+      "source": "/files/(.*)",
+      "destination": "/api/files/[...path]"
+    },
+    {
+      "source": "/events/(.*)",
+      "destination": "/api/events/[...path]"
+    },
+    {
+      "source": "/notify/(.*)",
+      "destination": "/api/notify/[...path]"
+    },
+    {
+      "source": "/((?!api/|files/|events/|notify/|config/|favicon|manifest|.*\\.).*)",
       "destination": "/index.html"
     }
   ]
