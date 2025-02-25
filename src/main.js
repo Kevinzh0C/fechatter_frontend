@@ -4,14 +4,14 @@ import App from "./App.vue";
 import router from "./router";
 import authPlugin from "./plugins/auth";
 import { errorHandler } from "./utils/errorHandler";
-// Removed unused protobuf analytics import to avoid variable name conflict
-import sseConnectionManager from './utils/sseConnectionManager';
-import minimalMessagePersistence from './utils/minimalMessagePersistence';
-import minimalSSE from './services/sse-minimal';
-// Import extension error suppressor to handle browser extension errors
-import './utils/extensionErrorSuppressor.js';
-// 🌐 VERCEL: Import Vercel environment detector FIRST to setup proper environment
 
+// Import SSE services
+import minimalSSE from './services/sse-minimal.js';
+import sseConnectionManager from './utils/sseConnectionManager';
+
+// Import other utilities
+import minimalMessagePersistence from './utils/minimalMessagePersistence';
+import './utils/extensionErrorSuppressor.js';
 
 // 🎨 AESTHETIC RESTORATION: Import unified design system FIRST to override conflicts
 import './styles/unified-aesthetic-system.css';
@@ -60,6 +60,9 @@ import { initializeYAMLConfig } from './utils/yamlConfigLoader.js'
 
 // Import API URL Resolver for environment debugging
 import { getEnvironmentInfo } from './utils/apiUrlResolver.js'
+
+// Import tokenManager
+import tokenManager from './services/tokenManager.js';
 
 // Enhanced console state detection function
 function detectConsoleAccess() {
@@ -478,7 +481,6 @@ window.errorHandler = errorHandler;
 window.sseConnectionManager = sseConnectionManager;
 
 // 🚀 CRITICAL FIX: Expose tokenManager to window for SSE service access
-import tokenManager from './services/tokenManager.js';
 window.tokenManager = tokenManager;
 
 // Expose security utilities for API parameter limiting

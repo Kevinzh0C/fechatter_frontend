@@ -12,28 +12,53 @@ const NGROK_URL = 'https://ca90-45-77-178-85.ngrok-free.app';
  * Detect current runtime environment
  */
 function detectRuntimeEnvironment() {
+  console.log('🔍 [apiUrlResolver] detectRuntimeEnvironment called');
+  
+  // Force development if DEV flag is true (consistent with yamlConfigLoader)
+  if (import.meta.env.DEV) {
+    console.log('🔍 [apiUrlResolver] import.meta.env.DEV is true, returning development');
+    return 'development';
+  }
+  
   // Check if running in browser
   if (typeof window !== 'undefined') {
     const hostname = window.location.hostname;
     const port = window.location.port;
     
+    console.log('🔍 [apiUrlResolver] Browser environment detected');
+    console.log('🔍 [apiUrlResolver] hostname:', hostname);
+    console.log('🔍 [apiUrlResolver] port:', port);
+    
+    // Local development patterns - support any localhost port
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      console.log('🔍 [apiUrlResolver] Localhost detected, returning development');
+      return 'development';
+    }
+    
     // Vercel production domains
     if (hostname.includes('vercel.app') || hostname.includes('vercel.dev')) {
+      console.log('🔍 [apiUrlResolver] Vercel domain detected, returning vercel');
+      return 'vercel';
+    }
+  }
+  
+  // Check Node.js environment variables
+  if (typeof process !== 'undefined') {
+    // Vercel environment variables
+    if (process.env.VERCEL || process.env.VERCEL_ENV) {
+      console.log('🔍 [apiUrlResolver] Vercel env vars detected, returning vercel');
       return 'vercel';
     }
     
-    // Local Vite dev server
-    if ((hostname === 'localhost' || hostname === '127.0.0.1') && port === '5173') {
+    // Development environment
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🔍 [apiUrlResolver] NODE_ENV=development, returning development');
       return 'development';
     }
   }
   
-  // Check environment variables
-  if (typeof process !== 'undefined' && process.env?.VERCEL) {
-    return 'vercel';
-  }
-  
-  // Default to development
+  // Default fallback
+  console.log('🔍 [apiUrlResolver] No specific environment detected, defaulting to development');
   return 'development';
 }
 

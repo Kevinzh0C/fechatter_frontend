@@ -77,10 +77,29 @@ export const useWorkspaceStore = defineStore('workspace', {
     async fetchWorkspaceChats() {
       this.loading = true;
       try {
+        console.log('🔍 [WorkspaceStore] Fetching workspace chats...');
+        console.log('🔍 [WorkspaceStore] API base URL will be resolved dynamically');
+        
         const response = await api.get('/workspace/chats');
+        
+        console.log('🔍 [WorkspaceStore] API Response status:', response.status);
+        console.log('🔍 [WorkspaceStore] API Response data:', response.data);
+        
         this.workspaceChats = response.data?.data || response.data || [];
+        
+        console.log('🔍 [WorkspaceStore] Parsed workspaceChats:', this.workspaceChats.length, 'items');
+        
         return this.workspaceChats;
       } catch (error) {
+        console.error('❌ [WorkspaceStore] Failed to fetch workspace chats:', error);
+        console.error('❌ [WorkspaceStore] Error details:', {
+          message: error.message,
+          status: error.response?.status,
+          statusText: error.response?.statusText,
+          data: error.response?.data,
+          config: error.config
+        });
+        
         this.workspaceChats = [];
         return [];
       } finally {

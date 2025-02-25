@@ -339,7 +339,14 @@ export const useChatStore = defineStore('chat', {
       this.error = null;
 
       try {
+        console.log('🔍 [ChatStore] Fetching chats...');
+        console.log('🔍 [ChatStore] API service will resolve URL based on environment');
+        
         const response = await api.get('/workspace/chats');
+
+        console.log('🔍 [ChatStore] API Response status:', response.status);
+        console.log('🔍 [ChatStore] API Response data:', response.data);
+        console.log('🔍 [ChatStore] API Response URL:', response.config?.url || 'unknown');
 
         // Handle API response formats
         let chatsData = [];
@@ -355,8 +362,12 @@ export const useChatStore = defineStore('chat', {
           }
         }
 
+        console.log('🔍 [ChatStore] Parsed chats data:', chatsData.length, 'items');
+
         // Normalize chat data
         this.chats = chatsData.map(chat => this.normalizeChat(chat));
+
+        console.log('🔍 [ChatStore] Normalized chats:', this.chats.length, 'items');
 
         // Cache to localStorage
         this.cacheChats();
@@ -364,6 +375,20 @@ export const useChatStore = defineStore('chat', {
         return this.chats;
 
       } catch (error) {
+        console.error('❌ [ChatStore] Failed to fetch chats:', error);
+        console.error('❌ [ChatStore] Error details:', {
+          message: error.message,
+          status: error.response?.status,
+          statusText: error.response?.statusText,
+          data: error.response?.data,
+          config: {
+            url: error.config?.url,
+            method: error.config?.method,
+            baseURL: error.config?.baseURL,
+            headers: error.config?.headers
+          }
+        });
+        
         errorHandler.handle(error, {
           context: 'Fetch chats',
           silent: false
