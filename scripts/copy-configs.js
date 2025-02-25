@@ -25,8 +25,7 @@ if (!fs.existsSync(publicConfigDir)) {
 // Copy configuration files
 const configFiles = [
   'development.yml',
-  'production.yml',
-  'vercel.yml'
+  'production.yml'
 ];
 
 console.log('🔄 Copying configuration files...');

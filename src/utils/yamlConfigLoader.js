@@ -84,18 +84,9 @@ async function loadYAMLConfig() {
   
   configPromise = (async () => {
     try {
-      // Determine which config to load - prioritize Vercel config for deployments
-      const env = import.meta.env.MODE || 'development';
-      const isVercel = window.location.hostname.includes('vercel.app');
-      
-      let configFile;
-      if (isVercel) {
-        configFile = 'vercel.yml';  // Use Vercel-specific config for deployments
-        console.log('🌐 Detected Vercel deployment - using vercel.yml config');
-      } else {
-        configFile = 'development.yml';  // Use development config for local
-        console.log('🔧 Local development - using development.yml config');
-      }
+      // Use development config for all environments
+      const configFile = 'development.yml';
+      console.log('🔧 Loading development.yml configuration');
       
       console.log(`🔧 Loading ${configFile} configuration...`);
       
