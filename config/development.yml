@@ -1,5 +1,5 @@
 # Fechatter Frontend - Development Configuration
-# 开发环境：前端通过Vite代理访问后端服务
+# 开发环境：通过Vite代理访问HTTPS后端服务
 
 app:
   name: "Fechatter"
@@ -13,16 +13,16 @@ frontend:
   host: "localhost"
   hmr_port: 1421
 
-# API配置 - Vercel部署使用HTTPS直连后端
+# API配置 - 开发环境通过Vite代理访问HTTPS后端
 api:
-  # Gateway地址 - HTTPS端口
-  gateway_url: "https://45.77.178.85:8443"
+  # 开发环境使用相对路径，通过Vite代理到HTTPS后端
+  gateway_url: "http://localhost:5173"
 
-  # Vercel部署使用完整HTTPS URLs
-  base_url: "https://45.77.178.85:8443/api"
-  file_url: "https://45.77.178.85:8443/files"
-  sse_url: "https://45.77.178.85:8443/events"
-  notify_url: "https://45.77.178.85:8443/notify"
+  # 使用相对路径，让Vite代理处理SSL证书问题
+  base_url: "/api"
+  file_url: "/files"
+  sse_url: "/events"
+  notify_url: "/notify"
 
   # 请求配置
   timeout: 15000
@@ -54,15 +54,15 @@ logging:
 
 # 测试账户配置 - 开发环境快速登录
 test_accounts:
-  - email: "test@fechatter.com"
-    password: "test123"
-    name: "Test User"
-    description: "主要测试账户"
-  - email: "dev@fechatter.com"
-    password: "dev123"
-    name: "Dev User"
-    description: "开发测试账户"
-  - email: "admin@fechatter.com"
-    password: "admin123"
-    name: "Admin User"
-    description: "管理员测试账户"
+- email: "test@fechatter.com"
+  password: "test123"
+  name: "Test User"
+  description: "主要测试账户"
+- email: "dev@fechatter.com"
+  password: "dev123"
+  name: "Dev User"
+  description: "开发测试账户"
+- email: "admin@fechatter.com"
+  password: "admin123"
+  name: "Admin User"
+  description: "管理员测试账户"

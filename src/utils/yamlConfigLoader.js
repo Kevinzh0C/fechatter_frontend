@@ -67,6 +67,27 @@ function parseSimpleYAML(text) {
   return result;
 }
 
+/**
+ * Detect current environment
+ */
+function detectEnvironment() {
+  // Check if we're in development mode
+  if (import.meta.env.DEV) {
+    return 'development';
+  }
+  
+  // Check if we're running on localhost
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return 'development';
+    }
+  }
+  
+  // Default to production for deployed environments
+  return 'production';
+}
+
 let configCache = null;
 let configPromise = null;
 
@@ -84,11 +105,11 @@ async function loadYAMLConfig() {
   
   configPromise = (async () => {
     try {
-      // Use development config for all environments
-      const configFile = 'development.yml';
-      console.log('🔧 Loading development.yml configuration');
+      // Detect environment and choose appropriate config file
+      const environment = detectEnvironment();
+      const configFile = `${environment}.yml`;
       
-      console.log(`🔧 Loading ${configFile} configuration...`);
+      console.log(`🔧 Loading ${configFile} configuration for ${environment} environment`);
       
       // Fetch configuration file
       const response = await fetch(`/config/${configFile}`);
@@ -108,19 +129,20 @@ async function loadYAMLConfig() {
     } catch (error) {
       console.error('❌ Failed to load YAML configuration:', error);
       
-      // Fallback to default configuration
+      // Fallback to default configuration based on environment
+      const environment = detectEnvironment();
       const fallbackConfig = {
         app: {
           name: "Fechatter",
-          environment: "development",
-          debug: true
+          environment: environment,
+          debug: environment === 'development'
         },
         api: {
-          base_url: "/api",
+          base_url: environment === 'development' ? "/api" : "https://45.77.178.85:8443/api",
           timeout: 15000
         },
         logging: {
-          level: "debug"
+          level: environment === 'development' ? "debug" : "warn"
         }
       };
       

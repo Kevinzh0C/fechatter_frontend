@@ -72,13 +72,13 @@ export default defineConfig({
       allow: ['..']
     },
 
-    // 基本代理配置 - 移除复杂的WASM处理
+    // 基本代理配置 - 统一使用HTTPS后端
     proxy: {
-      // 🤖 PRIORITY: Bot API代理直接到远程Gateway (新的bot-server已部署)
+      // 🤖 PRIORITY: Bot API代理直接到远程Gateway HTTPS
       '/api/bot': {
-        target: 'http://45.77.178.85:8080',
+        target: 'https://45.77.178.85:8443',
         changeOrigin: true,
-        secure: false,
+        secure: false, // 忽略SSL证书验证
         timeout: 5000,
         configure: (proxy, options) => {
           proxy.on('error', (err, req, res) => {
@@ -98,16 +98,16 @@ export default defineConfig({
             }
           });
           proxy.on('proxyReq', (proxyReq, req, res) => {
-            console.log(`🤖 [Proxy] Bot API: ${req.method} ${sanitizeUrl(req.url)} → http://45.77.178.85:8080`);
+            console.log(`🤖 [Proxy] Bot API: ${req.method} ${sanitizeUrl(req.url)} → https://45.77.178.85:8443`);
           });
         }
       },
 
-      // API代理到远程Gateway (统一入口) - FIXED: 统一指向远程Gateway
+      // API代理到远程Gateway HTTPS (统一入口)
       '/api': {
-        target: 'http://45.77.178.85:8080',
+        target: 'https://45.77.178.85:8443',
         changeOrigin: true,
-        secure: false,
+        secure: false, // 忽略SSL证书验证
         timeout: 5000,
         // 不需要rewrite，保持/api前缀
         configure: (proxy, options) => {
@@ -130,16 +130,16 @@ export default defineConfig({
           });
           proxy.on('proxyReq', (proxyReq, req, res) => {
             if (!req.url.startsWith('/api/bot')) {
-              console.log(`🌐 [Proxy] General API: ${req.method} ${sanitizeUrl(req.url)} → http://45.77.178.85:8080`);
+              console.log(`🌐 [Proxy] General API: ${req.method} ${sanitizeUrl(req.url)} → https://45.77.178.85:8443`);
             }
           });
         }
       },
       // Health check proxy
       '/health': {
-        target: 'http://45.77.178.85:8080',
+        target: 'https://45.77.178.85:8443',
         changeOrigin: true,
-        secure: false,
+        secure: false, // 忽略SSL证书验证
         timeout: 3000,
         configure: (proxy, options) => {
           proxy.on('error', (err, req, res) => {
@@ -157,11 +157,11 @@ export default defineConfig({
           });
         }
       },
-      // 文件服务代理到远程Gateway  
+      // 文件服务代理到远程Gateway HTTPS
       '/files': {
-        target: 'http://45.77.178.85:8080',
+        target: 'https://45.77.178.85:8443',
         changeOrigin: true,
-        secure: false,
+        secure: false, // 忽略SSL证书验证
         timeout: 10000,
         // 不需要rewrite，保持/files前缀
         configure: (proxy, options) => {
@@ -180,11 +180,11 @@ export default defineConfig({
           });
         }
       },
-      // SSE事件代理到远程Gateway - 🚀 ENHANCED: Optimized for EventSource
+      // SSE事件代理到远程Gateway HTTPS - 🚀 ENHANCED: Optimized for EventSource
       '/events': {
-        target: 'http://45.77.178.85:8080',
+        target: 'https://45.77.178.85:8443',
         changeOrigin: true,
-        secure: false,
+        secure: false, // 忽略SSL证书验证
         timeout: 0, // 🚀 CRITICAL: No timeout for SSE connections
         ws: false,
         // 🚀 CRITICAL: Disable response buffering for SSE
@@ -193,7 +193,7 @@ export default defineConfig({
         configure: (proxy, options) => {
           proxy.on('proxyReq', (proxyReq, req, res) => {
             // 🔐 SECURITY: Sanitize sensitive information in logs
-            console.log(`📡 [Proxy] SSE: ${req.method} ${sanitizeUrl(req.url)} → http://45.77.178.85:8080`);
+            console.log(`📡 [Proxy] SSE: ${req.method} ${sanitizeUrl(req.url)} → https://45.77.178.85:8443`);
             // 🚀 CRITICAL: Set proper headers for SSE
             proxyReq.setHeader('Accept', 'text/event-stream');
             proxyReq.setHeader('Cache-Control', 'no-cache');
@@ -233,11 +233,11 @@ export default defineConfig({
           });
         }
       },
-      // 通知服务代理到远程Gateway
+      // 通知服务代理到远程Gateway HTTPS
       '/notify': {
-        target: 'http://45.77.178.85:8080',
+        target: 'https://45.77.178.85:8443',
         changeOrigin: true,
-        secure: false,
+        secure: false, // 忽略SSL证书验证
         timeout: 5000,
         // 不需要rewrite，保持/notify前缀
         configure: (proxy, options) => {
@@ -255,11 +255,11 @@ export default defineConfig({
           });
         }
       },
-      // 在线用户代理到远程Gateway  
+      // 在线用户代理到远程Gateway HTTPS
       '/online-users': {
-        target: 'http://45.77.178.85:8080',
+        target: 'https://45.77.178.85:8443',
         changeOrigin: true,
-        secure: false,
+        secure: false, // 忽略SSL证书验证
         timeout: 5000,
         // 不需要rewrite，保持/online-users前缀
         configure: (proxy, options) => {
@@ -280,9 +280,9 @@ export default defineConfig({
       },
       // 通用代理 - 处理其他可能的端点
       '/ws': {
-        target: 'http://45.77.178.85:8080',
+        target: 'https://45.77.178.85:8443',
         changeOrigin: true,
-        secure: false,
+        secure: false, // 忽略SSL证书验证
         ws: true, // Enable WebSocket proxying
         timeout: 5000,
         configure: (proxy, options) => {
