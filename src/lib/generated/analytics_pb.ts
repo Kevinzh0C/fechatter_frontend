@@ -1,5 +1,5 @@
 // Auto-generated protobuf types for analytics
-// Generated on: 2025-06-25T22:23:22.457Z
+// Generated on: 2025-06-25T22:48:42.263Z
 // Source: /Users/zhangkaiqi/Rust/fechatter_frontend/src/protos/analytics.proto
 
 import * as protobuf from 'protobufjs';

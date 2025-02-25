@@ -234,17 +234,48 @@ api.interceptors.response.use(
 
 } // End of setupInterceptors function
 
-// Create a proxy that ensures initialization before any API call
-const apiProxy = new Proxy({}, {
-  get(target, prop) {
-    if (typeof api[prop] === 'function') {
-      return async (...args) => {
-        await initializeApiClient();
-        return api[prop](...args);
-      };
-    }
-    return api[prop];
+// Create a wrapper that ensures initialization before any API call
+// This maintains axios interface while ensuring config is loaded
+const apiWrapper = {
+  async get(url, config) {
+    await initializeApiClient();
+    return api.get(url, config);
+  },
+  async post(url, data, config) {
+    await initializeApiClient();
+    return api.post(url, data, config);
+  },
+  async put(url, data, config) {
+    await initializeApiClient();
+    return api.put(url, data, config);
+  },
+  async patch(url, data, config) {
+    await initializeApiClient();
+    return api.patch(url, data, config);
+  },
+  async delete(url, config) {
+    await initializeApiClient();
+    return api.delete(url, config);
+  },
+  async head(url, config) {
+    await initializeApiClient();
+    return api.head(url, config);
+  },
+  async options(url, config) {
+    await initializeApiClient();
+    return api.options(url, config);
+  },
+  async request(config) {
+    await initializeApiClient();
+    return api.request(config);
+  },
+  // Expose other axios properties that might be needed
+  get defaults() {
+    return api.defaults;
+  },
+  get interceptors() {
+    return api.interceptors;
   }
-});
+};
 
-export default apiProxy;
+export default apiWrapper;
