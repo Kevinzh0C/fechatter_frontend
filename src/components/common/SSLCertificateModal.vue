@@ -1,49 +1,57 @@
 <template>
-  <div v-if="show" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
-      <div class="flex items-center mb-4">
-        <div class="flex-shrink-0">
-          <svg class="h-6 w-6 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 19.5c-.77.833.192 2.5 1.732 2.5z" />
-          </svg>
-        </div>
-        <div class="ml-3">
-          <h3 class="text-lg font-medium text-gray-900">
-            {{ instructions.title }}
-          </h3>
-        </div>
+  <div v-if="show" class="ssl-modal-overlay" @click="$emit('retry')">
+    <div class="ssl-modal" @click.stop>
+      <div class="ssl-header">
+        <div class="ssl-icon">🔒</div>
+        <h2>SSL Certificate Required</h2>
       </div>
       
-      <div class="mb-4">
-        <p class="text-sm text-gray-600 mb-3">
-          {{ instructions.message }}
+      <div class="ssl-content">
+        <p class="ssl-description">
+          To connect to the backend server, you need to accept the SSL certificate.
         </p>
         
-        <ol class="text-sm text-gray-600 space-y-1">
-          <li v-for="step in instructions.steps" :key="step" class="flex items-start">
-            <span class="text-blue-500 mr-2">•</span>
-            <span>{{ step }}</span>
-          </li>
-        </ol>
+        <div class="ssl-steps">
+          <div class="step">
+            <span class="step-number">1</span>
+            <div class="step-content">
+              <strong>Open backend URL directly:</strong>
+              <a :href="instructions.backendUrl" target="_blank" class="backend-link">
+                {{ instructions.backendUrl }}
+              </a>
+            </div>
+          </div>
+          
+          <div class="step">
+            <span class="step-number">2</span>
+            <div class="step-content">
+              <strong>Accept the security warning:</strong>
+              <p>Click "Advanced" → "Proceed to {{ instructions.domain }} (unsafe)"</p>
+            </div>
+          </div>
+          
+          <div class="step">
+            <span class="step-number">3</span>
+            <div class="step-content">
+              <strong>Return here and click "Try Again"</strong>
+            </div>
+          </div>
+        </div>
+        
+        <div class="ssl-note">
+          <p><strong>Why is this needed?</strong></p>
+          <p>The backend server uses a self-signed SSL certificate for development. 
+          This is safe for testing but requires manual acceptance in your browser.</p>
+        </div>
       </div>
       
-      <div class="flex space-x-3">
-        <button
-          @click="handleAccept"
-          class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
-        >
-          {{ instructions.buttonText }}
+      <div class="ssl-actions">
+        <button @click="handleAccept" class="accept-btn">
+          Open Backend URL
         </button>
-        <button
-          @click="handleRetry"
-          class="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 transition-colors"
-        >
-          Retry
+        <button @click="$emit('retry')" class="retry-btn">
+          Try Again
         </button>
-      </div>
-      
-      <div class="mt-3 text-xs text-gray-500 text-center">
-        This is required because the backend uses a self-signed SSL certificate
       </div>
     </div>
   </div>
@@ -59,18 +67,189 @@ export default {
     },
     instructions: {
       type: Object,
-      required: true
+      required: true,
+      default: () => ({
+        backendUrl: 'https://45.77.178.85:8443',
+        domain: '45.77.178.85'
+      })
     }
   },
   emits: ['accept', 'retry'],
   methods: {
     handleAccept() {
-      this.instructions.action();
+      // Open backend URL in new tab
+      window.open(this.instructions.backendUrl, '_blank');
       this.$emit('accept');
-    },
-    handleRetry() {
-      this.$emit('retry');
     }
   }
 }
-</script> 
+</script>
+
+<style scoped>
+.ssl-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 20px;
+}
+
+.ssl-modal {
+  background: white;
+  border-radius: 12px;
+  max-width: 500px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+.ssl-header {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+  padding: 24px;
+  text-align: center;
+}
+
+.ssl-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+
+.ssl-header h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.ssl-content {
+  padding: 24px;
+}
+
+.ssl-description {
+  font-size: 16px;
+  color: #374151;
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.ssl-steps {
+  margin-bottom: 24px;
+}
+
+.step {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.step-number {
+  background: #3b82f6;
+  color: white;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 14px;
+  margin-right: 16px;
+  flex-shrink: 0;
+}
+
+.step-content {
+  flex: 1;
+}
+
+.step-content strong {
+  display: block;
+  color: #111827;
+  margin-bottom: 4px;
+}
+
+.step-content p {
+  margin: 4px 0 0 0;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.backend-link {
+  display: block;
+  background: #f3f4f6;
+  padding: 8px 12px;
+  border-radius: 6px;
+  color: #3b82f6;
+  text-decoration: none;
+  font-family: monospace;
+  font-size: 14px;
+  margin-top: 8px;
+  word-break: break-all;
+}
+
+.backend-link:hover {
+  background: #e5e7eb;
+  color: #2563eb;
+}
+
+.ssl-note {
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 24px;
+}
+
+.ssl-note p {
+  margin: 0 0 8px 0;
+  color: #0c4a6e;
+  font-size: 14px;
+}
+
+.ssl-note p:last-child {
+  margin-bottom: 0;
+}
+
+.ssl-actions {
+  padding: 24px;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.accept-btn {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.accept-btn:hover {
+  background: #2563eb;
+}
+
+.retry-btn {
+  background: #6b7280;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.retry-btn:hover {
+  background: #4b5563;
+}
+</style> 
