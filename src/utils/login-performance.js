@@ -3,29 +3,9 @@
  * Simplified Login Performance Utilities
  */
 
-// 基本资源预加载 - 在Vite开发环境中禁用，避免404错误
-export const preloadCriticalResources = () => {
-  // 在开发环境中跳过预加载，避免404错误
-  if (import.meta.env.DEV) {
-    console.log('🔧 [Performance] Skipping preload in development mode');
-    return;
-  }
 
-  const criticalResources = [
-    // 生产环境中会有正确的构建路径
-    '/assets/main.js',
-    '/assets/auth.js'
-  ];
 
-  criticalResources.forEach(resource => {
-    const link = document.createElement('link');
-    link.rel = 'modulepreload';
-    link.href = resource;
-    document.head.appendChild(link);
-  });
-};
-
-// 简化版DNS预取
+// DNS预取优化
 export const prefetchDNS = () => {
   const apiHost = import.meta.env.VITE_API_BASE_URL?.replace(/^https?:\/\//, '') || 'localhost';
 
@@ -44,10 +24,9 @@ export const setupPerformanceMonitoring = () => {
   };
 };
 
-// 主要优化函数 - 简化版
+// 主要优化函数 - 简化版，移除有问题的资源预加载
 export const optimizeLoginPerformance = () => {
   try {
-    preloadCriticalResources();
     prefetchDNS();
     setupPerformanceMonitoring();
   } catch (error) {
