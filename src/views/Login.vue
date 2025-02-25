@@ -46,6 +46,7 @@
               Don't have an account? Sign up
             </router-link>
           </div>
+          <AutoFillCredentials @fill-credentials="handleAutoFill" />
         </div>
 
         <div>
@@ -181,6 +182,7 @@ import { optimizeLoginPerformance, analyzeLoginPerformance } from '@/utils/login
 import { AppIcon } from '@/components/icons';
 import { useAnalytics } from '@/composables/useAnalytics';
 import TestAccountQuickLogin from '@/components/auth/TestAccountQuickLogin.vue';
+import AutoFillCredentials from '@/components/auth/AutoFillCredentials.vue';
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -188,7 +190,8 @@ const analytics = useAnalytics();
 
 // Components
 const components = {
-  TestAccountQuickLogin
+  TestAccountQuickLogin,
+  AutoFillCredentials
 };
 
 // 使用 shallowRef 优化性能
@@ -246,6 +249,11 @@ const fillCredentials = (emailVal, passwordVal) => {
 
 const fillAdminCredentials = () => fillCredentials('admin@test.com', 'password');
 const fillSuperCredentials = () => fillCredentials('super@test.com', 'password');
+
+// Handle auto-fill from AutoFillCredentials component
+const handleAutoFill = (credentials) => {
+  fillCredentials(credentials.email, credentials.password);
+};
 
 // Toggle development accounts visibility
 const toggleDevAccounts = () => {

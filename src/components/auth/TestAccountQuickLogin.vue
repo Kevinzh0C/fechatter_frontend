@@ -1,7 +1,7 @@
 <template>
   <div class="test-accounts-panel" v-if="showTestAccounts && testAccounts.length > 0">
     <div class="panel-header">
-      <h3>🧪 Quick Login - Development</h3>
+      <h3>🚀 Quick Login</h3>
       <p>Select a test account for quick access</p>
     </div>
     
@@ -34,6 +34,13 @@
       </button>
     </div>
   </div>
+
+  <!-- Show button when test accounts are hidden -->
+  <div v-else-if="testAccounts.length > 0 && !showTestAccounts" class="show-test-accounts">
+    <button @click="showTestAccountsPanel" class="show-button">
+      🚀 Show Test Accounts
+    </button>
+  </div>
 </template>
 
 <script>
@@ -52,11 +59,15 @@ export default {
     // Load test accounts from YAML configuration
     onMounted(async () => {
       try {
+        // Check if user has hidden test accounts
+        const isHidden = localStorage.getItem('fechatter_hide_test_accounts') === 'true'
+        
         const hasTestConfig = await hasTestAccountConfig()
         if (hasTestConfig) {
           testAccounts.value = await getTestAccounts()
-          showTestAccounts.value = true
-          console.log('🧪 Test accounts loaded:', testAccounts.value.length)
+          // Show test accounts unless explicitly hidden
+          showTestAccounts.value = !isHidden
+          console.log('🚀 Test accounts loaded:', testAccounts.value.length)
         }
       } catch (error) {
         console.warn('Failed to load test accounts:', error)
@@ -79,10 +90,7 @@ export default {
       try {
         console.log('🚀 Quick login attempt:', account.email)
         
-        await authStore.login({
-          email: account.email,
-          password: account.password
-        })
+        await authStore.login(account.email, account.password)
 
         console.log('✅ Quick login successful')
         
@@ -108,13 +116,19 @@ export default {
       localStorage.setItem('fechatter_hide_test_accounts', 'true')
     }
 
+    const showTestAccountsPanel = () => {
+      showTestAccounts.value = true
+      localStorage.removeItem('fechatter_hide_test_accounts')
+    }
+
     return {
       testAccounts,
       showTestAccounts,
       isLoggingIn,
       getInitials,
       quickLogin,
-      hideTestAccounts
+      hideTestAccounts,
+      showTestAccountsPanel
     }
   }
 }
@@ -251,6 +265,29 @@ export default {
 .hide-button:hover {
   background: rgba(255, 255, 255, 0.2);
   color: white;
+}
+
+.show-test-accounts {
+  text-align: center;
+  margin: 20px 0;
+}
+
+.show-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.show-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
 }
 
 /* Dark mode compatibility */
