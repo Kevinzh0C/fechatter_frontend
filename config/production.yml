@@ -1,58 +1,68 @@
-# Fechatter Frontend - Production Configuration
-# 生产环境：v0部署前端 + fly.io部署Gateway
+# Fechatter Frontend - Development Configuration
+# 开发环境：前端通过Vite代理访问后端服务
 
 app:
   name: "Fechatter"
   version: "1.0.0"
-  environment: "production"
-  debug: false
+  environment: "development"
+  debug: true
 
-# 前端部署配置 (v0)
+# 前端服务器配置
 frontend:
-  domain: "fechatter.v0.app"
-  port: 443
-  protocol: "https"
+  port: 5173 # Vite默认端口
+  host: "localhost"
+  hmr_port: 1421
 
-# API配置 - 全部通过fly.io上的Gateway
+# API配置 - Vercel部署使用HTTPS直连后端
 api:
-  # Gateway地址 - fly.io部署
-  gateway_url: "https://fechatter-gateway.fly.dev"
+  # Gateway地址 - HTTPS端口
+  gateway_url: "https://45.77.178.85:8443"
 
-  # 所有API端点都通过Gateway
-  base_url: "https://fechatter-gateway.fly.dev/api"
-  file_url: "https://fechatter-gateway.fly.dev/files"
-  # 使用SSE而不是WebSocket进行实时通信
-  sse_url: "https://fechatter-gateway.fly.dev/events"
-  notify_url: "https://fechatter-gateway.fly.dev"
+  # Vercel部署使用完整HTTPS URLs
+  base_url: "https://45.77.178.85:8443/api"
+  file_url: "https://45.77.178.85:8443/files"
+  sse_url: "https://45.77.178.85:8443/events"
+  notify_url: "https://45.77.178.85:8443/notify"
 
-  # 生产环境请求配置
-  timeout: 30000
-  max_retries: 5
-  retry_delay: 2000
+  # 请求配置
+  timeout: 15000
+  max_retries: 3
+  retry_delay: 1000
 
-# CORS配置
+# CORS配置 - 支持本地开发和Vercel部署
 cors:
   enabled: true
   origins:
-  - "https://fechatter.v0.app"
-  - "https://*.v0.app"
+  - "http://localhost:5173" # Vite开发端口
+  - "http://localhost:1420" # 备用端口
+  - "http://127.0.0.1:5173"
+  - "https://fechatter-frontend-cahw21vjh-zhkevin46-gmailcoms-projects.vercel.app"
+  - "https://*.vercel.app" # 所有Vercel部署域名
   credentials: true
 
-# 安全配置
-security:
-  enable_csp: true
-  enable_https_only: true
-  enable_hsts: true
-
-# 性能配置
-performance:
-  enable_compression: true
-  enable_caching: true
-  cache_duration: 3600
+# 开发工具
+dev_tools:
+  enable_devtools: true
+  enable_source_maps: true
+  hot_reload: true
 
 # 日志配置
 logging:
-  level: "info"
-  enable_network_logs: false
+  level: "debug"
+  enable_network_logs: true
   enable_api_logs: true
-  enable_error_tracking: true
+
+# 测试账户配置 - 开发环境快速登录
+test_accounts:
+- email: "test@fechatter.com"
+  password: "test123"
+  name: "Test User"
+  description: "主要测试账户"
+- email: "dev@fechatter.com"
+  password: "dev123"
+  name: "Dev User"
+  description: "开发测试账户"
+- email: "admin@fechatter.com"
+  password: "admin123"
+  name: "Admin User"
+  description: "管理员测试账户"

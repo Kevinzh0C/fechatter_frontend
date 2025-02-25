@@ -1,56 +1,58 @@
-# Fechatter Frontend - Vercel Production Configuration
-# 专门为Vercel部署优化，保留所有开发功能
+# Fechatter Frontend - Development Configuration
+# 开发环境：前端通过Vite代理访问后端服务
 
 app:
   name: "Fechatter"
   version: "1.0.0"
-  environment: "development" # 强制开发模式以启用测试账户
-  debug: true # 启用调试功能
+  environment: "development"
+  debug: true
 
-# 前端部署配置
+# 前端服务器配置
 frontend:
-  domain: "fechatter-frontend-cxdtby9ch-zhkevin46-gmailcoms-projects.vercel.app"
-  port: 443
-  protocol: "https"
+  port: 5173 # Vite默认端口
+  host: "localhost"
+  hmr_port: 1421
 
-# API配置 - 使用HTTPS连接
+# API配置 - Vercel部署使用HTTPS直连后端
 api:
-  # Gateway地址 - HTTPS端口 (与本地保持一致)
+  # Gateway地址 - HTTPS端口
   gateway_url: "https://45.77.178.85:8443"
 
-  # 所有API端点都使用HTTPS
+  # Vercel部署使用完整HTTPS URLs
   base_url: "https://45.77.178.85:8443/api"
   file_url: "https://45.77.178.85:8443/files"
   sse_url: "https://45.77.178.85:8443/events"
   notify_url: "https://45.77.178.85:8443/notify"
 
-  # 请求配置 - 加长超时以适应网络延迟
-  timeout: 30000
-  max_retries: 5
-  retry_delay: 2000
+  # 请求配置
+  timeout: 15000
+  max_retries: 3
+  retry_delay: 1000
 
-# CORS配置 - 支持Vercel域名
+# CORS配置 - 支持本地开发和Vercel部署
 cors:
   enabled: true
   origins:
-  - "https://fechatter-frontend-cxdtby9ch-zhkevin46-gmailcoms-projects.vercel.app"
-  - "https://*.vercel.app"
-  - "http://localhost:5173" # 保留本地开发支持
+  - "http://localhost:5173" # Vite开发端口
+  - "http://localhost:1420" # 备用端口
+  - "http://127.0.0.1:5173"
+  - "https://fechatter-frontend-cahw21vjh-zhkevin46-gmailcoms-projects.vercel.app"
+  - "https://*.vercel.app" # 所有Vercel部署域名
   credentials: true
 
-# 开发工具 - 在Vercel上也启用
+# 开发工具
 dev_tools:
-  enable_devtools: true # 强制启用开发工具
-  enable_source_maps: true # 启用源码映射以便调试
-  hot_reload: false # Vercel上不需要热重载
+  enable_devtools: true
+  enable_source_maps: true
+  hot_reload: true
 
-# 日志配置 - 详细日志用于调试
+# 日志配置
 logging:
-  level: "debug" # 保持调试级别日志
-  enable_network_logs: true # 启用网络日志
-  enable_api_logs: true # 启用API日志
+  level: "debug"
+  enable_network_logs: true
+  enable_api_logs: true
 
-# 🎯 测试账户配置 - 完全保留本地功能
+# 测试账户配置 - 开发环境快速登录
 test_accounts:
 - email: "test@fechatter.com"
   password: "test123"
