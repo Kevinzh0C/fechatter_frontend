@@ -72,225 +72,62 @@ export default defineConfig({
       allow: ['..']
     },
 
-    // 基本代理配置 - 统一使用HTTPS后端
+    // 🔗 Simplified proxy configuration with ngrok tunnel
+    // All requests now go through the ngrok HTTPS tunnel
     proxy: {
-      // 🤖 PRIORITY: Bot API代理直接到远程Gateway HTTPS
-      '/api/bot': {
-        target: 'https://45.77.178.85:8443',
+      // All API requests to ngrok tunnel
+      '/api': {
+        target: 'https://62f5-45-77-178-85.ngrok-free.app',
         changeOrigin: true,
-        secure: false, // 忽略SSL证书验证
-        timeout: 5000,
+        secure: true, // ngrok provides valid SSL
+        timeout: 10000,
         configure: (proxy, options) => {
           proxy.on('error', (err, req, res) => {
-            console.error('🚨 Bot API Proxy error:', err.message);
+            console.error('🚨 ngrok API Proxy error:', err.message);
             if (!res.headersSent) {
               res.writeHead(503, {
                 'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Headers': '*',
-                'Access-Control-Allow-Methods': '*'
+                'Access-Control-Allow-Origin': '*'
               });
               res.end(JSON.stringify({
-                error: 'Bot service temporarily unavailable',
-                code: 'SERVICE_UNAVAILABLE',
+                error: 'Backend service unavailable',
+                code: 'NGROK_PROXY_ERROR',
                 development: true
               }));
             }
           });
           proxy.on('proxyReq', (proxyReq, req, res) => {
-            console.log(`🤖 [Proxy] Bot API: ${req.method} ${sanitizeUrl(req.url)} → https://45.77.178.85:8443`);
+            console.log(`🔗 [ngrok] API: ${req.method} ${sanitizeUrl(req.url)}`);
           });
         }
       },
-
-      // API代理到远程Gateway HTTPS (统一入口)
-      '/api': {
-        target: 'https://45.77.178.85:8443',
-        changeOrigin: true,
-        secure: false, // 忽略SSL证书验证
-        timeout: 5000,
-        // 不需要rewrite，保持/api前缀
-        configure: (proxy, options) => {
-          proxy.on('error', (err, req, res) => {
-            console.error('🚨 API Proxy error:', err.message);
-            if (!res.headersSent) {
-              res.writeHead(503, {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Headers': '*',
-                'Access-Control-Allow-Methods': '*'
-              });
-              res.end(JSON.stringify({
-                error: 'Backend service temporarily unavailable',
-                code: 'SERVICE_UNAVAILABLE',
-                development: true,
-                message: 'This is normal in development when remote services are down'
-              }));
-            }
-          });
-          proxy.on('proxyReq', (proxyReq, req, res) => {
-            if (!req.url.startsWith('/api/bot')) {
-              console.log(`🌐 [Proxy] General API: ${req.method} ${sanitizeUrl(req.url)} → https://45.77.178.85:8443`);
-            }
-          });
-        }
-      },
-      // Health check proxy
-      '/health': {
-        target: 'https://45.77.178.85:8443',
-        changeOrigin: true,
-        secure: false, // 忽略SSL证书验证
-        timeout: 3000,
-        configure: (proxy, options) => {
-          proxy.on('error', (err, req, res) => {
-            if (!res.headersSent) {
-              res.writeHead(200, {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-              });
-              res.end(JSON.stringify({
-                status: 'development',
-                message: 'Health check unavailable in development',
-                timestamp: new Date().toISOString()
-              }));
-            }
-          });
-        }
-      },
-      // 文件服务代理到远程Gateway HTTPS
+      // File service through ngrok
       '/files': {
-        target: 'https://45.77.178.85:8443',
+        target: 'https://62f5-45-77-178-85.ngrok-free.app',
         changeOrigin: true,
-        secure: false, // 忽略SSL证书验证
-        timeout: 10000,
-        // 不需要rewrite，保持/files前缀
-        configure: (proxy, options) => {
-          proxy.on('error', (err, req, res) => {
-            console.error('🚨 Files Proxy error:', err.message);
-            if (!res.headersSent) {
-              res.writeHead(503, {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-              });
-              res.end(JSON.stringify({
-                error: 'File service temporarily unavailable',
-                code: 'SERVICE_UNAVAILABLE'
-              }));
-            }
-          });
-        }
+        secure: true,
+        timeout: 15000
       },
-      // SSE事件代理到远程Gateway HTTPS - 🚀 ENHANCED: Optimized for EventSource
+      // SSE events through ngrok
       '/events': {
-        target: 'https://45.77.178.85:8443',
+        target: 'https://62f5-45-77-178-85.ngrok-free.app',
         changeOrigin: true,
-        secure: false, // 忽略SSL证书验证
-        timeout: 0, // 🚀 CRITICAL: No timeout for SSE connections
-        ws: false,
-        // 🚀 CRITICAL: Disable response buffering for SSE
-        buffer: false,
-        // 不需要rewrite，保持/events前缀
+        secure: true,
+        timeout: 0,
         configure: (proxy, options) => {
           proxy.on('proxyReq', (proxyReq, req, res) => {
-            // 🔐 SECURITY: Sanitize sensitive information in logs
-            console.log(`📡 [Proxy] SSE: ${req.method} ${sanitizeUrl(req.url)} → https://45.77.178.85:8443`);
-            // 🚀 CRITICAL: Set proper headers for SSE
+            console.log(`🔗 [ngrok] SSE: ${req.method} ${sanitizeUrl(req.url)}`);
             proxyReq.setHeader('Accept', 'text/event-stream');
             proxyReq.setHeader('Cache-Control', 'no-cache');
-            proxyReq.setHeader('Connection', 'keep-alive');
-            // 🚀 CRITICAL: Remove any buffering headers
-            proxyReq.removeHeader('content-length');
-          });
-          proxy.on('proxyRes', (proxyRes, req, res) => {
-            console.log(`📡 [Proxy] SSE Response: ${proxyRes.statusCode} - ${proxyRes.headers['content-type']}`);
-            // 🚀 CRITICAL: Ensure SSE headers and streaming are preserved
-            if (proxyRes.headers['content-type']?.includes('text/event-stream')) {
-              // Remove content-length to enable streaming
-              delete proxyRes.headers['content-length'];
-              // Set SSE headers
-              proxyRes.headers['cache-control'] = 'no-cache';
-              proxyRes.headers['connection'] = 'keep-alive';
-              proxyRes.headers['access-control-allow-origin'] = '*';
-              proxyRes.headers['access-control-allow-credentials'] = 'true';
-              console.log(`📡 [Proxy] SSE Headers configured for streaming`);
-            }
-          });
-          proxy.on('error', (err, req, res) => {
-            console.error('🚨 SSE Proxy error:', err.message);
-            console.error('🚨 SSE Error details:', { url: sanitizeUrl(req.url), method: req.method });
-            // 🚀 CRITICAL: Don't interfere with SSE connections, let them fail naturally
-            if (!res.headersSent) {
-              res.writeHead(503, {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-              });
-              res.end(JSON.stringify({
-                error: 'SSE service temporarily unavailable',
-                code: 'SSE_PROXY_ERROR',
-                development: true
-              }));
-            }
           });
         }
       },
-      // 通知服务代理到远程Gateway HTTPS
+      // Notifications through ngrok
       '/notify': {
-        target: 'https://45.77.178.85:8443',
+        target: 'https://62f5-45-77-178-85.ngrok-free.app',
         changeOrigin: true,
-        secure: false, // 忽略SSL证书验证
-        timeout: 5000,
-        // 不需要rewrite，保持/notify前缀
-        configure: (proxy, options) => {
-          proxy.on('error', (err, req, res) => {
-            if (!res.headersSent) {
-              res.writeHead(503, {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-              });
-              res.end(JSON.stringify({
-                error: 'Notification service temporarily unavailable',
-                code: 'SERVICE_UNAVAILABLE'
-              }));
-            }
-          });
-        }
-      },
-      // 在线用户代理到远程Gateway HTTPS
-      '/online-users': {
-        target: 'https://45.77.178.85:8443',
-        changeOrigin: true,
-        secure: false, // 忽略SSL证书验证
-        timeout: 5000,
-        // 不需要rewrite，保持/online-users前缀
-        configure: (proxy, options) => {
-          proxy.on('error', (err, req, res) => {
-            if (!res.headersSent) {
-              res.writeHead(200, {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-              });
-              res.end(JSON.stringify({
-                online_users: [],
-                total: 0,
-                message: 'Online users service unavailable in development'
-              }));
-            }
-          });
-        }
-      },
-      // 通用代理 - 处理其他可能的端点
-      '/ws': {
-        target: 'https://45.77.178.85:8443',
-        changeOrigin: true,
-        secure: false, // 忽略SSL证书验证
-        ws: true, // Enable WebSocket proxying
-        timeout: 5000,
-        configure: (proxy, options) => {
-          proxy.on('error', (err, req, res) => {
-            console.error('🚨 WebSocket Proxy error:', err.message);
-            // WebSocket errors are handled differently
-          });
-        }
+        secure: true,
+        timeout: 10000
       }
     },
 
