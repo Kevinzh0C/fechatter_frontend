@@ -16,7 +16,10 @@ const router = createRouter({
 describe('Login Component', () => {
   let wrapper;
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    // Start at login page
+    await router.push('/login');
+    
     wrapper = mount(Login, {
       global: {
         plugins: [
@@ -64,6 +67,9 @@ describe('Login Component', () => {
     await wrapper.find('input[type="email"]').setValue('test@example.com');
     await wrapper.find('input[type="password"]').setValue('password123');
     await wrapper.find('form').trigger('submit');
+    
+    // Wait for router navigation to complete
+    await router.isReady();
 
     const currentRoute = router.currentRoute.value;
     expect(currentRoute.path).toBe('/');
@@ -76,8 +82,11 @@ describe('Login Component', () => {
     await wrapper.find('input[type="email"]').setValue('test@example.com');
     await wrapper.find('input[type="password"]').setValue('wrong');
     await wrapper.find('form').trigger('submit');
-
-    const currentRoute = router.currentRoute.value;
-    expect(currentRoute.path).toBe('/login');
+    
+    // Wait for any pending navigation to complete
+    await router.isReady();
+    
+    // Ensure we're still on the login page
+    expect(router.currentRoute.value.path).toBe('/login');
   });
 });
