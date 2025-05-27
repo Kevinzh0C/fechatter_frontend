@@ -17,10 +17,10 @@ describe('Login Component', () => {
   let wrapper;
 
   beforeEach(async () => {
-    // Reset router to login page
+    // Reset router to login page before each test
     await router.push('/login');
     await router.isReady();
-    
+
     wrapper = mount(Login, {
       global: {
         plugins: [
@@ -68,11 +68,10 @@ describe('Login Component', () => {
     await wrapper.find('input[type="email"]').setValue('test@example.com');
     await wrapper.find('input[type="password"]').setValue('password123');
     await wrapper.find('form').trigger('submit');
-    
-    // Explicitly push to home route and wait for navigation
-    await router.push('/');
+
+    // Wait for navigation to complete
     await router.isReady();
-    
+
     expect(router.currentRoute.value.path).toBe('/');
   });
 
@@ -83,10 +82,10 @@ describe('Login Component', () => {
     await wrapper.find('input[type="email"]').setValue('test@example.com');
     await wrapper.find('input[type="password"]').setValue('wrong');
     await wrapper.find('form').trigger('submit');
-    
+
     // Wait for navigation to complete
     await router.isReady();
-    
+
     expect(router.currentRoute.value.path).toBe('/login');
     expect(wrapper.vm.error).toBe('Invalid credentials');
   });
