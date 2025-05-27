@@ -1,14 +1,37 @@
 <template>
   <div class="flex h-screen bg-gray-100">
     <!-- Chat sidebar -->
-    <div class="w-64 bg-white border-r">
-      <div class="p-4">
-        <h2 class="text-lg font-semibold text-gray-700">Members</h2>
-        <ul class="mt-4 space-y-2">
-          <li v-for="member in members" :key="member.id"
-            class="flex items-center space-x-2 text-gray-700">
-            <span class="w-2 h-2 bg-green-500 rounded-full"></span>
-            <span>{{ member.email }}</span>
+    <div class="w-64 bg-gray-800 text-white flex flex-col h-screen p-4 text-sm">
+      <div class="flex items-center justify-between mb-6">
+        <div class="font-bold text-base truncate cursor-pointer" @click="toggleDropdown">
+          <span>{{ workspaceName }}</span>
+          <button class="text-gray-400 ml-1">&nbsp;▼</button>
+        </div>
+        <div v-if="dropdownVisible" class="absolute top-12 left-0 w-48 bg-gray-800 border border-gray-700 rounded-md shadow-lg z-10">
+          <ul class="py-1">
+            <li @click="logout" class="px-4 py-2 hover:bg-gray-700 cursor-pointer">Logout</li>
+          </ul>
+        </div>
+        <button @click="addChannel" class="text-gray-400 text-xl hover:text-white">+</button>
+      </div>
+
+      <div class="mb-6">
+        <h2 class="text-xs uppercase text-gray-400 mb-2">Channels</h2>
+        <ul>
+          <li v-for="channel in channels" :key="channel.id" @click="selectChannel(channel.id)"
+              :class="['px-2 py-1 rounded cursor-pointer', { 'bg-blue-600': channel.id === activeChannelId }]">
+            # {{ channel.name }}
+          </li>
+        </ul>
+      </div>
+
+      <div>
+        <h2 class="text-xs uppercase text-gray-400 mb-2">Direct Messages</h2>
+        <ul>
+          <li v-for="dm in directMessages" :key="dm.id" @click="selectChannel(dm.id)"
+              :class="['flex items-center px-2 py-1 rounded cursor-pointer', { 'bg-blue-600': dm.id === activeChannelId }]">
+            <div class="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+            {{ dm.name }}
           </li>
         </ul>
       </div>
@@ -91,30 +114,45 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { useChatStore } from '../stores/chat';
 import { useAuthStore } from '../stores/auth';
 
 const route = useRoute();
+const router = useRouter();
 const chatStore = useChatStore();
 const authStore = useAuthStore();
 
 const newMessage = ref('');
-const members = ref([]);
 const messagesContainer = ref(null);
 const currentUserId = ref(null);
 const fileInput = ref(null);
 const files = ref([]);
+const dropdownVisible = ref(false);
+
+// Sidebar data
+const workspaceName = ref('My Workspace');
+const channels = ref([
+  { id: '1', name: 'general' },
+  { id: '2', name: 'random' }
+]);
+const directMessages = ref([
+  { id: '3', name: 'John Doe' },
+  { id: '4', name: 'Jane Smith' }
+]);
+const activeChannelId = ref(null);
 
 onMounted(async () => {
   if (authStore.token) {
     currentUserId.value = authStore.user?.id;
     await loadChat();
   }
+  document.addEventListener('click', handleOutsideClick);
 });
 
 watch(() => route.params.id, async (newId) => {
   if (newId && authStore.token) {
+    activeChannelId.value = newId;
     await loadChat();
   }
 });
@@ -161,5 +199,34 @@ function handleFileUpload(event) {
 
 function removeFile(index) {
   files.value = files.value.filter((_, i) => i !== index);
+}
+
+// Sidebar methods
+function toggleDropdown() {
+  dropdownVisible.value = !dropdownVisible.value;
+}
+
+function handleOutsideClick(event) {
+  if (!event.target.closest('.dropdown-trigger')) {
+    dropdownVisible.value = false;
+  }
+}
+
+async function logout() {
+  await authStore.logout();
+  router.push('/login');
+}
+
+function addChannel() {
+  const newChannel = {
+    id: Date.now().toString(),
+    name: `channel-${channels.value.length + 1}`
+  };
+  channels.value.push(newChannel);
+}
+
+function selectChannel(channelId) {
+  activeChannelId.value = channelId;
+  router.push(`/chat/${channelId}`);
 }
 </script>
