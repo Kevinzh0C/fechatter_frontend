@@ -17,7 +17,7 @@ describe('Login Component', () => {
   let wrapper;
 
   beforeEach(async () => {
-    // Start at login page
+    // Reset router to login page
     await router.push('/login');
     await router.isReady();
     
@@ -69,28 +69,24 @@ describe('Login Component', () => {
     await wrapper.find('input[type="password"]').setValue('password123');
     await wrapper.find('form').trigger('submit');
     
-    // Wait for any pending promises to resolve
-    await vi.dynamicImportSettled();
-    
-    // Wait for router navigation to complete
-    await router.push('/');
+    // Wait for navigation to complete
     await router.isReady();
-
+    
     expect(router.currentRoute.value.path).toBe('/');
   });
 
   it('stays on login page on failed login', async () => {
     const store = useAuthStore();
-    store.login.mockRejectedValueOnce(new Error('Login failed'));
+    store.login.mockResolvedValueOnce(false);
 
     await wrapper.find('input[type="email"]').setValue('test@example.com');
     await wrapper.find('input[type="password"]').setValue('wrong');
     await wrapper.find('form').trigger('submit');
     
-    // Wait for any pending navigation to complete
+    // Wait for navigation to complete
     await router.isReady();
     
-    // Ensure we're still on the login page
     expect(router.currentRoute.value.path).toBe('/login');
+    expect(wrapper.vm.error).toBe('Invalid credentials');
   });
 });
