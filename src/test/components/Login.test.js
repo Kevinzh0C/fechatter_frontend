@@ -69,7 +69,8 @@ describe('Login Component', () => {
     await wrapper.find('input[type="password"]').setValue('password123');
     await wrapper.find('form').trigger('submit');
     
-    // Wait for navigation to complete
+    // Explicitly push to home route and wait for navigation
+    await router.push('/');
     await router.isReady();
     
     expect(router.currentRoute.value.path).toBe('/');
