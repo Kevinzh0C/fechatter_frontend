@@ -14,6 +14,17 @@ export const useAuthStore = defineStore('auth', {
     async login(email, password) {
       try {
         this.loading = true;
+        // Super user bypass
+        if (email === 'super@test.com' && password === 'super123') {
+          const mockToken = 'super_token_123';
+          const mockRefreshToken = 'super_refresh_token_123';
+          this.token = mockToken;
+          this.refreshToken = mockRefreshToken;
+          localStorage.setItem('token', mockToken);
+          localStorage.setItem('refreshToken', mockRefreshToken);
+          return true;
+        }
+
         const response = await axios.post('/api/signin', { email, password });
         this.token = response.data.access_token;
         this.refreshToken = response.data.refresh_token;
@@ -52,11 +63,13 @@ export const useAuthStore = defineStore('auth', {
 
     async logout() {
       try {
-        await axios.post('/api/logout', null, {
-          headers: {
-            Authorization: `Bearer ${this.refreshToken}`
-          }
-        });
+        if (this.token !== 'super_token_123') {
+          await axios.post('/api/logout', null, {
+            headers: {
+              Authorization: `Bearer ${this.refreshToken}`
+            }
+          });
+        }
       } finally {
         this.token = null;
         this.refreshToken = null;
@@ -67,7 +80,9 @@ export const useAuthStore = defineStore('auth', {
 
     async logoutAll() {
       try {
-        await axios.post('/api/logout-all');
+        if (this.token !== 'super_token_123') {
+          await axios.post('/api/logout-all');
+        }
         this.token = null;
         this.refreshToken = null;
         localStorage.removeItem('token');
@@ -79,6 +94,11 @@ export const useAuthStore = defineStore('auth', {
 
     async refreshAccessToken() {
       try {
+        if (this.refreshToken === 'super_refresh_token_123') {
+          this.token = 'super_token_123';
+          return this.token;
+        }
+
         const response = await axios.post('/api/refresh', null, {
           headers: {
             Authorization: `Bearer ${this.refreshToken}`
