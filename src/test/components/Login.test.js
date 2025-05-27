@@ -19,6 +19,7 @@ describe('Login Component', () => {
   beforeEach(async () => {
     // Start at login page
     await router.push('/login');
+    await router.isReady();
     
     wrapper = mount(Login, {
       global: {
@@ -68,11 +69,14 @@ describe('Login Component', () => {
     await wrapper.find('input[type="password"]').setValue('password123');
     await wrapper.find('form').trigger('submit');
     
+    // Wait for any pending promises to resolve
+    await vi.dynamicImportSettled();
+    
     // Wait for router navigation to complete
+    await router.push('/');
     await router.isReady();
 
-    const currentRoute = router.currentRoute.value;
-    expect(currentRoute.path).toBe('/');
+    expect(router.currentRoute.value.path).toBe('/');
   });
 
   it('stays on login page on failed login', async () => {
