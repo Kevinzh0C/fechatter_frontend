@@ -20,10 +20,22 @@
           </div>
         </div>
 
+        <div v-if="error" class="rounded-md bg-red-50 p-4">
+          <div class="flex">
+            <div class="ml-3">
+              <h3 class="text-sm font-medium text-red-800">
+                {{ error }}
+              </h3>
+            </div>
+          </div>
+        </div>
+
         <div>
           <button type="submit"
-            class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-            Sign in
+            :disabled="loading"
+            class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50">
+            <span v-if="loading">Signing in...</span>
+            <span v-else>Sign in</span>
           </button>
         </div>
       </form>
@@ -47,11 +59,24 @@ const authStore = useAuthStore();
 
 const email = ref('');
 const password = ref('');
+const error = ref('');
+const loading = ref(false);
 
 async function handleSubmit() {
-  const success = await authStore.login(email.value, password.value);
-  if (success) {
-    router.push('/');
+  error.value = '';
+  loading.value = true;
+  
+  try {
+    const success = await authStore.login(email.value, password.value);
+    if (success) {
+      await router.push('/');
+    } else {
+      error.value = 'Invalid credentials';
+    }
+  } catch (err) {
+    error.value = err.message || 'Login failed';
+  } finally {
+    loading.value = false;
   }
 }
 </script>
