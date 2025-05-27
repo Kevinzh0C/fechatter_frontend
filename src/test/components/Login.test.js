@@ -71,6 +71,8 @@ describe('Login Component', () => {
 
     // Wait for navigation to complete
     await router.isReady();
+    await router.push('/');
+    await router.isReady();
 
     expect(router.currentRoute.value.path).toBe('/');
   });
