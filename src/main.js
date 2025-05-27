@@ -13,21 +13,47 @@ import Chat from './views/Chat.vue';
 const router = createRouter({
   history: createWebHistory(),
   routes: [
-    { path: '/', component: Home, meta: { requiresAuth: true } },
-    { path: '/login', component: Login },
-    { path: '/register', component: Register },
-    { path: '/chat/:id', component: Chat, meta: { requiresAuth: true } },
+    { 
+      path: '/', 
+      component: Home, 
+      meta: { requiresAuth: true },
+      alias: '/home'  // Add alias for /home
+    },
+    { 
+      path: '/login', 
+      component: Login,
+      meta: { requiresGuest: true }  // Add meta for guest-only routes
+    },
+    { 
+      path: '/register', 
+      component: Register,
+      meta: { requiresGuest: true }
+    },
+    { 
+      path: '/chat/:id', 
+      component: Chat, 
+      meta: { requiresAuth: true } 
+    },
   ]
 });
 
 // Navigation guard
 router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('token');
+  
+  // Redirect authenticated users away from login/register
+  if (to.meta.requiresGuest && token) {
+    next('/');
+    return;
+  }
+
+  // Redirect unauthenticated users to login
   if (to.meta.requiresAuth && !token) {
     next('/login');
-  } else {
-    next();
+    return;
   }
+
+  next();
 });
 
 const pinia = createPinia();
