@@ -71,7 +71,7 @@ describe('Login Component', () => {
 
   it('stays on login page on failed login', async () => {
     const store = useAuthStore();
-    store.login.mockResolvedValueOnce(false);
+    store.login.mockRejectedValueOnce(new Error('Login failed'));
 
     await wrapper.find('input[type="email"]').setValue('test@example.com');
     await wrapper.find('input[type="password"]').setValue('wrong');
