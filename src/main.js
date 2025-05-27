@@ -38,8 +38,11 @@ const router = createRouter({
 });
 
 // Navigation guard
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const token = localStorage.getItem('token');
+  
+  // Wait for router to be ready
+  await router.isReady();
   
   // Redirect authenticated users away from login/register
   if (to.meta.requiresGuest && token) {
@@ -61,4 +64,8 @@ const app = createApp(App);
 
 app.use(router);
 app.use(pinia);
-app.mount("#app");
+
+// Wait for router to be ready before mounting
+router.isReady().then(() => {
+  app.mount("#app");
+});

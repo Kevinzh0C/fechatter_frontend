@@ -69,6 +69,8 @@ async function handleSubmit() {
   try {
     const success = await authStore.login(email.value, password.value);
     if (success) {
+      // Wait for router to be ready before navigation
+      await router.isReady();
       await router.push('/');
     } else {
       error.value = 'Invalid credentials';
