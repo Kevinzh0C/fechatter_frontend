@@ -13,29 +13,31 @@ frontend:
   host: "localhost"
   hmr_port: 1421
 
-# API配置 - 通过Vite代理访问，避免CORS问题
+# API配置 - Vercel部署使用HTTPS直连后端
 api:
-  # Gateway地址 - 仅用于显示和日志
-  gateway_url: "http://45.77.178.85:8080"
+  # Gateway地址 - HTTPS端口
+  gateway_url: "https://45.77.178.85:8443"
 
-  # 开发环境使用相对路径，通过Vite代理到远程Gateway
-  base_url: "/api" # 通过Vite代理到 45.77.178.85:8080/api
-  file_url: "/files" # 通过Vite代理到 45.77.178.85:8080/files
-  sse_url: "/events" # 通过Vite代理到 45.77.178.85:8080/events
-  notify_url: "/notify" # 通过Vite代理到 45.77.178.85:8080/notify
+  # Vercel部署使用完整HTTPS URLs
+  base_url: "https://45.77.178.85:8443/api"
+  file_url: "https://45.77.178.85:8443/files"
+  sse_url: "https://45.77.178.85:8443/events"
+  notify_url: "https://45.77.178.85:8443/notify"
 
   # 请求配置
   timeout: 15000
   max_retries: 3
   retry_delay: 1000
 
-# CORS配置 - 通过代理处理，无需前端配置
+# CORS配置 - 支持本地开发和Vercel部署
 cors:
   enabled: true
   origins:
   - "http://localhost:5173" # Vite开发端口
   - "http://localhost:1420" # 备用端口
   - "http://127.0.0.1:5173"
+  - "https://fechatter-frontend-cahw21vjh-zhkevin46-gmailcoms-projects.vercel.app"
+  - "https://*.vercel.app" # 所有Vercel部署域名
   credentials: true
 
 # 开发工具

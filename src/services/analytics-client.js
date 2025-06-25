@@ -44,8 +44,8 @@ class AnalyticsClient {
   }
 
   getEndpoint() {
-    // Use production endpoint for both development and production
-    return 'http://45.77.178.85:6690/api/event/json';
+    // Use HTTPS endpoint for both development and production
+    return 'https://45.77.178.85:8443/api/event/json';
   }
 
   getOrCreateClientId() {
