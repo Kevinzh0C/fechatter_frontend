@@ -1,6 +1,6 @@
 // Auto-generated protobuf types for analytics
-// Generated on: 2025-06-25T15:47:11.981Z
-// Source: /Users/zhangkaiqi/Rust/Fechatter/fechatter_frontend/src/protos/analytics.proto
+// Generated on: 2025-06-25T20:53:35.522Z
+// Source: /Users/zhangkaiqi/Rust/fechatter_frontend/fechatter_frontend/src/protos/analytics.proto
 
 import * as protobuf from 'protobufjs';
 
