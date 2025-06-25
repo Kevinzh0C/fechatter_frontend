@@ -61,6 +61,9 @@
         </div>
       </form>
 
+      <!-- YAML Test Account Quick Login -->
+      <TestAccountQuickLogin />
+
       <!-- Developer Mode Toggle (Hidden by Default) -->
       <div class="mt-8 text-center">
         <button v-if="showDevHints" @click="toggleDevAccounts"
@@ -177,10 +180,16 @@ import { useAuthStore } from '@/stores/auth';
 import { optimizeLoginPerformance, analyzeLoginPerformance } from '@/utils/login-performance';
 import { AppIcon } from '@/components/icons';
 import { useAnalytics } from '@/composables/useAnalytics';
+import TestAccountQuickLogin from '@/components/auth/TestAccountQuickLogin.vue';
 
 const router = useRouter();
 const authStore = useAuthStore();
 const analytics = useAnalytics();
+
+// Components
+const components = {
+  TestAccountQuickLogin
+};
 
 // 使用 shallowRef 优化性能
 const email = ref('');

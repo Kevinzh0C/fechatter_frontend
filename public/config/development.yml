@@ -51,3 +51,18 @@ logging:
   level: "debug"
   enable_network_logs: true
   enable_api_logs: true
+
+# 测试账户配置 - 开发环境快速登录
+test_accounts:
+  - email: "test@fechatter.com"
+    password: "test123"
+    name: "Test User"
+    description: "主要测试账户"
+  - email: "dev@fechatter.com"
+    password: "dev123"
+    name: "Dev User"
+    description: "开发测试账户"
+  - email: "admin@fechatter.com"
+    password: "admin123"
+    name: "Admin User"
+    description: "管理员测试账户"

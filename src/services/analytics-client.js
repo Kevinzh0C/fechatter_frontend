@@ -33,14 +33,15 @@ class AnalyticsClient {
   }
 
   shouldEnable(config) {
-    // Disable by default in development environment
-    if (process.env.NODE_ENV === 'development') {
-      // Only enable if explicitly requested and backend is available
-      return config.enabled === true && config.forceEnable === true;
-    }
-
-    // In production, check if backend is available
-    return config.enabled !== false;
+    // Disable analytics completely for now due to SSL certificate issues
+    // Will re-enable when proper SSL certificates are configured
+    return false;
+    
+    // Legacy logic (disabled):
+    // if (process.env.NODE_ENV === 'development') {
+    //   return config.enabled === true && config.forceEnable === true;
+    // }
+    // return config.enabled !== false;
   }
 
   getEndpoint() {

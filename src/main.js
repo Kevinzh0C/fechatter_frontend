@@ -53,6 +53,9 @@ import { scrollToBottomValidator } from '@/utils/scrollToBottomValidator.js'
 // Import Analytics client instance
 import analytics from './services/analytics-client.js'
 
+// Import YAML Configuration Loader
+import { initializeYAMLConfig } from './utils/yamlConfigLoader.js'
+
 // Enhanced console state detection function
 function detectConsoleAccess() {
   let devtools = {
@@ -345,6 +348,14 @@ initializeStores().then(() => {
 // Mount application with security checks
 async function mountApp() {
   try {
+    // 🔧 Initialize YAML configuration first
+    try {
+      await initializeYAMLConfig();
+      console.log('✅ YAML Configuration loaded successfully');
+    } catch (configError) {
+      console.warn('⚠️ YAML Configuration failed, using fallback:', configError);
+    }
+    
     await initializeStores()
 
     // 🔧 REFACTORED: Use dependency injection instead of global access
