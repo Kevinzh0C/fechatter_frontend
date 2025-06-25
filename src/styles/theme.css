@@ -1,0 +1,12 @@
+/* 🚨 DEPRECATED - CSS变量冲突已解决
+ * 此文件的变量已迁移到 unified-aesthetic-system.css
+ * 保留文件结构但停用冲突的变量定义
+ * 原始内容已备份到 conflicted-backup-* 目录
+ */
+
+/* 
+原始Discord主题变量已迁移到统一美学系统
+使用 var(--primary, #5865f2) 等形式访问新变量
+*/
+
+/* 保留非冲突的特殊样式 */
