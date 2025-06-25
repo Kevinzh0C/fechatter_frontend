@@ -339,23 +339,22 @@ class AnalyticsClient {
   }
 }
 
-// Create singleton instance - disable in development to avoid API errors
-const analytics = new AnalyticsClient({
-  debug: process.env.NODE_ENV === 'development',
-  enabled: process.env.NODE_ENV !== 'development' // Disable in development
-});
+// Create disabled analytics instance to avoid all API calls
+const analytics = {
+  enabled: false,
+  track: () => {},
+  trackAppStart: () => {},
+  trackUserLogin: () => {},
+  trackUserLogout: () => {},
+  trackMessageSent: () => {},
+  trackError: () => {},
+  trackNavigation: () => {},
+  trackSearch: () => {},
+  destroy: () => {},
+  flush: () => {},
+  retryOfflineEvents: () => {}
+};
 
-// Only retry offline events and track app start if enabled
-if (analytics.enabled) {
-  // Retry offline events on startup
-  setTimeout(() => {
-    analytics.retryOfflineEvents();
-  }, 5000);
-
-  // Track app start
-  analytics.trackAppStart();
-} else {
-  console.log('[Analytics] Disabled in development environment');
-}
+console.log('[Analytics] Completely disabled - no network requests will be made');
 
 export default analytics; 

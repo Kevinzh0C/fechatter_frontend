@@ -1,4 +1,5 @@
 {
+  "buildCommand": "yarn copy-configs && yarn build:dev",
   "headers": [
     {
       "source": "/config/(.*)",
@@ -18,8 +19,20 @@
         {
           "key": "Content-Type",
           "value": "text/yaml"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
         }
       ]
     }
-  ]
+  ],
+  "env": {
+    "NODE_ENV": "development"
+  },
+  "functions": {
+    "src/api/**/*.js": {
+      "runtime": "nodejs18.x"
+    }
+  }
 }

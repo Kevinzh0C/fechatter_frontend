@@ -1,12 +1,13 @@
 import axios from 'axios';
+import { getApiConfig } from '../utils/yamlConfigLoader.js';
 
 /**
  * Production-level API client with authentication and error handling
  */
 
-// Create axios instance
-const api = axios.create({
-  baseURL: '/api',
+// Initialize with fallback
+let api = axios.create({
+  baseURL: '/api', // Fallback
   timeout: 30000,
   headers: {
     'Accept': 'application/json'
@@ -17,6 +18,36 @@ const api = axios.create({
     // - String → text/plain
   }
 });
+
+// Initialize API client with YAML configuration
+(async () => {
+  try {
+    const apiConfig = await getApiConfig();
+    const baseURL = apiConfig.base_url || '/api';
+    const timeout = apiConfig.timeout || 30000;
+    
+    // Recreate axios instance with YAML config
+    api = axios.create({
+      baseURL,
+      timeout,
+      headers: {
+        'Accept': 'application/json'
+      }
+    });
+    
+    console.log('🔧 API client initialized with YAML config:', { baseURL, timeout });
+    
+    // Re-apply interceptors after recreation
+    setupInterceptors();
+    
+  } catch (error) {
+    console.warn('Failed to load YAML API config, using fallback:', error);
+    setupInterceptors();
+  }
+})();
+
+// Function to setup interceptors (to avoid duplication)
+function setupInterceptors() {
 
 /**
  * Request interceptor - Add authentication headers
@@ -180,4 +211,6 @@ api.interceptors.response.use(
   }
 );
 
-export default api; 
+} // End of setupInterceptors function
+
+export default api;

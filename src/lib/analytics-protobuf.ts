@@ -716,8 +716,13 @@ export class ProtobufAnalyticsClient {
   }
 }
 
-// Global analytics instance
-export const analytics = new ProtobufAnalyticsClient({
-  debug: isDevelopment(),
-  endpoint: isDevelopment() ? 'http://127.0.0.1:6690' : '/api/analytics', // Use gateway in production
-});
+// Disable analytics completely to prevent network requests
+export const analytics = {
+  track: () => {},
+  trackError: () => {},
+  trackPageView: () => {},
+  flush: () => {},
+  destroy: () => {}
+};
+
+console.log('[Protobuf Analytics] Disabled - no network requests will be made');
