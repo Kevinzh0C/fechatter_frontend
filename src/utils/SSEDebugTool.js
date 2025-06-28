@@ -4,7 +4,7 @@
 
 class SSEDebugTool {
   constructor() {
-    this.isEnabled = import.meta.env.DEV;
+    this.isEnabled = true;
     this.logs = [];
     this.maxLogs = 100;
     
@@ -17,7 +17,7 @@ class SSEDebugTool {
    */
   enable() {
     this.isEnabled = true;
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🔧 SSE Debug Tool enabled');
     this.showCurrentStatus();
   }
@@ -27,7 +27,7 @@ class SSEDebugTool {
    */
   disable() {
     this.isEnabled = false;
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🔧 SSE Debug Tool disabled');
     }
 
@@ -65,14 +65,14 @@ class SSEDebugTool {
     // 全局管理器状态
     if (typeof window !== 'undefined' && window.sseGlobalManager) {
       const status = window.sseGlobalManager.getStatus();
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('📊 全局管理器状态:', status);
       }
 
     // 连接服务状态
     if (typeof window !== 'undefined' && window.realtimeCommunicationService) {
       const connectionState = window.realtimeCommunicationService.getConnectionState();
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('🔌 连接服务状态:', connectionState);
       }
 
@@ -84,7 +84,7 @@ class SSEDebugTool {
    */
   resetGlobalManager() {
     if (typeof window !== 'undefined' && window.sseGlobalManager) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.warn('🚨 重置SSE全局管理器');
       window.sseGlobalManager.reset();
       this.log('warn', 'Global manager reset by debug tool');
@@ -95,7 +95,7 @@ class SSEDebugTool {
    */
   forceTerminateAll() {
     if (typeof window !== 'undefined' && window.sseGlobalManager) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.warn('🚨 强制终止所有SSE连接');
       window.sseGlobalManager.banAllSSEConnections('调试工具强制终止');
       this.log('warn', 'All connections terminated by debug tool');
@@ -106,7 +106,7 @@ class SSEDebugTool {
    */
   simulateNetworkError() {
     if (typeof window !== 'undefined' && window.realtimeCommunicationService) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.warn('🚨 模拟网络错误');
       const mockError = new Error('Simulated network error');
       mockError.type = 'error';
@@ -140,7 +140,7 @@ class SSEDebugTool {
         report.connectionService = window.realtimeCommunicationService.getConnectionState();
       }
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('📋 SSE连接详细报告:', report);
     return report;
   }
@@ -166,7 +166,7 @@ class SSEDebugTool {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('📁 SSE调试日志已导出');
     }
 
@@ -175,7 +175,7 @@ class SSEDebugTool {
    */
   clearLogs() {
     this.logs = [];
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🗑️ SSE调试日志已清除');
     }
 
@@ -183,7 +183,7 @@ class SSEDebugTool {
    * 显示帮助信息
    */
   showHelp() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`
     }
 🔧 SSE调试工具使用指南
@@ -210,7 +210,7 @@ class SSEDebugTool {
 const sseDebugTool = new SSEDebugTool();
 
 // 在开发环境下自动启用
-if (import.meta.env.DEV) {
+if (true) {
   setTimeout(() => {
     sseDebugTool.enable();
     sseDebugTool.showHelp();

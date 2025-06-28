@@ -1,0 +1,379 @@
+/* 🚀 Enhanced Smooth Loading Styles for DiscordMessageList */
+
+/* Loading state container with reserved space */
+.loading-state-container {
+  position: relative;
+  width: 100%;
+  z-index: 15;
+}
+
+.loading-space-reservation {
+  width: 100%;
+  transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+/* Enhanced loading indicator */
+.enhanced-load-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg,
+      rgba(88, 101, 242, 0.08) 0%,
+      rgba(88, 101, 242, 0.05) 50%,
+      rgba(88, 101, 242, 0.02) 100%);
+  backdrop-filter: blur(8px);
+  border-radius: 8px;
+  margin: 8px 16px;
+  border: 1px solid rgba(88, 101, 242, 0.15);
+  box-shadow: 0 4px 16px rgba(88, 101, 242, 0.1);
+}
+
+.loading-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 2;
+  position: relative;
+}
+
+/* Enhanced spinner */
+.loading-spinner-enhanced {
+  width: 20px;
+  height: 20px;
+  position: relative;
+}
+
+.spinner-icon {
+  width: 100%;
+  height: 100%;
+  animation: smoothSpin 2s linear infinite;
+}
+
+.spinner-circle {
+  stroke: var(--accent-primary, #5865f2);
+  animation: circleProgress 1.5s ease-in-out infinite;
+}
+
+.loading-text-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.loading-primary-text {
+  color: var(--text-primary, #dcddde);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.loading-sub-text {
+  color: var(--text-muted, #72767d);
+  font-size: 11px;
+  font-weight: 400;
+}
+
+/* Subtle wave effect */
+.loading-wave-effect {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  overflow: hidden;
+}
+
+.wave {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(88, 101, 242, 0.6) 50%,
+      transparent 100%);
+  border-radius: 1px;
+}
+
+.wave-1 {
+  width: 30%;
+  animation: waveMove 2s ease-in-out infinite;
+}
+
+.wave-2 {
+  width: 20%;
+  animation: waveMove 2s ease-in-out infinite 0.4s;
+}
+
+.wave-3 {
+  width: 25%;
+  animation: waveMove 2s ease-in-out infinite 0.8s;
+}
+
+/* History loading placeholder */
+.history-loading-placeholder {
+  padding: 16px;
+  opacity: 0.6;
+}
+
+.placeholder-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.message-placeholder {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 8px 0;
+}
+
+.placeholder-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(45deg, 
+      rgba(114, 118, 125, 0.3) 0%, 
+      rgba(114, 118, 125, 0.1) 50%, 
+      rgba(114, 118, 125, 0.3) 100%);
+  background-size: 200% 200%;
+  animation: placeholderPulse 2s ease-in-out infinite;
+}
+
+.placeholder-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.placeholder-header {
+  width: 120px;
+  height: 12px;
+  background: linear-gradient(45deg, 
+      rgba(114, 118, 125, 0.3) 0%, 
+      rgba(114, 118, 125, 0.1) 50%, 
+      rgba(114, 118, 125, 0.3) 100%);
+  background-size: 200% 200%;
+  border-radius: 6px;
+  animation: placeholderPulse 2s ease-in-out infinite 0.2s;
+}
+
+.placeholder-text {
+  height: 10px;
+  background: linear-gradient(45deg, 
+      rgba(114, 118, 125, 0.2) 0%, 
+      rgba(114, 118, 125, 0.05) 50%, 
+      rgba(114, 118, 125, 0.2) 100%);
+  background-size: 200% 200%;
+  border-radius: 5px;
+  animation: placeholderPulse 2s ease-in-out infinite 0.4s;
+}
+
+.placeholder-text:first-of-type {
+  width: 80%;
+}
+
+.placeholder-text.short {
+  width: 60%;
+}
+
+/* Message container enhancements */
+.message-container-enhanced {
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.message-container-enhanced.newly-loaded {
+  animation: messageSlideIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.message-container-enhanced.loading-context {
+  opacity: 0.8;
+}
+
+.message-container-enhanced.stable-position {
+  opacity: 1;
+}
+
+/* Enhanced loading states */
+.discord-message-list.history-loading-active {
+  position: relative;
+}
+
+.discord-message-list.history-loading-active::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg,
+      var(--accent-primary, #5865f2) 0%,
+      rgba(88, 101, 242, 0.6) 50%,
+      var(--accent-primary, #5865f2) 100%);
+  background-size: 200% 100%;
+  animation: loadingProgress 2s ease-in-out infinite;
+  z-index: 20;
+}
+
+.messages-container.content-loading {
+  position: relative;
+}
+
+/* Smooth loading transitions */
+.loading-fade-enter-active {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.loading-fade-leave-active {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.loading-fade-enter-from {
+  opacity: 0;
+  transform: translateY(-10px) scale(0.95);
+}
+
+.loading-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-5px) scale(0.98);
+}
+
+.message-appear-enter-active {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.message-appear-enter-from {
+  opacity: 0;
+  transform: translateY(-8px) scale(0.98);
+}
+
+/* Enhanced animations */
+@keyframes smoothSpin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes circleProgress {
+  0% {
+    stroke-dashoffset: 60;
+  }
+  50% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: -60;
+  }
+}
+
+@keyframes waveMove {
+  0% {
+    left: -30%;
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    left: 100%;
+    opacity: 0;
+  }
+}
+
+@keyframes placeholderPulse {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes messageSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-12px) scale(0.97);
+  }
+  60% {
+    opacity: 0.8;
+    transform: translateY(-2px) scale(0.99);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes loadingProgress {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Responsive enhancements for smooth loading */
+@media (max-width: 768px) {
+  .enhanced-load-indicator {
+    height: 50px;
+    margin: 6px 12px;
+  }
+  
+  .loading-space-reservation {
+    height: 50px !important;
+  }
+  
+  .loading-primary-text {
+    font-size: 12px;
+  }
+  
+  .loading-sub-text {
+    font-size: 10px;
+  }
+  
+  .placeholder-messages {
+    gap: 8px;
+  }
+  
+  .message-placeholder {
+    padding: 6px 0;
+  }
+}
+
+/* Reduced motion support for smooth loading */
+@media (prefers-reduced-motion: reduce) {
+  .enhanced-load-indicator,
+  .message-container-enhanced,
+  .loading-space-reservation {
+    transition: none;
+  }
+  
+  .spinner-icon,
+  .spinner-circle,
+  .wave,
+  .placeholder-avatar,
+  .placeholder-header,
+  .placeholder-text {
+    animation: none;
+  }
+  
+  .discord-message-list.history-loading-active::before {
+    animation: none;
+    background: var(--accent-primary, #5865f2);
+  }
+} 

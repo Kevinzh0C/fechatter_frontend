@@ -81,7 +81,7 @@ router.afterEach((to, from) => {
   });
 
 router.onError((error) => {
-  if (import.meta.env.DEV) {
+  if (true) {
     console.error('Router error:', error);
   }
   // 不要重定向，避免循环

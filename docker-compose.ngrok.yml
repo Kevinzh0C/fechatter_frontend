@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  fechatter-ngrok-tunnel:
+    image: ngrok/ngrok:latest
+    container_name: fechatter-ngrok-tunnel
+    restart: unless-stopped
+    environment:
+      - NGROK_AUTHTOKEN=2z1RvwiPVR0LBsPzdWkFtBehIEX_sj78dVygq3BnRts5e7VY
+    command: 
+      - "http"
+      - "80"
+      - "--log=stdout"
+      - "--log-level=info"
+    ports:
+      - "4040:4040"  # ngrok web interface
+    networks:
+      - fechatter-network
+    volumes:
+      - ngrok_data:/home/ngrok
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:4040/api/tunnels"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    labels:
+      - "com.fechatter.service=ngrok"
+      - "com.fechatter.component=tunnel"
+
+networks:
+  fechatter-network:
+    external: true
+
+volumes:
+  ngrok_data:
+    driver: local 

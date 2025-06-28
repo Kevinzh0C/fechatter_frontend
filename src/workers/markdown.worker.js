@@ -92,7 +92,7 @@ async function performProcessing(id, content) {
     };
     
   } catch (error) {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.error('Markdown processing error:', error);
     return {
       id,

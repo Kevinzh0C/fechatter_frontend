@@ -49,13 +49,13 @@ class FixVerification {
         this.addResult('Navigation Fix', 'WARN', `Calls took ${duration}ms - may need optimization`);
       }
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('✅ Navigation fix optimization test completed');
       }
 
     } catch (error) {
       this.addResult('Navigation Fix', 'ERROR', error.message);
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('❌ Navigation fix test failed:', error);
       }
 
@@ -92,13 +92,13 @@ class FixVerification {
           this.addResult('SSE Auto-Fix', 'FAIL', 'Auto-fix could not resolve SSE issues');
         }
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('✅ SSE connection fix test completed');
       }
 
     } catch (error) {
       this.addResult('SSE Connection Fix', 'ERROR', error.message);
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('❌ SSE connection fix test failed:', error);
       }
 
@@ -140,13 +140,13 @@ class FixVerification {
         this.addResult('Log Suppression', 'WARN', 'No log suppression activity detected');
       }
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('✅ Log suppression test completed');
       }
 
     } catch (error) {
       this.addResult('Log Suppression', 'ERROR', error.message);
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('❌ Log suppression test failed:', error);
       }
 
@@ -182,14 +182,14 @@ class FixVerification {
         // Cleanup
         document.body.removeChild(testDiv);
 
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('✅ Performance impact test completed');
         }
       }, 100);
 
     } catch (error) {
       this.addResult('Performance Impact', 'ERROR', error.message);
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('❌ Performance impact test failed:', error);
       }
 
@@ -224,13 +224,13 @@ class FixVerification {
         this.addResult('Token Management', 'WARN', 'No access token available');
       }
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('✅ Token management test completed');
       }
 
     } catch (error) {
       this.addResult('Token Management', 'ERROR', error.message);
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('❌ Token management test failed:', error);
       }
 
@@ -241,9 +241,9 @@ class FixVerification {
    * Run all tests
    */
   async runAllTests() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🧪 Starting Fix Verification Tests...');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('=====================================');
     }
 
@@ -266,9 +266,9 @@ class FixVerification {
    * Generate test report
    */
   generateReport() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n📊 Fix Verification Report');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('==========================');
     }
 
@@ -280,32 +280,32 @@ class FixVerification {
       errors: this.results.filter(r => r.status === 'ERROR').length
     };
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`📈 Summary: ${summary.passed}/${summary.total} tests passed`);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`❌ Failed: ${summary.failed}`);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`⚠️ Warnings: ${summary.warnings}`);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`🚨 Errors: ${summary.errors}`);
     }
 
     // Show detailed results
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n📋 Detailed Results:');
     console.table(this.results);
 
     // Overall status
     if (summary.failed === 0 && summary.errors === 0) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('\n🎉 All critical tests passed! Fixes are working correctly.');
       }
     } else if (summary.failed > 0 || summary.errors > 0) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('\n⚠️ Some tests failed. Please review the issues above.');
       }
     } else {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('\n✅ Tests completed with warnings. System is functional.');
       }
 
@@ -323,7 +323,7 @@ if (typeof window !== 'undefined') {
   window.fixVerification = fixVerification;
   window.verifyFixes = () => fixVerification.runAllTests();
 
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('🧪 Fix Verification loaded - use window.verifyFixes()');
   }
 

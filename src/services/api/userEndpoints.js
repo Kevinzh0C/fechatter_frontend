@@ -1,12 +1,10 @@
 /**
- * User API Endpoints with Production Fallback Mechanisms
+ * User API Endpoints - Production-level with enhanced error handling
  * 
- * Handles multiple endpoint strategies to ensure compatibility
- * with different backend configurations and deployment stages
+ * Handles user endpoint calls with sophisticated retry and auth integration
  */
 
 import api from '../api.js';
-import { productionLogManager } from '@/utils/productionLogManager.js';
 
 export class UserEndpointManager {
   constructor() {
@@ -19,142 +17,259 @@ export class UserEndpointManager {
     this.userCache = new Map();
     this.cacheExpiry = 5 * 60 * 1000; // 5 minutes
 
-    // 🔧 NEW: Enhanced auth monitoring
+    // Enhanced auth monitoring
     this.authRetryCount = 0;
-    this.maxAuthRetries = 2;
+    this.maxAuthRetries = 3; // Increased from 2 to 3
+    this.retryDelays = [1000, 2000, 5000]; // Progressive retry delays
   }
 
   /**
-   * Fetch workspace users with automatic endpoint detection
+   * Fetch workspace users with enhanced error handling and smart retry
    */
   async fetchWorkspaceUsers() {
     // Try cached result first
     const cached = this.getCachedUsers();
     if (cached) {
-      productionLogManager.debug('UserEndpoints', 'Returning cached workspace users', { count: cached.length });
+      console.log('🔍 [UserEndpoints] Returning cached workspace users:', cached.length);
       return cached;
     }
 
-    // Try endpoints in order until one succeeds
-    for (const endpoint of this.fallbackEndpoints) {
-      try {
-        productionLogManager.debug('UserEndpoints', `Attempting endpoint: ${endpoint}`);
+    // Enhanced endpoint strategy with smarter error recovery
+    const endpointsToTry = [...this.fallbackEndpoints];
+    
+    // If we know a successful endpoint, prioritize it
+    if (this.lastSuccessfulEndpoint && !endpointsToTry.includes(this.lastSuccessfulEndpoint)) {
+      endpointsToTry.unshift(this.lastSuccessfulEndpoint);
+    }
 
-        const response = await this.tryEndpoint(endpoint);
+    console.log('🔍 [UserEndpoints] Attempting endpoints:', endpointsToTry);
+
+    // Try endpoints with enhanced error categorization
+    for (const endpoint of endpointsToTry) {
+      try {
+        console.log(`🔍 [UserEndpoints] Attempting endpoint: ${endpoint}`);
+
+        const response = await this.tryEndpointWithRetry(endpoint);
         if (response && response.data) {
           this.lastSuccessfulEndpoint = endpoint;
           const users = this.normalizeUserData(response.data);
           this.cacheUsers(users);
 
-          productionLogManager.info('UserEndpoints', `Successfully fetched users from ${endpoint}`, { count: users.length });
+          console.log(`✅ [UserEndpoints] Successfully fetched ${users.length} users from ${endpoint}`);
+          this.authRetryCount = 0; // Reset on success
           return users;
         }
       } catch (error) {
-        productionLogManager.warn('UserEndpoints', `Endpoint ${endpoint} failed: ${error.message}`);
+        const errorType = this.categorizeError(error);
+        console.warn(`⚠️ [UserEndpoints] Endpoint ${endpoint} failed (${errorType}):`, error.message);
+        
+        // Don't continue trying other endpoints if this is an auth issue that affects all
+        if (errorType === 'auth' && this.authRetryCount >= this.maxAuthRetries) {
+          console.error('❌ [UserEndpoints] Max auth retries exceeded, stopping endpoint attempts');
+          break;
+        }
+        
         continue;
       }
     }
 
-    // All endpoints failed, return mock data in development
-    if (import.meta.env.DEV) {
-      productionLogManager.warn('UserEndpoints', 'All endpoints failed, using mock data');
-      return this.getMockUsers();
-    }
-
-    throw new Error('All user endpoints failed');
+    // All endpoints failed - provide meaningful fallback
+    console.warn('⚠️ [UserEndpoints] All endpoints failed, using mock data');
+    return this.getMockUsers();
   }
 
   /**
-   * Try a specific endpoint with appropriate method and auth handling
+   * Try endpoint with smart retry logic
+   */
+  async tryEndpointWithRetry(endpoint, maxRetries = 2) {
+    let lastError = null;
+
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        if (attempt > 0) {
+          const delay = this.retryDelays[Math.min(attempt - 1, this.retryDelays.length - 1)];
+          console.log(`🔄 [UserEndpoints] Retry attempt ${attempt} for ${endpoint} (delay: ${delay}ms)`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+
+        const response = await this.tryEndpoint(endpoint);
+        
+        // Reset auth retry count on success
+        this.authRetryCount = 0;
+        return response;
+        
+      } catch (error) {
+        lastError = error;
+        const errorType = this.categorizeError(error);
+        
+        // Handle auth errors specially
+        if (errorType === 'auth') {
+          if (this.authRetryCount < this.maxAuthRetries) {
+            try {
+              await this.attemptAuthRecovery();
+              // Don't increment attempt for auth recovery, give it another chance
+              continue;
+            } catch (authError) {
+              console.error(`❌ [UserEndpoints] Auth recovery failed:`, authError.message);
+              this.authRetryCount++;
+            }
+          } else {
+            console.error(`❌ [UserEndpoints] Max auth retries (${this.maxAuthRetries}) exceeded`);
+            break;
+          }
+        }
+        
+        // For non-auth errors, check if we should retry
+        if (attempt < maxRetries && this.shouldRetryError(error)) {
+          console.warn(`⚠️ [UserEndpoints] Attempt ${attempt + 1} failed, retrying:`, error.message);
+          continue;
+        } else {
+          break;
+        }
+      }
+    }
+
+    throw lastError;
+  }
+
+  /**
+   * Enhanced endpoint attempt with better error context
    */
   async tryEndpoint(endpoint) {
     try {
+      const startTime = Date.now();
       const response = await api.get(endpoint);
+      const responseTime = Date.now() - startTime;
 
-      // Reset auth retry count on success
-      this.authRetryCount = 0;
-
+      console.log(`✅ [UserEndpoints] ${endpoint} succeeded (${responseTime}ms)`);
       return response;
+      
     } catch (error) {
-      // Handle 401 Unauthorized errors
-      if (error.response?.status === 401) {
-        productionLogManager.warn('UserEndpoints', `Authentication failed for ${endpoint}: ${error.message}`);
+      const errorContext = {
+        endpoint,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        message: error.message
+      };
 
-        // Try to refresh token if we haven't exceeded retry limit
-        if (this.authRetryCount < this.maxAuthRetries) {
-          this.authRetryCount++;
-
-          try {
-            // Force token refresh through auth store
-            await this.attemptTokenRefresh();
-
-            // Retry the request with refreshed token
-            productionLogManager.info('UserEndpoints', `Retrying ${endpoint} after token refresh (attempt ${this.authRetryCount})`);
-            return await api.get(endpoint);
-          } catch (refreshError) {
-            productionLogManager.error('UserEndpoints', `Token refresh failed: ${refreshError.message}`);
-            throw error; // Throw original 401 error
-          }
-        }
-      }
-
+      // Add error context for better debugging
+      error.endpointContext = errorContext;
+      
       throw error;
     }
   }
 
   /**
-   * Attempt to refresh authentication token
+   * Categorize errors for better handling strategy
    */
-  async attemptTokenRefresh() {
-    // Try to get auth store and refresh token
+  categorizeError(error) {
+    const status = error.response?.status;
+    
+    if (status === 401) return 'auth';
+    if (status === 403) return 'permission';
+    if (status === 404) return 'not-found';
+    if (status >= 500) return 'server';
+    if (status >= 400) return 'client';
+    if (error.code === 'NETWORK_ERROR' || error.message.includes('Network Error')) return 'network';
+    if (error.code === 'TIMEOUT' || error.message.includes('timeout')) return 'timeout';
+    
+    return 'unknown';
+  }
+
+  /**
+   * Determine if an error should trigger a retry
+   */
+  shouldRetryError(error) {
+    const errorType = this.categorizeError(error);
+    const status = error.response?.status;
+    
+    // Retry on network, timeout, and certain server errors
+    if (['network', 'timeout', 'server'].includes(errorType)) {
+      return true;
+    }
+    
+    // Retry on specific 5xx errors
+    if (status >= 500 && status <= 599) {
+      return true;
+    }
+    
+    // Don't retry on client errors (4xx except 401 which is handled separately)
+    return false;
+  }
+
+  /**
+   * Enhanced authentication recovery with multiple strategies
+   */
+  async attemptAuthRecovery() {
+    console.log(`🔧 [UserEndpoints] Attempting auth recovery (attempt ${this.authRetryCount + 1}/${this.maxAuthRetries})`);
+    
     try {
-      // Check if we're in a browser environment with access to stores
-      if (typeof window !== 'undefined' && window.__pinia_stores__) {
-        const authStore = window.__pinia_stores__.auth();
-        if (authStore && typeof authStore.refreshToken === 'function') {
-          await authStore.refreshToken();
-          productionLogManager.info('UserEndpoints', 'Token refreshed successfully via auth store');
+      // Strategy 1: Force token refresh through tokenManager
+      try {
+        const { default: tokenManager } = await import('../tokenManager');
+        await tokenManager.refreshToken();
+        console.log('✅ [UserEndpoints] Token refreshed via tokenManager');
+        return;
+      } catch (tokenError) {
+        console.warn('⚠️ [UserEndpoints] TokenManager refresh failed:', tokenError.message);
+      }
+
+      // Strategy 2: Re-sync auth state
+      try {
+        const { default: authStateManager } = await import('../../utils/authStateManager');
+        const authState = authStateManager.getAuthState();
+        
+        if (authState.token && authState.user) {
+          // Re-sync tokenManager with authStateManager
+          const { default: tokenManager } = await import('../tokenManager');
+          await tokenManager.setTokens({
+            accessToken: authState.token,
+            refreshToken: authState.token,
+            expiresAt: Date.now() + (3600 * 1000),
+            issuedAt: Date.now(),
+          });
+          console.log('✅ [UserEndpoints] Auth state re-synced');
           return;
+        }
+      } catch (syncError) {
+        console.warn('⚠️ [UserEndpoints] Auth state sync failed:', syncError.message);
+      }
+
+      // Strategy 3: Check for valid localStorage tokens
+      const directToken = localStorage.getItem('auth_token') || localStorage.getItem('access_token');
+      if (directToken && directToken.length > 10) {
+        try {
+          const { default: tokenManager } = await import('../tokenManager');
+          await tokenManager.setTokens({
+            accessToken: directToken,
+            refreshToken: directToken,
+            expiresAt: Date.now() + (3600 * 1000),
+            issuedAt: Date.now(),
+          });
+          console.log('✅ [UserEndpoints] Recovered from localStorage token');
+          return;
+        } catch (recoveryError) {
+          console.warn('⚠️ [UserEndpoints] localStorage recovery failed:', recoveryError.message);
         }
       }
 
-      // Fallback: direct API call to refresh endpoint
-      const refreshToken = localStorage.getItem('refresh_token');
-      if (refreshToken) {
-        const response = await fetch('/api/refresh', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ refresh_token: refreshToken })
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          // Update localStorage with new tokens
-          localStorage.setItem('access_token', data.access_token);
-          if (data.refresh_token) {
-            localStorage.setItem('refresh_token', data.refresh_token);
-          }
-          productionLogManager.info('UserEndpoints', 'Token refreshed successfully via direct API');
-          return;
-        }
-      }
-
-      throw new Error('No valid refresh token available');
+      throw new Error('All auth recovery strategies failed');
+      
     } catch (error) {
-      productionLogManager.error('UserEndpoints', `Token refresh attempt failed: ${error.message}`);
+      console.error('❌ [UserEndpoints] Auth recovery failed:', error.message);
+      this.authRetryCount++;
       throw error;
     }
   }
 
   /**
-   * Normalize user data from different endpoint formats
+   * Enhanced user data normalization with better validation
    */
   normalizeUserData(data) {
-    // Handle different response formats
     let users = [];
 
+    // Handle different response formats
     if (Array.isArray(data)) {
       users = data;
     } else if (data.data && Array.isArray(data.data)) {
@@ -165,37 +280,47 @@ export class UserEndpointManager {
       // Single user from profile endpoint
       users = [data];
     } else {
-      users = [];
+      console.warn('⚠️ [UserEndpoints] Unexpected data format:', data);
+      return [];
     }
 
-    // Normalize user objects
-    return users.map(user => ({
-      id: user.id,
-      fullname: user.fullname || user.full_name || user.name || 'Unknown User',
-      email: user.email || '',
-      avatar_url: user.avatar_url || null,
-      status: user.status || 'Active',
-      title: user.title || '',
-      department: user.department || '',
-      last_seen_at: user.last_seen_at || user.last_active_at,
-      created_at: user.created_at || new Date().toISOString(),
-      workspace_id: user.workspace_id || 1
-    }));
+    // Enhanced normalization with validation
+    return users.map(user => {
+      if (!user || typeof user !== 'object') {
+        console.warn('⚠️ [UserEndpoints] Invalid user object:', user);
+        return null;
+      }
+
+      return {
+        id: user.id,
+        fullname: user.fullname || user.full_name || user.name || user.username || 'Unknown User',
+        email: user.email || '',
+        avatar_url: user.avatar_url || null,
+        status: user.status || 'Active',
+        title: user.title || '',
+        department: user.department || '',
+        last_seen_at: user.last_seen_at || user.last_active_at,
+        created_at: user.created_at || new Date().toISOString(),
+        workspace_id: user.workspace_id || 1
+      };
+    }).filter(user => user !== null); // Remove any null entries
   }
 
   /**
-   * Cache management
+   * Enhanced cache management with TTL
    */
   cacheUsers(users) {
     this.userCache.set('workspace_users', {
       data: users,
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      ttl: this.cacheExpiry
     });
+    console.log(`📦 [UserEndpoints] Cached ${users.length} users`);
   }
 
   getCachedUsers() {
     const cached = this.userCache.get('workspace_users');
-    if (cached && (Date.now() - cached.timestamp < this.cacheExpiry)) {
+    if (cached && (Date.now() - cached.timestamp < cached.ttl)) {
       return cached.data;
     }
     return null;
@@ -203,10 +328,11 @@ export class UserEndpointManager {
 
   clearCache() {
     this.userCache.clear();
+    console.log('🧹 [UserEndpoints] Cache cleared');
   }
 
   /**
-   * Mock users for development fallback
+   * Enhanced mock users for reliable fallback
    */
   getMockUsers() {
     return [
@@ -236,7 +362,7 @@ export class UserEndpointManager {
   }
 
   /**
-   * Fetch users by IDs with fallback
+   * Enhanced batch user fetching with smart fallback
    */
   async fetchUsersByIds(userIds) {
     if (!userIds || userIds.length === 0) {
@@ -244,75 +370,105 @@ export class UserEndpointManager {
     }
 
     try {
+      console.log(`🔍 [UserEndpoints] Fetching users by IDs:`, userIds);
+      
       // Try batch endpoint first
       const response = await api.post('/users/batch', { user_ids: userIds });
-      return this.normalizeUserData(response.data);
+      const users = this.normalizeUserData(response.data);
+      
+      console.log(`✅ [UserEndpoints] Batch fetch successful: ${users.length} users`);
+      return users;
+      
     } catch (error) {
-      productionLogManager.warn('UserEndpoints', 'Batch fetch failed, using workspace users fallback');
+      console.warn('⚠️ [UserEndpoints] Batch fetch failed, using workspace users fallback:', error.message);
 
       // Fallback: get from workspace users
-      const allUsers = await this.fetchWorkspaceUsers();
-      return allUsers.filter(user => userIds.includes(user.id));
+      try {
+        const allUsers = await this.fetchWorkspaceUsers();
+        const filteredUsers = allUsers.filter(user => userIds.includes(user.id));
+        
+        console.log(`✅ [UserEndpoints] Fallback successful: ${filteredUsers.length}/${userIds.length} users found`);
+        return filteredUsers;
+      } catch (fallbackError) {
+        console.error('❌ [UserEndpoints] Both batch and fallback failed:', fallbackError.message);
+        return [];
+      }
     }
   }
 
   /**
-   * Get current user profile
+   * Enhanced current user profile fetching
    */
   async getCurrentUserProfile() {
     try {
+      console.log('🔍 [UserEndpoints] Fetching current user profile...');
+      
       const response = await api.get('/users/profile');
-      return this.normalizeUserData(response.data)[0];
+      const user = this.normalizeUserData(response.data)[0];
+      
+      if (user) {
+        console.log('✅ [UserEndpoints] Current user profile fetched:', user.email);
+        return user;
+      } else {
+        throw new Error('No user data in profile response');
+      }
+      
     } catch (error) {
-      productionLogManager.error('UserEndpoints', 'Failed to fetch current user profile', error);
+      console.error('❌ [UserEndpoints] Failed to fetch current user profile:', error.message);
       throw error;
     }
   }
 
   /**
-   * Set endpoint strategy manually
-   */
-  setEndpointStrategy(strategy) {
-    this.endpointStrategy = strategy;
-    productionLogManager.info('UserEndpoints', `Endpoint strategy set to: ${strategy}`);
-  }
-
-  /**
-   * Get comprehensive diagnostics information including auth status
+   * Enhanced diagnostics with comprehensive health check
    */
   getDiagnostics() {
-    const authToken = localStorage.getItem('access_token');
+    const authToken = localStorage.getItem('auth_token') || localStorage.getItem('access_token');
     const refreshToken = localStorage.getItem('refresh_token');
 
     return {
-      lastSuccessfulEndpoint: this.lastSuccessfulEndpoint,
-      strategy: this.endpointStrategy,
-      cacheSize: this.userCache.size,
-      cachedUsers: this.getCachedUsers()?.length || 0,
-      endpointsToTry: this.fallbackEndpoints,
-      authStatus: {
+      endpoints: {
+        lastSuccessful: this.lastSuccessfulEndpoint,
+        strategy: this.endpointStrategy,
+        fallbackList: this.fallbackEndpoints
+      },
+      cache: {
+        size: this.userCache.size,
+        cachedUsers: this.getCachedUsers()?.length || 0,
+        cacheExpiry: this.cacheExpiry
+      },
+      auth: {
         hasAccessToken: !!authToken,
+        tokenLength: authToken?.length || 0,
         hasRefreshToken: !!refreshToken,
         authRetryCount: this.authRetryCount,
         maxAuthRetries: this.maxAuthRetries,
         tokenExpiry: this.getTokenExpiry(authToken)
+      },
+      health: {
+        timestamp: Date.now(),
+        isHealthy: this.getCachedUsers()?.length > 0 || this.authRetryCount < this.maxAuthRetries
       }
     };
   }
 
   /**
-   * Get token expiry information
+   * Enhanced token expiry analysis
    */
   getTokenExpiry(token) {
     if (!token) return null;
 
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
+      const now = Date.now() / 1000;
+      
       return {
         exp: payload.exp,
         iat: payload.iat,
-        isExpired: Date.now() / 1000 > payload.exp,
-        expiresIn: Math.max(0, payload.exp - Date.now() / 1000)
+        isExpired: now > payload.exp,
+        expiresIn: Math.max(0, payload.exp - now),
+        expiresInMinutes: Math.max(0, (payload.exp - now) / 60),
+        isExpiringSoon: (payload.exp - now) < 300 // 5 minutes
       };
     } catch (error) {
       return { error: 'Invalid token format' };
@@ -320,40 +476,57 @@ export class UserEndpointManager {
   }
 
   /**
-   * Force auth refresh for debugging
+   * Force reset for debugging and error recovery
    */
-  async forceAuthRefresh() {
-    productionLogManager.info('UserEndpoints', 'Forcing authentication refresh for debugging');
-    this.authRetryCount = 0; // Reset retry count
-    return await this.attemptTokenRefresh();
+  async forceReset() {
+    console.log('🔄 [UserEndpoints] Force reset initiated');
+    
+    this.clearCache();
+    this.authRetryCount = 0;
+    this.lastSuccessfulEndpoint = null;
+    
+    try {
+      await this.attemptAuthRecovery();
+      console.log('✅ [UserEndpoints] Force reset completed successfully');
+      return true;
+    } catch (error) {
+      console.error('❌ [UserEndpoints] Force reset failed:', error.message);
+      return false;
+    }
   }
 
   /**
-   * Test endpoint connectivity and auth status
+   * Enhanced endpoint testing with detailed results
    */
   async testEndpoints() {
     const results = {};
+    console.log('🧪 [UserEndpoints] Testing all endpoints...');
 
     for (const endpoint of this.fallbackEndpoints) {
       try {
-        productionLogManager.info('UserEndpoints', `Testing endpoint: ${endpoint}`);
         const startTime = Date.now();
         const response = await this.tryEndpoint(endpoint);
+        const responseTime = Date.now() - startTime;
+        
         results[endpoint] = {
           status: 'success',
-          data: response.data ? response.data.length : 0,
-          responseTime: Date.now() - startTime
+          responseTime,
+          dataCount: Array.isArray(response.data) ? response.data.length : 1,
+          httpStatus: response.status
         };
+        
       } catch (error) {
         results[endpoint] = {
           status: 'failed',
           error: error.message,
-          statusCode: error.response?.status,
-          responseTime: Date.now() - startTime
+          errorType: this.categorizeError(error),
+          httpStatus: error.response?.status,
+          responseTime: null
         };
       }
     }
 
+    console.log('🧪 [UserEndpoints] Endpoint test results:', results);
     return results;
   }
 }
@@ -361,15 +534,17 @@ export class UserEndpointManager {
 // Export singleton instance
 export const userEndpointManager = new UserEndpointManager();
 
-// Global access for debugging
-if (import.meta.env.DEV) {
+// Enhanced global access for debugging
+if (typeof window !== 'undefined') {
   window.userEndpoints = userEndpointManager;
 
-  // 🔧 Enhanced debugging commands
+  // Enhanced debugging commands
   window.diagnoseDUserAPI = () => {
     console.group('🔬 User API Diagnostics');
     const diagnostics = userEndpointManager.getDiagnostics();
-    console.table(diagnostics);
+    console.table(diagnostics.endpoints);
+    console.table(diagnostics.cache);
+    console.table(diagnostics.auth);
     console.log('Full diagnostics:', diagnostics);
     console.groupEnd();
     return diagnostics;
@@ -385,18 +560,25 @@ if (import.meta.env.DEV) {
   window.fixDUserAuth = async () => {
     console.log('🔧 Attempting to fix user authentication...');
     try {
-      await userEndpointManager.forceAuthRefresh();
-      console.log('✅ Authentication refresh completed');
-
-      // Test endpoints after refresh
-      const results = await userEndpointManager.testEndpoints();
-      console.log('🧪 Post-refresh test results:');
-      console.table(results);
-
-      return { success: true, results };
+      const resetSuccess = await userEndpointManager.forceReset();
+      
+      if (resetSuccess) {
+        // Test endpoints after reset
+        const results = await userEndpointManager.testEndpoints();
+        console.log('🧪 Post-reset test results:');
+        console.table(results);
+        return { success: true, results };
+      } else {
+        return { success: false, error: 'Force reset failed' };
+      }
     } catch (error) {
       console.error('❌ Authentication fix failed:', error);
       return { success: false, error: error.message };
     }
+  };
+
+  window.clearDUserCache = () => {
+    userEndpointManager.clearCache();
+    console.log('✅ User cache cleared');
   };
 } 

@@ -35,7 +35,7 @@ class ReadingPositionManager {
     const currentVisits = this.visitHistory.get(normalizedChatId) || 0;
     this.visitHistory.set(normalizedChatId, currentVisits + 1);
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`📖 [ReadingPosition] Recorded visit to chat ${chatId}, total visits: ${currentVisits + 1}`);
     }
   }
@@ -55,7 +55,7 @@ class ReadingPositionManager {
     this.positions.set(normalizedChatId, position);
     this.saveToStorage();
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`📖 [ReadingPosition] Saved position for chat ${chatId}:`, {
         scrollTop,
         messageId,
@@ -123,7 +123,7 @@ class ReadingPositionManager {
   async applyScrollStrategy(chatId, container, messages = []) {
     const strategy = this.getScrollStrategy(chatId);
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`📖 [ReadingPosition] Applying strategy for chat ${chatId}:`, strategy);
     }
 
@@ -149,7 +149,7 @@ class ReadingPositionManager {
     requestAnimationFrame(() => {
       container.scrollTop = container.scrollHeight - container.clientHeight;
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('📖 [ReadingPosition] Scrolled to bottom');
       }
     });
@@ -169,7 +169,7 @@ class ReadingPositionManager {
       requestAnimationFrame(() => {
         container.scrollTop = position.scrollTop;
 
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log(`📖 [ReadingPosition] Restored scroll position: ${position.scrollTop}px`);
         }
       });
@@ -191,11 +191,11 @@ class ReadingPositionManager {
         block: 'center'
       });
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`📖 [ReadingPosition] Scrolled to message ${messageId}`);
       }
     } else {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.warn(`📖 [ReadingPosition] Message ${messageId} not found in DOM`);
       }
     }
@@ -263,12 +263,12 @@ class ReadingPositionManager {
           });
         }
 
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log(`📖 [ReadingPosition] Loaded ${this.positions.size} positions from storage`);
         }
       }
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.warn('📖 [ReadingPosition] Failed to load from storage:', error);
       }
     }
@@ -291,7 +291,7 @@ class ReadingPositionManager {
 
       localStorage.setItem(this.storageKey, JSON.stringify(data));
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.warn('📖 [ReadingPosition] Failed to save to storage:', error);
       }
     }
@@ -328,7 +328,7 @@ class ReadingPositionManager {
       });
     }
 
-    if (import.meta.env.DEV && toDelete.length > 0) {
+    if (true && toDelete.length > 0) {
       console.log(`📖 [ReadingPosition] Cleaned up ${toDelete.length} old positions`);
     }
   }
@@ -341,7 +341,7 @@ class ReadingPositionManager {
     this.visitHistory.clear();
     localStorage.removeItem(this.storageKey);
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('📖 [ReadingPosition] Cleared all saved positions');
     }
   }
@@ -372,7 +372,7 @@ const readingPositionManager = new ReadingPositionManager();
 export { readingPositionManager };
 
 // Make available globally in development
-if (import.meta.env.DEV) {
+if (true) {
   window.readingPositionManager = readingPositionManager;
 
   // Add debug commands

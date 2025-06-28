@@ -376,7 +376,7 @@ export class AutoLoadModeValidator {
 export const autoLoadModeValidator = new AutoLoadModeValidator();
 
 // 开发环境全局函数
-if (typeof window !== 'undefined' && import.meta.env.DEV) {
+if (typeof window !== 'undefined' && true) {
   window.autoLoadModeValidator = autoLoadModeValidator;
 
   window.validateLoadingModes = async () => {

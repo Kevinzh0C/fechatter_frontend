@@ -244,7 +244,7 @@ class ChatService {
    */
   async sendMessage(chatId: number, messageData: SendMessageRequest): Promise<ChatMessage> {
     try {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`📤 [ChatService] Processing sendMessage for chat ${chatId}:`, messageData);
       }
 
@@ -263,7 +263,7 @@ class ChatService {
       const existingFileUrls = messageData.files?.filter(f => typeof f === 'string') as string[] || [];
       const allFileUrls = [...existingFileUrls, ...newFileUrls];
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`📎 [ChatService] File processing complete:`, {
           newFiles: newFileUrls,
           existingFiles: existingFileUrls,
@@ -289,7 +289,7 @@ class ChatService {
         idempotency_key: messageData.idempotency_key || this.generateIdempotencyKey()
       };
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`🚀 [ChatService] Sending request payload:`, requestPayload);
       }
 
@@ -299,7 +299,7 @@ class ChatService {
       if (response.data.success && response.data.data) {
         const sentMessage = response.data.data;
 
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log(`✅ [ChatService] Message sent successfully:`, sentMessage);
         }
 
@@ -308,7 +308,7 @@ class ChatService {
 
       // 处理API错误响应
       const errorMessage = response.data.error?.message || 'Failed to send message';
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error(`❌ [ChatService] API error response:`, response.data);
       }
 
@@ -691,107 +691,126 @@ class ChatService {
   }
 
   /**
-   */
-  /**
+   * 🚀 BACKEND-ALIGNED FILE UPLOAD - Uses ProductionFileService
+   * ✅ Delegates to specialized file service for backend alignment
+   * ✅ Maintains ChatService interface for compatibility
    */
   async uploadFile(file: File, onProgress?: (progress: number) => void): Promise<UploadedFile> {
-    // Import auto-inference system
-    const { ResponseAdapter, RequestConfigInferrer } = await import("../utils/TypeInference");
+    console.log('📤 [ChatService] Delegating to ProductionFileService:', {
+      name: file.name,
+      size: file.size,
+      type: file.type
+    });
 
-    // Auto-infer optimal upload configuration based on file
-    const config = RequestConfigInferrer.inferUploadConfig(file);
+    try {
+      // Import and use ProductionFileService
+      const { default: fileService } = await import('./FileService.js');
+      
+      // Call backend-aligned upload
+      const uploadResult = await fileService.uploadFile(file, onProgress);
+      
+      // Validate upload result
+      if (!uploadResult || !uploadResult.url) {
+        throw new Error('Invalid upload result from FileService');
+      }
+      
+      // Convert to ChatService format for compatibility
+      const chatUploadResult: UploadedFile = {
+        id: uploadResult.id || Date.now().toString(),
+        filename: uploadResult.filename || file.name,
+        url: uploadResult.url,
+        mime_type: uploadResult.mime_type || file.type,
+        size: uploadResult.size || file.size,
+        created_at: uploadResult.created_at || new Date().toISOString()
+      };
 
-    // Validate file size
-    if (file.size > 2 * 1024 * 1024) {
-      throw new Error(`File size ${Math.round(file.size / 1024 / 1024 * 100) / 100}MB exceeds 2MB limit`);
+      console.log('✅ [ChatService] Upload successful via FileService:', chatUploadResult);
+      return chatUploadResult;
+
+    } catch (error: any) {
+      console.error('❌ [ChatService] Upload failed via FileService:', error);
+      throw this.handleUploadError(error, file);
     }
+  }
 
-    // Prepare FormData (browser auto-sets Content-Type with boundary)
-    const formData = new FormData();
-    formData.append("file", file);
+  /**
+   * Parse upload response from backend
+   */
+  private parseUploadResponse(responseData: any, originalFile: File): UploadedFile {
+    try {
+      let uploadData;
+      
+      if (responseData.success && responseData.data) {
+        uploadData = responseData.data;
+      } else if (responseData.file_url || responseData.url) {
+        uploadData = responseData;
+      } else {
+        throw new Error('Invalid response format');
+      }
 
-    // Auto-infer headers (never include Content-Type for FormData!)
-    const headers = RequestConfigInferrer.inferHeaders(formData);
+      return {
+        id: uploadData.id || Date.now().toString(),
+        filename: uploadData.file_name || uploadData.filename || originalFile.name,
+        url: uploadData.file_url || uploadData.url,
+        mime_type: uploadData.mime_type || uploadData.type || originalFile.type,
+        size: uploadData.file_size || uploadData.size || originalFile.size,
+        created_at: uploadData.created_at || uploadData.uploaded_at || new Date().toISOString()
+      };
 
-    // Enhanced retry logic with exponential backoff
-    for (let attempt = 1; attempt <= config.maxRetries; attempt++) {
-      try {
-        if (import.meta.env.DEV) {
-          console.log(`📤 [Smart Upload] Attempt ${attempt}/${config.maxRetries} for ${file.name}`);
-        }
+    } catch (parseError: any) {
+      console.error('❌ [ChatService] Response parsing failed:', parseError);
+      throw new Error(`Failed to parse upload response: ${parseError.message}`);
+    }
+  }
 
-        const response = await api.post("/files/single", formData, {
-          headers, // Auto-inferred (empty for FormData)
-          timeout: config.timeout,
-          onUploadProgress: (progressEvent) => {
-            if (onProgress && progressEvent.total) {
-              const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-              onProgress(progress);
-            }
-          },
-        });
+  /**
+   * Format file size for display
+   */
+  private formatFileSize(bytes: number): string {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
 
-        // 🎯 SMART RESPONSE PARSING: Auto-adapt to any backend format
-        try {
-          const uploadedFile = ResponseAdapter.parseUploadResponse(response.data, file);
+  /**
+   * ✅ OPTIMIZED: Enhanced error handling for upload failures
+   */
+  private handleUploadError(error: any, file: File): Error {
+    if (error.response) {
+      const status = error.response.status;
+      const data = error.response.data;
 
-          if (import.meta.env.DEV) {
-            console.log(`✅ [Smart Upload] Success: ${file.name} -> ${uploadedFile.url}`);
-          }
-
-          return uploadedFile;
-        } catch (parseError) {
-          if (import.meta.env.DEV) {
-            console.error("❌ [Smart Upload] Response parsing failed:", parseError);
-            console.log("📊 Raw response:", response.data);
-          }
-          throw parseError;
-        }
-
-      } catch (error: any) {
-        if (import.meta.env.DEV) {
-          console.error(`❌ [Smart Upload] Attempt ${attempt} failed:`, error.message);
-        }
-
-        // Smart error handling
-        if (error.response) {
-          const status = error.response.status;
-
-          // Do not retry on client errors (except 429)
-          if (status >= 400 && status < 500 && status !== 429) {
-            throw this.handleError(error);
-          }
-
-          // Retry on server errors and rate limiting
-          if (attempt < config.maxRetries && (status >= 500 || status === 429)) {
-            const delay = config.retryDelay * Math.pow(2, attempt - 1);
-            if (import.meta.env.DEV) {
-              console.log(`⏱️ [Smart Upload] Retrying in ${delay}ms... (${status} error)`);
-            }
-            await new Promise(resolve => setTimeout(resolve, delay));
-            continue;
-          }
-        }
-
-        // Network errors - try with health check
-        if (!error.response && attempt < config.maxRetries) {
-          const delay = config.retryDelay * Math.pow(2, attempt - 1);
-          if (import.meta.env.DEV) {
-            console.log(`⏱️ [Smart Upload] Retrying in ${delay}ms... (Network error)`);
-          }
-          await new Promise(resolve => setTimeout(resolve, delay));
-          continue;
-        }
-
-        // Final attempt failed
-        if (attempt === config.maxRetries) {
-          throw this.handleError(error);
-        }
+      switch (status) {
+        case 400:
+          return new Error(`Invalid file or request format`);
+        case 401:
+          return new Error(`Authentication required for file upload`);
+        case 413:
+          return new Error(`File too large (max 2MB allowed)`);
+        case 415:
+          return new Error(`File type not supported: ${file.type}`);
+        case 422:
+          return new Error(`Invalid file data or missing file`);
+        case 429:
+          return new Error(`Too many uploads, please wait and try again`);
+        case 500:
+          return new Error(`Server error during upload`);
+        default:
+          return new Error(`Upload failed with status ${status}`);
       }
     }
 
-    // This should never be reached
-    throw new Error("Upload failed after all retry attempts");
+    if (error.code === 'ECONNABORTED') {
+      return new Error(`Upload timeout - file too large or connection slow`);
+    }
+
+    if (!error.response) {
+      return new Error(`Network error during upload`);
+    }
+
+    return new Error(`Upload failed: ${error.message}`);
   }
 }
 

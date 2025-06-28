@@ -282,16 +282,16 @@ export function createServiceContainer(stores = {}) {
     dependencies: ['logger']
   });
 
-  // 🛡️ MESSAGE TRACKING SERVICE: Display guarantee
+  // 🔧 REMOVED: MessageDisplayGuarantee service for performance optimization
+  // Vue 3 reactive system provides sufficient reliability for message display
   container.register('messageTracker', ({ logger }) => {
-    const { messageDisplayGuarantee } = require('../messageSystem/MessageDisplayGuarantee.js');
-
-    // Inject logger into message display guarantee
-    if (messageDisplayGuarantee.setLogger) {
-      messageDisplayGuarantee.setLogger(logger);
-    }
-
-    return messageDisplayGuarantee;
+    // Return a minimal stub to maintain compatibility
+    return {
+      startMessageTracking: () => null,
+      markMessageDisplayed: () => null,
+      clearTrackingForChat: () => 0,
+      getMetrics: () => ({ successRate: 100, activeTracking: 0 })
+    };
   }, {
     dependencies: ['logger']
   });

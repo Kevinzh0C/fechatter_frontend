@@ -15,7 +15,7 @@ export class SearchDiagnostic {
    * 执行完整的搜索功能诊断
    */
   async runFullDiagnostic() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🔍 [SearchDiagnostic] Starting comprehensive search diagnostic...');
     }
     
@@ -275,7 +275,7 @@ export class SearchDiagnostic {
    * 自动修复常见问题
    */
   async attemptAutoFix() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🔧 [SearchDiagnostic] Attempting automatic fixes...');
     }
     
@@ -311,43 +311,43 @@ export class SearchDiagnostic {
   printDiagnosticReport() {
     const { results } = this;
     
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n🔍 ========== SEARCH DIAGNOSTIC REPORT ==========');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`⏰ Timestamp: ${results.timestamp}`);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`✅ Passed: ${results.summary.passed}`);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`❌ Failed: ${results.summary.failed}`);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`⚠️  Warnings: ${results.summary.warnings}`);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n📋 Test Results:');
     }
     
     Object.entries(results.tests).forEach(([testName, result]) => {
       const icon = result.status === 'PASS' ? '✅' : result.status === 'FAIL' ? '❌' : '⚠️';
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`${icon} ${testName}: ${result.message}`);
       }
       
       if (result.details) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('   Details:', result.details);
         }
       
       if (result.error) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('   Error:', result.error);
         }
       
       if (result.suggestion) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('   💡 Suggestion:', result.suggestion);
         }
     });
     
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🔍 ============================================\n');
     }
 
@@ -384,13 +384,13 @@ if (typeof window !== 'undefined') {
   window.diagnoseSeart = () => searchDiagnostic.runFullDiagnostic();
   window.fixSearch = () => searchDiagnostic.attemptAutoFix();
   
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('🔍 Search diagnostic tools available:');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('   window.searchDiagnostic.runFullDiagnostic() - Full diagnostic');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('   window.diagnoseSeart() - Quick diagnostic');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('   window.fixSearch() - Attempt auto-fix');
   }
 

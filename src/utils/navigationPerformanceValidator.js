@@ -34,7 +34,7 @@ class NavigationPerformanceValidator {
       navigationEndTime: 0
     };
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`🔍 [PERF_VALIDATOR] Starting validation for chat ${chatId}`);
     }
 
@@ -100,7 +100,7 @@ class NavigationPerformanceValidator {
       recommendations: this.generateRecommendations()
     };
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🔍 [PERF_VALIDATOR] Navigation Performance Report:', report);
     }
 
@@ -167,7 +167,7 @@ class NavigationPerformanceValidator {
 
       return validator.endValidation();
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('Navigation test failed:', error);
       }
       return validator.endValidation();

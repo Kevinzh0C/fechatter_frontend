@@ -23,7 +23,7 @@ class DevHealthCheckHelper {
       this.logCheckResult(checkId, result);
       return result;
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error(`❌ Failed to run check ${checkId}:`, error);
       return null;
     }
@@ -37,7 +37,7 @@ class DevHealthCheckHelper {
       const results = await healthCheck.default.runAllChecksSafely();
 
       console.group('🏥 Health Check Results');
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('Summary:', results.summary);
       }
 
@@ -48,7 +48,7 @@ class DevHealthCheckHelper {
       if (passed.length > 0) {
         console.group('✅ Passed Checks');
         passed.forEach(r => {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log(`${r.checkName}:`, r.details);
           }
         });
@@ -58,7 +58,7 @@ class DevHealthCheckHelper {
       if (failed.length > 0) {
         console.group('❌ Failed Checks');
         failed.forEach(r => {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.error(`${r.checkName}:`, r.error || r.details);
           }
         });
@@ -69,7 +69,7 @@ class DevHealthCheckHelper {
 
       return results;
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('❌ Failed to run health checks:', error);
       return null;
     }
@@ -79,15 +79,15 @@ class DevHealthCheckHelper {
    */
   startMonitoring(checkIds = ['stores_functional', 'sse_connection'], intervalMs = 5000) {
     if (this.isMonitoring) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.warn('⚠️ Monitoring already active');
       return;
     }
 
     this.isMonitoring = true;
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`🔍 Starting health check monitoring for: ${checkIds.join(', ')}`);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`📊 Interval: ${intervalMs}ms`);
     }
 
@@ -98,7 +98,7 @@ class DevHealthCheckHelper {
         const result = await this.runSingleCheck(checkId);
         if (result) {
           const status = result.success ? '✅' : '❌';
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log(`${status} ${checkId}:`, result.details || result.error);
           }
 
@@ -114,7 +114,7 @@ class DevHealthCheckHelper {
       clearInterval(this.monitorInterval);
       this.monitorInterval = null;
       this.isMonitoring = false;
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('🛑 Health check monitoring stopped');
       }
 
@@ -151,7 +151,7 @@ class DevHealthCheckHelper {
     console.group('🔍 Health Check Issue Analysis');
 
     // Check app initialization
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('App Status:', {
         hasApp: !!window.app,
       hasPinia: !!window.pinia,
@@ -163,21 +163,21 @@ class DevHealthCheckHelper {
     if (window.pinia) {
       try {
         const authStore = window.pinia._s.get('auth');
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('Auth Status:', {
         hasToken: !!authStore?.token,
           hasUser: !!authStore?.user,
           isAuthenticated: authStore?.isAuthenticated
         });
       } catch (e) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.warn('Could not access auth store:', e.message);
         }
 
     // Check SSE status
     if (window.realtimeCommunicationService) {
       const sseState = window.realtimeCommunicationService.getConnectionState();
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('SSE Status:', sseState);
       }
 
@@ -194,11 +194,11 @@ class DevHealthCheckHelper {
     try {
       const { initializeConfig } = await import('./configLoader.js');
       await initializeConfig();
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('✅ Configuration initialized');
       }
     } catch (e) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('❌ Failed to initialize config:', e.message);
       }
 
@@ -207,14 +207,14 @@ class DevHealthCheckHelper {
       try {
         const authStore = window.pinia._s.get('auth');
         if (authStore?.token && !window.realtimeCommunicationService.isConnected) {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log('🔌 Attempting SSE connection...');
           await window.realtimeCommunicationService.connect(authStore.token);
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log('✅ SSE connection attempted');
           }
       } catch (e) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.error('❌ Failed to connect SSE:', e.message);
         }
 
@@ -225,7 +225,7 @@ class DevHealthCheckHelper {
 const devHealthCheckHelper = new DevHealthCheckHelper();
 
 // Expose to window for easy access in development
-if (import.meta.env.DEV && typeof window !== 'undefined') {
+if (true && typeof window !== 'undefined') {
   window.healthHelper = {
     run: (checkId) => devHealthCheckHelper.runSingleCheck(checkId),
     runAll: () => devHealthCheckHelper.runAllChecks(),
@@ -241,11 +241,11 @@ if (import.meta.env.DEV && typeof window !== 'undefined') {
     api: () => devHealthCheckHelper.runSingleCheck('api_connection')
   };
 
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('💡 Health Check Helper available at window.healthHelper');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('   Commands: run(), runAll(), monitor(), analyze(), fix()');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('   Shortcuts: stores(), sse(), api()');
   }
 

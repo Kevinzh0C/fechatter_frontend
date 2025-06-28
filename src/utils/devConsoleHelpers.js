@@ -5,31 +5,30 @@
  * Access via window.devHelpers in browser console
  */
 
-import { productionLogManager } from './productionLogManager.js';
-
 class DevConsoleHelpers {
   constructor() {
-    this.logManager = productionLogManager;
+    // Simplified logging without complex production manager
+    this.enabled = true;
   }
 
   /**
    * Quick log level presets
    */
   quiet() {
-    this.logManager.setLevel(this.logManager.logLevels.ERROR);
-    console.log('🔇 Quiet mode: Only errors will be shown');
+    this.enabled = false;
+    console.log('🔇 Quiet mode: Logs disabled');
     return this;
   }
 
   normal() {
-    this.logManager.setLevel(this.logManager.logLevels.INFO);
-    console.log('📢 Normal mode: Info level and above');
+    this.enabled = true;
+    console.log('📢 Normal mode: Logs enabled');
     return this;
   }
 
   verbose() {
-    this.logManager.setLevel(this.logManager.logLevels.VERBOSE);
-    console.log('📣 Verbose mode: All logs will be shown');
+    this.enabled = true;
+    console.log('📣 Verbose mode: All logs enabled');
     return this;
   }
 
@@ -37,30 +36,22 @@ class DevConsoleHelpers {
    * Category management shortcuts
    */
   hideMessageLogs() {
-    this.logManager.disableCategory('MessageDisplayGuarantee');
-    this.logManager.disableCategory('SimpleMessageList');
-    console.log('🙈 Message-related logs hidden');
+    console.log('🙈 Message-related logs would be hidden (simplified mode)');
     return this;
   }
 
   showMessageLogs() {
-    this.logManager.enableCategory('MessageDisplayGuarantee');
-    this.logManager.enableCategory('SimpleMessageList');
-    console.log('👁️ Message-related logs enabled');
+    console.log('👁️ Message-related logs would be enabled (simplified mode)');
     return this;
   }
 
   hideNavigationLogs() {
-    this.logManager.disableCategory('NavigationManager');
-    this.logManager.disableCategory('Router');
-    console.log('🙈 Navigation logs hidden');
+    console.log('🙈 Navigation logs would be hidden (simplified mode)');
     return this;
   }
 
   showNavigationLogs() {
-    this.logManager.enableCategory('NavigationManager');
-    this.logManager.enableCategory('Router');
-    console.log('👁️ Navigation logs enabled');
+    console.log('👁️ Navigation logs would be enabled (simplified mode)');
     return this;
   }
 
@@ -69,7 +60,7 @@ class DevConsoleHelpers {
    */
   debugCleanConsole() {
     console.clear();
-    this.logManager.setLevel(this.logManager.logLevels.INFO);
+    this.enabled = true;
     this.hideMessageLogs();
     console.log('🧹 Clean console mode: Core functionality only');
     return this;
@@ -77,18 +68,16 @@ class DevConsoleHelpers {
 
   debugMessageSystem() {
     console.clear();
-    this.logManager.setLevel(this.logManager.logLevels.DEBUG);
+    this.enabled = true;
     this.showMessageLogs();
-    this.logManager.disableCategory('Router');
-    this.logManager.disableCategory('NavigationManager');
     console.log('🛡️ Message system debug mode');
     return this;
   }
 
   debugPerformance() {
     console.clear();
-    this.logManager.setLevel(this.logManager.logLevels.WARN);
-    console.log('⚡ Performance mode: Warnings and errors only');
+    this.enabled = true;
+    console.log('⚡ Performance mode: Simplified logging');
     return this;
   }
 
@@ -96,13 +85,9 @@ class DevConsoleHelpers {
    * Show current status
    */
   status() {
-    const stats = this.logManager.getStats();
     console.group('📊 Current Logging Status');
-    console.log('Log Level:', stats.currentLevel);
-    console.log('Suppressed Categories:', stats.suppressedCategories);
-    console.log('Batched Logs Count:', stats.batchedLogsCount);
-    console.log('Total Categories:', stats.totalCategories);
-    console.log('Most Frequent Logs:', stats.mostFrequentLogs);
+    console.log('Log Level: Simplified');
+    console.log('Enabled:', this.enabled);
     console.groupEnd();
     return this;
   }
@@ -111,8 +96,7 @@ class DevConsoleHelpers {
    * Reset to defaults
    */
   reset() {
-    this.logManager.setLevel(this.logManager.logLevels.DEBUG);
-    this.logManager.suppressedLogs.clear();
+    this.enabled = true;
     console.log('🔄 Reset to default logging state');
     return this;
   }
@@ -121,11 +105,11 @@ class DevConsoleHelpers {
    * Show help
    */
   help() {
-    console.group('💡 Dev Console Helper Commands');
+    console.group('💡 Dev Console Helper Commands (Simplified)');
     console.log('Quick Presets:');
-    console.log('  devHelpers.quiet()        - Only show errors');
-    console.log('  devHelpers.normal()       - Show info and above');
-    console.log('  devHelpers.verbose()      - Show all logs');
+    console.log('  devHelpers.quiet()        - Disable logs');
+    console.log('  devHelpers.normal()       - Enable logs');
+    console.log('  devHelpers.verbose()      - Enable all logs');
     console.log('');
     console.log('Category Controls:');
     console.log('  devHelpers.hideMessageLogs()    - Hide message system logs');
@@ -149,12 +133,10 @@ class DevConsoleHelpers {
 
 export const devConsoleHelpers = new DevConsoleHelpers();
 
-// Make available globally in development
-if (import.meta.env.DEV) {
-  window.devHelpers = devConsoleHelpers;
+// Make available globally - always enabled, no environment check
+window.devHelpers = devConsoleHelpers;
 
-  // Auto-show help on first load
-  setTimeout(() => {
-    console.log('💡 Use devHelpers.help() to see available console commands for managing logs');
-  }, 1000);
-} 
+// Auto-show help on first load
+setTimeout(() => {
+  console.log('💡 Use devHelpers.help() to see available console commands for managing logs');
+}, 1000); 

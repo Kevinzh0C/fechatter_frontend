@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Health Check</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .test { margin: 20px 0; padding: 10px; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .pending { background: #fff3cd; color: #856404; }
+    </style>
+</head>
+<body>
+    <h1>Frontend Health Check</h1>
+    
+    <div id="unified-scroll-test" class="test pending">
+        🔄 Testing UnifiedScrollManager import...
+    </div>
+    
+    <div id="stores-test" class="test pending">
+        🔄 Testing store imports...
+    </div>
+    
+    <div id="sse-test" class="test pending">
+        🔄 Testing SSE service import...
+    </div>
+
+    <script type="module">
+        async function testImport(testId, importFn, name) {
+            const testEl = document.getElementById(testId);
+            try {
+                const result = await importFn();
+                testEl.textContent = \`✅ \${name} imported successfully\`;
+                testEl.className = 'test success';
+                return result;
+            } catch (error) {
+                testEl.textContent = \`❌ \${name} failed: \${error.message}\`;
+                testEl.className = 'test error';
+                console.error(\`\${name} import failed:\`, error);
+                throw error;
+            }
+        }
+
+        // Test UnifiedScrollManager
+        await testImport(
+            'unified-scroll-test',
+            () => import('/src/utils/UnifiedScrollManager.js'),
+            'UnifiedScrollManager'
+        );
+
+        // Test stores
+        await testImport(
+            'stores-test',
+            async () => {
+                const [auth, chat, messageUI] = await Promise.all([
+                    import('/src/stores/auth.js'),
+                    import('/src/stores/chat.js'),
+                    import('/src/stores/messageUI.js')
+                ]);
+                return { auth, chat, messageUI };
+            },
+            'Store modules'
+        );
+
+        // Test SSE service
+        await testImport(
+            'sse-test',
+            () => import('/src/services/sse-minimal.js'),
+            'SSE minimal service'
+        );
+
+        console.log('All health checks completed!');
+    </script>
+</body>
+</html>

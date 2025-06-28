@@ -12,7 +12,7 @@ class MessageOrderFix {
       fixed: false
     };
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🔧 Message Order Fix initialized');
     }
 
@@ -21,26 +21,26 @@ class MessageOrderFix {
    * 分析当前消息顺序
    */
   analyzeCurrentOrder() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n🔍 MESSAGE ORDER ANALYSIS');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('=========================\n');
     }
 
     const chatStore = this.getChatStore();
     if (!chatStore) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('❌ Chat store not available');
       return;
     }
 
     const messages = chatStore.messages || [];
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`📊 Analyzing ${messages.length} messages`);
     }
 
     if (messages.length < 2) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('⚠️ Need at least 2 messages to analyze order');
       return;
     }
@@ -52,11 +52,11 @@ class MessageOrderFix {
     const firstTime = new Date(firstMessage.created_at).getTime();
     const lastTime = new Date(lastMessage.created_at).getTime();
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('📅 Message timestamps:');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`   First message: ${firstMessage.created_at} (${this.formatTime(firstMessage.created_at)})`);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`   Last message: ${lastMessage.created_at} (${this.formatTime(lastMessage.created_at)})`);
     }
 
@@ -64,17 +64,17 @@ class MessageOrderFix {
     let currentOrder = 'unknown';
     if (firstTime < lastTime) {
       currentOrder = 'chronological'; // 时间升序，最新在底部 ✅
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('✅ Current order: CHRONOLOGICAL (oldest→newest) - CORRECT for chat apps');
       }
     } else if (firstTime > lastTime) {
       currentOrder = 'reverse_chronological'; // 时间降序，最新在顶部 ❌
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('❌ Current order: REVERSE CHRONOLOGICAL (newest→oldest) - WRONG for chat apps');
       }
     } else {
       currentOrder = 'same_time';
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('⚠️ Current order: SAME TIME - Cannot determine');
       }
 
@@ -91,7 +91,7 @@ class MessageOrderFix {
    * Analyze entire message array for ordering consistency
    */
   analyzeFullArray(messages) {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n📊 Full Array Analysis:');
     }
 
@@ -111,11 +111,11 @@ class MessageOrderFix {
         sameTimeCount++;
       }
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`   Ascending pairs: ${ascendingCount} (oldest→newest)`);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`   Descending pairs: ${descendingCount} (newest→oldest)`);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`   Same time pairs: ${sameTimeCount}`);
     }
 
@@ -123,21 +123,21 @@ class MessageOrderFix {
     const ascendingPercentage = (ascendingCount / totalPairs * 100).toFixed(1);
     const descendingPercentage = (descendingCount / totalPairs * 100).toFixed(1);
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`   Order consistency: ${ascendingPercentage}% ascending, ${descendingPercentage}% descending`);
     }
 
     // Determine array consistency
     if (ascendingCount > descendingCount * 2) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('✅ Array is mostly CHRONOLOGICAL (correct for chat)');
       }
     } else if (descendingCount > ascendingCount * 2) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('❌ Array is mostly REVERSE CHRONOLOGICAL (wrong for chat)');
       this.testResults.issues.push('Messages are sorted newest→oldest, should be oldest→newest');
     } else {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('⚠️ Array has MIXED ordering (inconsistent)');
       this.testResults.issues.push('Message ordering is inconsistent');
     }
@@ -146,38 +146,38 @@ class MessageOrderFix {
    * Generate recommendations based on analysis
    */
   generateRecommendations(currentOrder) {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n💡 RECOMMENDATIONS:');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('===================');
     }
 
     if (currentOrder === 'reverse_chronological') {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('🔧 ISSUE: Messages are displaying newest→oldest');
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('📋 SOLUTION: Sort messages by created_at ASC (oldest→newest)');
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('🎯 EXPECTED: User sees oldest messages at top, newest at bottom');
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('💬 STANDARD: Like WhatsApp, WeChat, Telegram, Discord');
       }
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('\n🚀 Quick Fix:');
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('   window.messageOrderFix.sortMessagesCorrectly()');
       }
     } else if (currentOrder === 'chronological') {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('✅ Messages are correctly ordered oldest→newest');
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('✅ This is the standard for chat applications');
       }
     } else {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('⚠️ Cannot determine clear ordering pattern');
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('🔧 Recommend: Apply consistent chronological sorting');
       }
 
@@ -185,27 +185,27 @@ class MessageOrderFix {
    * Sort messages in correct chronological order (oldest→newest)
    */
   sortMessagesCorrectly() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n🔧 FIXING MESSAGE ORDER');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('=======================');
     }
 
     const chatStore = this.getChatStore();
     if (!chatStore) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('❌ Cannot fix - chat store not available');
       return false;
     }
 
     const messages = chatStore.messages || [];
     if (messages.length === 0) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('⚠️ No messages to sort');
       return false;
     }
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`🔧 Sorting ${messages.length} messages chronologically...`);
     }
 
@@ -227,15 +227,15 @@ class MessageOrderFix {
     const newFirst = chatStore.messages[0];
     const newLast = chatStore.messages[chatStore.messages.length - 1];
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('📊 Before/After comparison:');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`   Original first: ${this.formatTime(originalFirst.created_at)}`);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`   New first: ${this.formatTime(newFirst.created_at)}`);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`   Original last: ${this.formatTime(originalLast.created_at)}`);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`   New last: ${this.formatTime(newLast.created_at)}`);
     }
 
@@ -244,14 +244,14 @@ class MessageOrderFix {
     const lastTime = new Date(newLast.created_at).getTime();
 
     if (firstTime <= lastTime) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('✅ Messages now correctly sorted oldest→newest');
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('✅ Newest messages will appear at bottom (standard chat behavior)');
       this.testResults.fixed = true;
       return true;
     } else {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('❌ Sort failed - still incorrect order');
       return false;
     }
@@ -260,15 +260,15 @@ class MessageOrderFix {
    * Apply fix to chat store and all caches
    */
   applyFixGlobally() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n🌐 APPLYING GLOBAL MESSAGE ORDER FIX');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('====================================');
     }
 
     const chatStore = this.getChatStore();
     if (!chatStore) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('❌ Cannot apply global fix - chat store not available');
       return false;
     }
@@ -285,7 +285,7 @@ class MessageOrderFix {
     Object.keys(messageCache).forEach(chatId => {
       const cache = messageCache[chatId];
       if (cache && cache.messages && cache.messages.length > 0) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log(`🔧 Fixing cache for chat ${chatId} (${cache.messages.length} messages)`);
         }
 
@@ -301,18 +301,18 @@ class MessageOrderFix {
 
     // Fix localStorage persistence if available
     if (window.msgPersist) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('🔧 Fixing localStorage persistence...');
       try {
         // This will trigger a re-sort in persistence layer
         window.msgPersist.fixMessageOrder();
         fixCount++;
       } catch (error) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.warn('⚠️ Could not fix localStorage persistence:', error.message);
         }
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`✅ Applied fixes to ${fixCount} locations`);
     return fixCount > 0;
   }
@@ -321,15 +321,15 @@ class MessageOrderFix {
    * Test the fix by creating sample messages
    */
   testWithSampleMessages() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n🧪 TESTING WITH SAMPLE MESSAGES');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('===============================');
     }
 
     const chatStore = this.getChatStore();
     if (!chatStore) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('❌ Cannot test - chat store not available');
       return;
     }
@@ -365,10 +365,10 @@ class MessageOrderFix {
     // Shuffle messages to simulate wrong order
     const shuffledMessages = [...sampleMessages].sort(() => Math.random() - 0.5);
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('📝 Created sample messages (shuffled):');
     shuffledMessages.forEach((msg, index) => {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`   ${index + 1}. "${msg.content}" - ${this.formatTime(msg.created_at)}`);
       }
     });
@@ -381,10 +381,10 @@ class MessageOrderFix {
     const fixed = this.sortMessagesCorrectly();
 
     if (fixed) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('\n✅ Test completed successfully:');
       chatStore.messages.forEach((msg, index) => {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log(`   ${index + 1}. "${msg.content}" - ${this.formatTime(msg.created_at)}`);
         }
       });
@@ -422,17 +422,17 @@ if (typeof window !== 'undefined') {
     test: () => messageOrderFix.testWithSampleMessages()
   };
 
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('🔧 Message Order Fix loaded');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('   Commands:');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('   - window.messageOrderFix.analyze() - Analyze current order');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('   - window.messageOrderFix.fix() - Fix message order');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('   - window.messageOrderFix.fixGlobal() - Fix globally');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('   - window.messageOrderFix.test() - Test with samples');
   }
 

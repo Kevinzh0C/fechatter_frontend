@@ -16,7 +16,7 @@ class GroupChannelPreloadTest {
    */
   init() {
     this.chatStore = useChatStore();
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🧪 [GroupChannelTest] Initialized');
     }
 
@@ -26,7 +26,7 @@ class GroupChannelPreloadTest {
   checkPreloadStatus() {
     if (!this.chatStore) this.init();
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('📊 [GroupChannelTest] Checking preload status...');
     }
 
@@ -45,7 +45,7 @@ class GroupChannelPreloadTest {
       return acc;
     }, {});
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('📊 [GroupChannelTest] Chats by type:', chatsByType);
     }
 
@@ -53,7 +53,7 @@ class GroupChannelPreloadTest {
     const groupChannels = chatsByType['Group'] || [];
     const cachedGroups = groupChannels.filter(g => g.cached);
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`📊 [GroupChannelTest] Group channels: ${groupChannels.length} total, ${cachedGroups.length} cached`);
     }
 
@@ -88,19 +88,19 @@ class GroupChannelPreloadTest {
     const groupChannels = this.chatStore.chats.filter(chat => chat.chat_type === 'Group');
 
     if (groupChannels.length === 0) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('❌ [GroupChannelTest] No group channels found');
       return;
     }
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`🚀 [GroupChannelTest] Force preloading ${groupChannels.length} group channels...`);
     }
 
     const groupIds = groupChannels.map(g => g.id);
     await this.chatStore.preloadMultipleChats(groupIds, 10);
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('✅ [GroupChannelTest] Preload complete');
     this.checkPreloadStatus();
   }
@@ -113,12 +113,12 @@ class GroupChannelPreloadTest {
 
     const group = this.chatStore.chats.find(c => c.id === groupId && c.chat_type === 'Group');
     if (!group) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error(`❌ [GroupChannelTest] Group ${groupId} not found`);
       return;
     }
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`🧪 [GroupChannelTest] Testing navigation to group: ${group.name}`);
     }
 
@@ -131,7 +131,7 @@ class GroupChannelPreloadTest {
     const hasMessages = this.chatStore.messages.length > 0;
     const isLoading = this.chatStore.loading;
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`✅ [GroupChannelTest] Navigation completed in ${elapsed.toFixed(2)}ms`, {
       hadCache,
       hasMessages,
@@ -144,13 +144,13 @@ class GroupChannelPreloadTest {
    * Monitor preload in real-time
    */
   monitorPreload(intervalMs = 1000) {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('📊 [GroupChannelTest] Starting preload monitor...');
     }
 
     const interval = setInterval(() => {
       const status = this.checkPreloadStatus();
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`📊 [Monitor] ${new Date().toLocaleTimeString()} - Cached: ${status.cachedGroups}/${status.totalGroups}`);
       }
     }, intervalMs);
@@ -158,7 +158,7 @@ class GroupChannelPreloadTest {
     // Return stop function
     return () => {
       clearInterval(interval);
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('📊 [GroupChannelTest] Monitor stopped');
       }
     };
@@ -168,29 +168,29 @@ class GroupChannelPreloadTest {
    * Run full test suite
    */
   async runFullTest() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🧪 [GroupChannelTest] Running full test suite...');
     }
 
     // 1. Check initial status
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n1️⃣ Initial Status:');
     const initial = this.checkPreloadStatus();
 
     // 2. Force preload
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n2️⃣ Force Preloading:');
     await this.preloadAllGroups();
 
     // 3. Test navigation to first group
     const firstGroup = this.chatStore.chats.find(c => c.chat_type === 'Group');
     if (firstGroup) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('\n3️⃣ Testing Navigation:');
       await this.testGroupNavigation(firstGroup.id);
     }
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n✅ [GroupChannelTest] Test suite complete');
     }
 
@@ -206,17 +206,17 @@ window.groupChannelTest = {
   run: () => groupChannelTest.runFullTest()
 };
 
-if (import.meta.env.DEV) {
+if (true) {
   console.log('🧪 Group Channel Preload Test loaded. Commands:');
-if (import.meta.env.DEV) {
+if (true) {
   console.log('   window.groupChannelTest.check() - Check current status');
-if (import.meta.env.DEV) {
+if (true) {
   console.log('   window.groupChannelTest.preload() - Force preload all groups');
-if (import.meta.env.DEV) {
+if (true) {
   console.log('   window.groupChannelTest.test(groupId) - Test navigation to specific group');
-if (import.meta.env.DEV) {
+if (true) {
   console.log('   window.groupChannelTest.monitor() - Start real-time monitor');
-if (import.meta.env.DEV) {
+if (true) {
   console.log('   window.groupChannelTest.run() - Run full test suite');
 }
 

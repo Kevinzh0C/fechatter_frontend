@@ -3,7 +3,7 @@
     <div class="user-section" @click="toggleUserMenu" ref="userSection">
       <!-- User Avatar -->
       <div class="user-avatar">
-        <Avatar :user="currentUser" :size="32" :show-status="true" :status="currentUser?.status?.toLowerCase()" />
+        <Avatar :user="currentUser" :size="32" :show-status="true" :status="currentUserStatus" />
       </div>
 
       <!-- User Info -->
@@ -23,8 +23,39 @@
       <div v-if="showUserMenu" class="user-menu" @click.stop>
         <div class="menu-header">
           <div class="menu-user-info">
-            <div class="menu-user-name">{{ currentUser?.fullname }}</div>
-            <div class="menu-user-email">{{ currentUser?.email }}</div>
+            <div class="menu-user-name">{{ currentUser?.name || 'User' }}</div>
+            <div class="menu-user-email">{{ currentUser?.email || 'No email' }}</div>
+          </div>
+        </div>
+
+        <!-- Presence Status Section -->
+        <div class="menu-section">
+          <div class="menu-section-title">Status</div>
+          <div class="status-options">
+            <button 
+              class="status-option" 
+              :class="{ active: currentUserStatus === 'online' }"
+              @click="setPresenceStatus('online')"
+            >
+              <div class="status-dot status-online"></div>
+              <span>Online</span>
+            </button>
+            <button 
+              class="status-option" 
+              :class="{ active: currentUserStatus === 'away' }"
+              @click="setPresenceStatus('away')"
+            >
+              <div class="status-dot status-away"></div>
+              <span>Away</span>
+            </button>
+            <button 
+              class="status-option" 
+              :class="{ active: currentUserStatus === 'busy' }"
+              @click="setPresenceStatus('busy')"
+            >
+              <div class="status-dot status-busy"></div>
+              <span>Busy</span>
+            </button>
           </div>
         </div>
 
@@ -59,7 +90,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useUserStore } from '@/stores/user'
@@ -76,7 +107,7 @@ const props = defineProps({
 })
 
 // Emits
-const emit = defineEmits(['profile-opened', 'settings-opened', 'role-switched'])
+const emit = defineEmits(['profile-opened', 'settings-opened', 'role-switched', 'logout'])
 
 // Stores
 const router = useRouter()
@@ -87,6 +118,16 @@ const userStore = useUserStore()
 const showUserMenu = ref(false)
 const userSection = ref(null)
 
+// Reactive presence status - this will track changes automatically
+const currentUserStatus = computed(() => {
+  return presenceService.currentUserStatus.value || 'offline'
+})
+
+// Watch for status changes and log them
+watch(currentUserStatus, (newStatus, oldStatus) => {
+  console.log('🔄 [UserBottomBar] Status changed:', { from: oldStatus, to: newStatus })
+}, { immediate: true })
+
 // Computed
 const currentUser = computed(() => authStore.user)
 
@@ -96,8 +137,47 @@ const canSwitchRole = computed(() => {
 
 const isOnline = computed(() => {
   if (!currentUser.value) return false;
-  return presenceService.isUserOnline(currentUser.value.id);
+  
+  console.log('👋 [UserBottomBar] Current user presence status:', {
+    userId: currentUser.value.id,
+    status: currentUserStatus.value,
+    serviceConnected: presenceService.getStatus()
+  });
+  
+  return currentUserStatus.value === 'online' || currentUserStatus.value === 'away';
 })
+
+const getStatusClass = () => {
+  if (!currentUser.value) return 'status-offline';
+  
+  switch (currentUserStatus.value) {
+    case 'online':
+      return 'status-online';
+    case 'away':
+      return 'status-away';
+    case 'busy':
+      return 'status-busy';
+    default:
+      return 'status-offline';
+  }
+};
+
+const getStatusText = () => {
+  if (!currentUser.value) return 'Offline';
+  
+  if (currentUser.value.role === 'admin') return 'Administrator';
+  
+  switch (currentUserStatus.value) {
+    case 'online':
+      return 'Online';
+    case 'away':
+      return 'Away';
+    case 'busy':
+      return 'Busy';
+    default:
+      return 'Offline';
+  }
+};
 
 // Methods
 const toggleUserMenu = () => {
@@ -123,15 +203,6 @@ const handleAvatarError = () => {
   console.warn('Failed to load user avatar')
 }
 
-const getStatusClass = () => {
-  return isOnline.value ? 'status-online' : 'status-offline';
-}
-
-const getStatusText = () => {
-  if (currentUser.value?.role === 'admin') return 'Administrator';
-  return isOnline.value ? 'Online' : 'Offline';
-}
-
 const openProfile = () => {
   closeUserMenu()
   emit('profile-opened')
@@ -150,31 +221,52 @@ const switchRole = () => {
   // Implementation for role switching
 }
 
-const signOut = async () => {
-  closeUserMenu()
-  console.log('🚪 [USER_BAR] Starting sign out process...')
-
+const setPresenceStatus = async (status) => {
   try {
-    // Auth store logout now handles everything including navigation
-    await authStore.logout('You have been signed out successfully.')
-    console.log('✅ [USER_BAR] Sign out completed')
+    console.log(`🔄 [UserBottomBar] Setting presence status to: ${status}`);
+    
+    // Call the presence service to update status
+    await presenceService.setStatus(status);
+    
+    // The status will be automatically updated via the reactive computed property
+    console.log(`✅ [UserBottomBar] Presence status set successfully to: ${status}`);
+    
+    // Force a small UI update by closing and reopening menu briefly to show the change
+    setTimeout(() => {
+      console.log(`🔍 [UserBottomBar] Status after update: ${currentUserStatus.value}`);
+    }, 100);
+    
   } catch (error) {
-    console.error('❌ [USER_BAR] Sign out failed:', error)
+    console.error('❌ [UserBottomBar] Failed to update presence status:', error);
+  }
+};
 
-    // Emergency fallback only if auth store logout completely fails
+const signOut = async () => {
+  console.log('🚪 [USER_BAR] Starting logout process...')
+  
+  try {
+    // 关闭用户菜单
+    closeUserMenu()
+    
+    // 🔧 FIXED: Emit logout event to App.vue instead of handling directly
+    console.log('🚀 [USER_BAR] Emitting logout event to App.vue...')
+    
+    // Let App.vue handle the complete logout flow
+    emit('logout')
+    
+    console.log('✅ [USER_BAR] Logout event emitted successfully')
+    
+  } catch (error) {
+    console.error('❌ [USER_BAR] Failed to emit logout event:', error)
+    
+    // 紧急回退：直接调用authStore
     try {
-      console.log('🚨 [USER_BAR] Using emergency fallback...')
-
-      // Clear critical storage
-      localStorage.clear()
-      sessionStorage.clear()
-
-      // Force page reload to login
+      console.warn('⚠️ [USER_BAR] Using emergency fallback - direct authStore logout')
+      authStore.logout()
+    } catch (emergencyError) {
+      // 最后手段：强制导航
+      console.error('❌ [USER_BAR] Emergency fallback failed, forcing navigation')
       window.location.href = '/login'
-    } catch (fallbackError) {
-      console.error('❌ [USER_BAR] Emergency fallback failed:', fallbackError)
-      // Last resort: show user manual instructions
-      alert('Please manually refresh the page and try logging in again.')
     }
   }
 }
@@ -258,6 +350,11 @@ onUnmounted(() => {
 .status-indicator.status-away {
   background: #f0b132;
   box-shadow: 0 0 6px rgba(240, 177, 50, 0.5);
+}
+
+.status-indicator.status-busy {
+  background: #f23f43;
+  box-shadow: 0 0 6px rgba(242, 63, 67, 0.5);
 }
 
 .status-indicator.status-offline {
@@ -368,6 +465,72 @@ onUnmounted(() => {
   height: 1px;
   background: #e2e8f0;
   margin: 8px 0;
+}
+
+/* Menu Section */
+.menu-section {
+  padding: 8px 16px;
+}
+
+.menu-section-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+/* Status Options */
+.status-options {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.status-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border: none;
+  background: none;
+  color: #1a1a1a;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border-radius: 6px;
+  width: 100%;
+}
+
+.status-option:hover {
+  background: #f5f7fa;
+}
+
+.status-option.active {
+  background: #e8f4fd;
+  color: #1d4ed8;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-dot.status-online {
+  background: #23a55a;
+}
+
+.status-dot.status-away {
+  background: #f0b132;
+}
+
+.status-dot.status-busy {
+  background: #f23f43;
 }
 
 /* Menu Items */

@@ -3,63 +3,65 @@
  * Server-Sent Events connection management
  */
 
+import { ref, computed } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { useChatStore } from '@/stores/chat';
 import { errorHandler } from '@/utils/errorHandler';
+import { getApiBaseUrl } from '@/utils/apiUrlResolver';
 
 class SSEService {
   constructor() {
     this.eventSource = null;
-    this.isConnected = false;
-    this.connectionState = 'disconnected';
-    this.reconnectAttempts = 0;
-    this.maxReconnectAttempts = 5;
-    this.reconnectDelay = 3000;
+    this.isConnected = ref(false);
+    this.connectionAttempts = 0;
+    this.maxRetries = 3;
+    this.retryDelay = 1000;
+    this.token = null;
     this.listeners = new Map();
+    this.reconnectTimeoutId = null;
   }
 
   /**
    * Connect to SSE endpoint
    */
-  async connect() {
+  async connect(token) {
+    if (!token) {
+      console.error('❌ [SSE] Cannot connect without token');
+      return;
+    }
+
+    this.token = token;
+
     try {
+      if (this.eventSource) {
+        console.log('🔍 [SSE] Closing existing connection before creating new one');
+        this.disconnect();
+      }
+
+      console.log('🔍 [SSE] Establishing SSE connection...');
+
       const authStore = useAuthStore();
       if (!authStore.isAuthenticated) {
-        if (import.meta.env.DEV) {
-          console.warn('🔌 SSE: Cannot connect - not authenticated');
-        }
-        return false;
+        console.error('❌ [SSE] Cannot connect: User not authenticated');
+        return;
       }
 
-      if (this.isConnected) {
-        if (import.meta.env.DEV) {
-          console.log('🔌 SSE: Already connected');
-        }
-        return true;
-      }
+      console.log('🔍 [SSE] User authenticated, proceeding with connection');
 
-      const token = authStore.token;
-      if (!token) {
-        if (import.meta.env.DEV) {
-          console.warn('🔌 SSE: No access token available');
-        }
-        return false;
-      }
+      // Use getApiBaseUrl from apiUrlResolver instead of environment variable
+      const apiBaseUrl = await getApiBaseUrl();
+      const sseEndpoint = `${apiBaseUrl}/realtime/sse?token=${encodeURIComponent(token)}`;
 
-      const sseUrl = `${import.meta.env.VITE_API_BASE_URL}/realtime/sse?token=${encodeURIComponent(token)}`;
-
-      this.eventSource = new EventSource(sseUrl);
+      this.eventSource = new EventSource(sseEndpoint);
       this.setupEventListeners();
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('🔌 SSE: Connecting...');
       }
 
       return true;
     } catch (error) {
-      if (import.meta.env.DEV) {
-        console.error('🔌 SSE: Connection failed:', error);
-      }
+      console.error('🔌 SSE: Connection failed:', error);
       errorHandler.handle(error, {
         context: 'SSE connection',
         silent: false
@@ -79,9 +81,7 @@ class SSEService {
       this.connectionState = 'connected';
       this.reconnectAttempts = 0;
 
-      if (import.meta.env.DEV) {
-        console.log('✅ SSE: Connected');
-      }
+      console.log('✅ SSE: Connected');
 
       this.emit('connected');
     };
@@ -91,9 +91,7 @@ class SSEService {
         const data = JSON.parse(event.data);
         this.emit('message', data);
       } catch (error) {
-        if (import.meta.env.DEV) {
-          console.error('🔌 SSE: Failed to parse message:', error);
-        }
+        console.error('🔌 SSE: Failed to parse message:', error);
       }
     };
 
@@ -101,9 +99,7 @@ class SSEService {
       this.isConnected = false;
       this.connectionState = 'disconnected';
 
-      if (import.meta.env.DEV) {
-        console.error('🔌 SSE: Connection error:', error);
-      }
+      console.error('🔌 SSE: Connection error:', error);
 
       this.emit('error', error);
       this.scheduleReconnect();
@@ -115,9 +111,7 @@ class SSEService {
         const data = JSON.parse(event.data);
         this.handleNewMessage(data);
       } catch (error) {
-        if (import.meta.env.DEV) {
-          console.error('🔌 SSE: Failed to parse NewMessage:', error);
-        }
+        console.error('🔌 SSE: Failed to parse NewMessage:', error);
       }
     });
 
@@ -126,9 +120,7 @@ class SSEService {
         const data = JSON.parse(event.data);
         this.emit('typing_status', data);
       } catch (error) {
-        if (import.meta.env.DEV) {
-          console.error('🔌 SSE: Failed to parse TypingStatus:', error);
-        }
+        console.error('🔌 SSE: Failed to parse TypingStatus:', error);
       }
     });
   }
@@ -158,9 +150,7 @@ class SSEService {
    */
   scheduleReconnect() {
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      if (import.meta.env.DEV) {
-        console.error('🔌 SSE: Max reconnection attempts reached');
-      }
+      console.error('🔌 SSE: Max reconnection attempts reached');
       this.emit('permanently_failed');
       return;
     }
@@ -169,9 +159,7 @@ class SSEService {
     this.reconnectAttempts++;
 
     setTimeout(() => {
-      if (import.meta.env.DEV) {
-        console.log(`🔌 SSE: Reconnecting (attempt ${this.reconnectAttempts})...`);
-      }
+      console.log(`🔌 SSE: Reconnecting (attempt ${this.reconnectAttempts})...`);
       this.connect();
     }, delay);
   }
@@ -188,9 +176,7 @@ class SSEService {
     this.isConnected = false;
     this.connectionState = 'disconnected';
 
-    if (import.meta.env.DEV) {
-      console.log('🔌 SSE: Disconnected');
-    }
+    console.log('🔌 SSE: Disconnected');
 
     this.emit('disconnected');
   }
@@ -221,9 +207,7 @@ class SSEService {
         try {
           callback(data);
         } catch (error) {
-          if (import.meta.env.DEV) {
-            console.error(`🔌 SSE: Error in ${event} listener:`, error);
-          }
+          console.error(`🔌 SSE: Error in ${event} listener:`, error);
         }
       });
     }

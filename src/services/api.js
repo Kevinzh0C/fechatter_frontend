@@ -15,7 +15,8 @@ let api = axios.create({
   baseURL: '/api', // Fallback
   timeout: 30000,
   headers: {
-    'Accept': 'application/json'
+    'Accept': 'application/json',
+    'ngrok-skip-browser-warning': 'true'  // Skip ngrok browser warning
     // 🔧 CRITICAL FIX: Removed default 'Content-Type': 'application/json'
     // This allows axios to automatically set the correct Content-Type based on request body:
     // - FormData → multipart/form-data; boundary=...
@@ -47,11 +48,12 @@ async function initializeApiClient() {
         baseURL,
         timeout,
         headers: {
-          'Accept': 'application/json'
+          'Accept': 'application/json',
+          'ngrok-skip-browser-warning': 'true'  // Skip ngrok browser warning
         }
       });
       
-      console.log('API client initialized with resolved URL:', { baseURL, timeout });
+      console.log('✅ [API] Client initialized with resolved URL:', { baseURL, timeout });
       
       // Setup interceptors after recreation
       setupInterceptors();
@@ -59,7 +61,7 @@ async function initializeApiClient() {
       configInitialized = true;
       
     } catch (error) {
-      console.warn('Failed to load API config, using fallback:', error);
+      console.warn('⚠️ [API] Failed to load config, using fallback:', error);
       setupInterceptors();
       configInitialized = true;
     }
@@ -73,7 +75,7 @@ async function initializeApiClient() {
 function setupInterceptors() {
 
 /**
- * Request interceptor - Add authentication headers
+ * Request interceptor - Enhanced authentication and token management
  */
 api.interceptors.request.use(
   async (config) => {
@@ -82,28 +84,47 @@ api.interceptors.request.use(
       const { default: tokenManager } = await import('./tokenManager');
       const { default: authStateManager } = await import('../utils/authStateManager');
 
-      // 🔧 CRITICAL FIX: Get token with fallback mechanism
-      // Priority 1: tokenManager (in-memory, fast)
-      let token = tokenManager.getAccessToken();
+      // 🔧 ENHANCED: Multi-layer token resolution with health checks
+      let token = null;
+      let tokenSource = null;
+
+      // Priority 1: tokenManager (in-memory, fastest)
+      const managerToken = tokenManager.getAccessToken();
+      if (managerToken && managerToken.length > 10) {
+        token = managerToken;
+        tokenSource = 'tokenManager';
+      }
 
       // Priority 2: authStateManager (localStorage, persistent)
       if (!token) {
         const authState = authStateManager.getAuthState();
-        token = authState.token;
+        const stateToken = authState.token;
+        if (stateToken && stateToken.length > 10) {
+          token = stateToken;
+          tokenSource = 'authStateManager';
 
-        // 🔧 RECOVERY: If authStateManager has token but tokenManager doesn't,
-        // restore tokenManager with the token for future requests
-        if (token) {
-          await tokenManager.setTokens({
-            accessToken: token,
-            refreshToken: token, // Using same token as refresh for stub implementation
-            expiresAt: Date.now() + (3600 * 1000), // 1 hour default
-            issuedAt: Date.now(),
-          });
-
-          if (import.meta.env.DEV) {
+          // 🔧 RECOVERY: Sync tokenManager with authStateManager
+          try {
+            await tokenManager.setTokens({
+              accessToken: stateToken,
+              refreshToken: stateToken, // Using same token as refresh for stub implementation
+              expiresAt: Date.now() + (3600 * 1000), // 1 hour default
+              issuedAt: Date.now(),
+            });
             console.log('🔄 [API] Restored tokenManager from authStateManager');
+          } catch (syncError) {
+            console.warn('⚠️ [API] Failed to sync tokenManager:', syncError);
           }
+        }
+      }
+
+      // Priority 3: Direct localStorage fallback (emergency)
+      if (!token) {
+        const directToken = localStorage.getItem('auth_token') || localStorage.getItem('access_token');
+        if (directToken && directToken.length > 10) {
+          token = directToken;
+          tokenSource = 'localStorage-direct';
+          console.log('🚨 [API] Using emergency localStorage token');
         }
       }
 
@@ -113,24 +134,21 @@ api.interceptors.request.use(
       }
 
       // 🔧 CRITICAL FIX: Smart Content-Type handling for FormData
-      // If body is FormData, remove any existing Content-Type to let browser set it automatically
       if (config.data instanceof FormData) {
         delete config.headers['Content-Type'];
-        if (import.meta.env.DEV) {
-          console.log('🔧 [API] Removed Content-Type header for FormData - browser will auto-set boundary');
-        }
+        console.log('🔧 [API] Removed Content-Type header for FormData - browser will auto-set boundary');
       }
 
-      if (import.meta.env.DEV) {
-        const hasToken = !!token;
-        console.log(`🔗 API Request: ${config.method?.toUpperCase()} ${config.url}${hasToken ? ' (with auth)' : ' (no auth)'}`);
-      }
+      // Enhanced request logging
+      const hasToken = !!token;
+      const requestId = Math.random().toString(36).substr(2, 9);
+      config.requestId = requestId;
+      
+      console.log(`🔗 [API-${requestId}] ${config.method?.toUpperCase()} ${config.url}${hasToken ? ` (auth: ${tokenSource})` : ' (no auth)'}`);
 
       return config;
     } catch (error) {
-      if (import.meta.env.DEV) {
-        console.warn('Request interceptor error:', error);
-      }
+      console.warn('⚠️ [API] Request interceptor error:', error);
       return config;
     }
   },
@@ -140,28 +158,33 @@ api.interceptors.request.use(
 );
 
 /**
- * Response interceptor - Handle 401 errors and token refresh
+ * Response interceptor - Enhanced error handling with smart token refresh
  */
 api.interceptors.response.use(
   (response) => {
+    // Log successful requests
+    const requestId = response.config?.requestId;
+    if (requestId) {
+      console.log(`✅ [API-${requestId}] Success: ${response.status}`);
+    }
     return response;
   },
   async (error) => {
     const originalRequest = error.config;
+    const requestId = originalRequest?.requestId || 'unknown';
 
-    // Handle 401 Unauthorized errors
+    // Handle 401 Unauthorized errors with enhanced logic
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
-      if (import.meta.env.DEV) {
-        console.warn(`🔐 401 Error on ${originalRequest.url}`);
-      }
+      console.warn(`🔐 [API-${requestId}] 401 Unauthorized on ${originalRequest.url}`);
 
       // Skip token refresh for auth endpoints to avoid infinite loops
       if (originalRequest.skipAuthRefresh ||
         originalRequest.url?.includes('/signin') ||
         originalRequest.url?.includes('/signup') ||
         originalRequest.url?.includes('/refresh')) {
+        console.warn(`🔐 [API-${requestId}] Skipping refresh for auth endpoint`);
         return Promise.reject(error);
       }
 
@@ -175,6 +198,8 @@ api.interceptors.response.use(
           throw new Error('No refresh token available');
         }
 
+        console.log(`🔄 [API-${requestId}] Attempting token refresh...`);
+
         // Attempt to refresh the token
         await tokenManager.refreshToken();
 
@@ -183,24 +208,30 @@ api.interceptors.response.use(
         if (newTokens.accessToken) {
           originalRequest.headers.Authorization = `Bearer ${newTokens.accessToken}`;
 
-          if (import.meta.env.DEV) {
-            console.log('✅ Token refreshed, retrying request');
-          }
+          console.log(`✅ [API-${requestId}] Token refreshed, retrying request`);
 
           return api(originalRequest);
         }
 
       } catch (refreshError) {
-        if (import.meta.env.DEV) {
-          console.error('❌ Token refresh failed:', refreshError);
-        }
+        console.error(`❌ [API-${requestId}] Token refresh failed:`, refreshError);
 
         // Clear tokens and redirect to login
         try {
           const { default: tokenManager } = await import('./tokenManager');
+          const { default: authStateManager } = await import('../utils/authStateManager');
+          
           await tokenManager.clearTokens();
+          authStateManager.clearAuthState();
+          
+          // Clear all localStorage auth keys
+          ['auth_token', 'access_token', 'refresh_token', 'auth_user'].forEach(key => {
+            localStorage.removeItem(key);
+          });
+          
+          console.log('🧹 [API] Cleared all auth state after refresh failure');
         } catch (clearError) {
-          console.error('Error clearing tokens:', clearError);
+          console.error('❌ [API] Error clearing tokens:', clearError);
         }
 
         // Redirect to login if not already there
@@ -223,12 +254,24 @@ api.interceptors.response.use(
       }
     }
 
-    // Handle other errors
-    if (import.meta.env.DEV) {
-      const status = error.response?.status;
-      const url = error.config?.url;
-      console.error(`🚨 API Error ${status}: ${url}`, error.response?.data);
+    // Enhanced error logging
+    const status = error.response?.status;
+    const url = error.config?.url;
+    const errorData = error.response?.data;
+    
+    // 🔧 NEW: Special handling for timeout errors
+    if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+      console.error(`⏰ [API-${requestId}] TIMEOUT (30s) on ${url} - check backend connectivity`);
+      console.error(`⏰ [API-${requestId}] Possible causes: invalid token, backend overload, or network issues`);
     }
+    
+    console.error(`🚨 [API-${requestId}] Error ${status}: ${url}`, {
+      status,
+      statusText: error.response?.statusText,
+      data: errorData,
+      message: error.message,
+      code: error.code
+    });
 
     return Promise.reject(error);
   }
@@ -236,8 +279,7 @@ api.interceptors.response.use(
 
 } // End of setupInterceptors function
 
-// Create a wrapper that ensures initialization before any API call
-// This maintains axios interface while ensuring config is loaded
+// Enhanced wrapper that ensures initialization before any API call
 const apiWrapper = {
   async get(url, config) {
     await initializeApiClient();

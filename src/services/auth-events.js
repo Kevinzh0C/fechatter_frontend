@@ -34,7 +34,7 @@ class AuthEventBus {
         try {
           callback(payload);
         } catch (error) {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.error(`Error in event listener for ${event}:`, error);
           }
         }

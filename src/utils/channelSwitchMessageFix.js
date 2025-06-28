@@ -31,22 +31,22 @@ class ChannelSwitchMessageFix {
       results.forEach((result, index) => {
         const fixName = ['route watcher timing', 'chat store state clear', 'message cache invalidation', 'state logging', 'concurrent loading prevention'][index];
         if (result.status === 'fulfilled') {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log(`✅ ${fixName} fix applied`);
           }
         } else {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.error(`❌ ${fixName} fix failed:`, result.reason);
           }
       });
 
       this.isActive = true;
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('🎉 Channel switch message fix applied successfully');
       }
 
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('❌ Failed to apply channel switch fix:', error);
       }
 
@@ -57,7 +57,7 @@ class ChannelSwitchMessageFix {
    * Fix 1: Route Watcher Timing
    */
   async fixRouteWatcherTiming() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🔧 Applying route watcher timing fix...');
     }
 
@@ -71,7 +71,7 @@ class ChannelSwitchMessageFix {
    * Fix 2: Chat Store State Clearing
    */
   async fixChatStoreStateClear() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🔧 Applying chat store state clearing fix...');
     }
 
@@ -85,7 +85,7 @@ class ChannelSwitchMessageFix {
    * Fix 3: Message Cache Invalidation
    */
   async fixMessageCacheInvalidation() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🔧 Applying message cache invalidation fix...');
     }
 
@@ -99,7 +99,7 @@ class ChannelSwitchMessageFix {
    * Fix 4: Enhanced State Logging
    */
   async enhanceStateLogging() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🔧 Enhancing state logging...');
     }
 
@@ -113,7 +113,7 @@ class ChannelSwitchMessageFix {
    * Fix 5: Prevent Concurrent Loading
    */
   async preventConcurrentLoading() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🔧 Preventing concurrent loading...');
     }
 
@@ -137,13 +137,13 @@ class ChannelSwitchMessageFix {
       const route = useRoute();
       const router = useRouter();
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('1️⃣ Current State:');
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('  - Current route:', route.path);
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('  - Chat store currentChatId:', chatStore.currentChatId);
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('  - Messages count:', chatStore.messages.length);
       }
 
@@ -153,12 +153,12 @@ class ChannelSwitchMessageFix {
       );
 
       if (availableChats.length < 2) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.warn('⚠️ Need at least 2 channels to test switching. Available:', availableChats.length);
         return false;
       }
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('2️⃣ Available chats for testing:', availableChats.map(c => `${c.id}: ${c.name}`));
       }
 
@@ -166,7 +166,7 @@ class ChannelSwitchMessageFix {
       const chat1 = availableChats[0];
       const chat2 = availableChats[1];
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('\n3️⃣ Testing switch to first chat:', chat1.name);
       await router.push(`/chat/${chat1.id}`);
 
@@ -174,13 +174,13 @@ class ChannelSwitchMessageFix {
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       const messages1Count = chatStore.messages.length;
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('  - Messages loaded for chat 1:', messages1Count);
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('  - Current chat ID:', chatStore.currentChatId);
       }
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('\n4️⃣ Testing switch to second chat:', chat2.name);
       await router.push(`/chat/${chat2.id}`);
 
@@ -188,33 +188,33 @@ class ChannelSwitchMessageFix {
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       const messages2Count = chatStore.messages.length;
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('  - Messages loaded for chat 2:', messages2Count);
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('  - Current chat ID:', chatStore.currentChatId);
       }
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('\n5️⃣ Switch Test Results:');
       const switchWorked = chatStore.currentChatId === chat2.id;
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('  - Chat ID switched correctly:', switchWorked ? '✅' : '❌');
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('  - Messages updated:', messages1Count !== messages2Count ? '✅' : '⚠️');
       }
 
       if (switchWorked) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('✅ Channel switching appears to be working correctly');
         return true;
       } else {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.error('❌ Channel switching failed - chat ID not updated');
         return false;
       }
 
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('❌ Channel switch test failed:', error);
       return false;
     } finally {
@@ -225,7 +225,7 @@ class ChannelSwitchMessageFix {
    * Monitor channel switch performance
    */
   monitorChannelSwitchPerformance() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('📊 Starting channel switch performance monitoring...');
     }
 
@@ -240,7 +240,7 @@ class ChannelSwitchMessageFix {
           const timeSinceLastSwitch = now - lastSwitchTime;
           switchCount++;
 
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log(`🔄 Channel switch #${switchCount}:`, {
             from: from.params.id,
             to: to.params.id,
@@ -253,9 +253,9 @@ class ChannelSwitchMessageFix {
       });
 
     setTimeout(() => {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('📊 Performance monitoring stopped');
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`📈 Total switches monitored: ${switchCount}`);
       }
     }, 60000); // Monitor for 1 minute
@@ -286,13 +286,13 @@ if (typeof window !== 'undefined') {
   window.testChannelSwitch = () => channelSwitchMessageFix.testChannelSwitch();
   window.monitorChannelSwitch = () => channelSwitchMessageFix.monitorChannelSwitchPerformance();
 
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('🔧 Channel Switch Message Fix loaded');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('💡 Use window.fixChannelSwitch() to apply comprehensive fix');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('💡 Use window.testChannelSwitch() to test channel switching');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('💡 Use window.monitorChannelSwitch() to monitor performance');
   }
 

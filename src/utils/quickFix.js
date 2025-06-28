@@ -4,7 +4,7 @@
  */
 
 async function quickFix() {
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('🚀 Starting Quick Fix for all frontend issues...');
   }
 
@@ -12,7 +12,7 @@ async function quickFix() {
 
   try {
     // 1. Activate log suppression immediately
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('1️⃣ Activating log suppression...');
     if (window.logSuppressor) {
       window.logSuppressor.activate();
@@ -22,31 +22,31 @@ async function quickFix() {
     }
 
     // 2. Suppress extension conflicts immediately
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('2️⃣ Suppressing extension conflicts...');
     suppressExtensionConflicts();
     results.push('✅ Extension conflict suppression added');
 
     // 3. Suppress API 404 errors for missing endpoints
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('3️⃣ Suppressing API 404 errors...');
     suppressApiNotFoundErrors();
     results.push('✅ API 404 error suppression added');
 
     // 4. Clear repetitive debug script errors
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('4️⃣ Clearing repetitive errors...');
     clearRepetitiveErrors();
     results.push('✅ Repetitive error patterns cleared');
 
     // 5. Fix API authentication
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('5️⃣ Fixing API authentication...');
     const authFixed = await fixApiAuth();
     results.push(authFixed ? '✅ API auth checked/fixed' : '⚠️ API auth needs attention');
 
     // 6. Fix SSE connection
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('6️⃣ Fixing SSE connection...');
     if (window.sseConnectionFix) {
       const sseResult = await window.sseConnectionFix.autoFix();
@@ -60,7 +60,7 @@ async function quickFix() {
     }
 
     // 7. Reset navigation fix state
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('7️⃣ Resetting navigation fixes...');
     if (window.navigationFix) {
       window.navigationFix.resetLogCounts();
@@ -70,7 +70,7 @@ async function quickFix() {
     }
 
     // 8. Clear any problematic state
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('8️⃣ Clearing problematic state...');
     if (window.emergencyCleanup) {
       window.emergencyCleanup();
@@ -80,7 +80,7 @@ async function quickFix() {
     }
 
     // 9. Check overall system health
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('9️⃣ Running health check...');
     if (window.healthHelper) {
       try {
@@ -98,7 +98,7 @@ async function quickFix() {
     }
 
     // 10. Final verification
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🔟 Running final verification...');
     if (window.verifyFixes) {
       setTimeout(async () => {
@@ -110,27 +110,27 @@ async function quickFix() {
     }
 
     // Show results
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n🎉 Quick Fix Results:');
     results.forEach(result => console.log(result));
 
     const successCount = results.filter(r => r.startsWith('✅')).length;
     const totalCount = results.length;
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`\n📊 Success Rate: ${successCount}/${totalCount} (${Math.round(successCount / totalCount * 100)}%)`);
     }
 
     if (successCount === totalCount) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('🎊 All fixes applied successfully!');
       }
     } else if (successCount >= totalCount * 0.7) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('✨ Most fixes applied, system should be stable');
       }
     } else {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('⚠️ Some fixes failed, manual intervention may be needed');
       }
 
@@ -141,7 +141,7 @@ async function quickFix() {
     };
 
   } catch (error) {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.error('❌ Quick Fix failed:', error);
     return {
       success: false,
@@ -152,7 +152,7 @@ async function quickFix() {
 
 // Additional helper functions
 function quickSilence() {
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('🔇 Activating maximum silence mode...');
   }
 
@@ -166,7 +166,7 @@ function quickSilence() {
     window.logSuppressor.addPattern(/developmentOptimizer/); // Any developmentOptimizer mentions
     window.logSuppressor.addPattern(/\d+:\d+:\d+/); // Any timestamp
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('✅ Maximum silence mode activated');
     }
 
@@ -174,21 +174,21 @@ function quickSilence() {
     if (typeof console.clear === 'function') {
       setTimeout(() => {
         console.clear();
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('🔇 Console cleared - Maximum silence mode active');
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('💡 Use window.allowLogs() to restore full logging');
         }
       }, 100);
     }
   } else {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('⚠️ Log suppressor not available');
     }
 
 // Nuclear option - complete silence
 function emergencySilence() {
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('🚨 EMERGENCY SILENCE - Suppressing ALL non-error logs');
   }
 
@@ -228,7 +228,7 @@ function showFixStatus() {
   const availableCount = Object.values(status).filter(Boolean).length;
   const totalCount = Object.keys(status).length;
 
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log(`📊 Available tools: ${availableCount}/${totalCount}`);
   console.groupEnd();
 
@@ -237,7 +237,7 @@ function showFixStatus() {
 
 // Specialized function to silence test noise
 function silenceTests() {
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('🧪 Silencing test automation noise...');
   }
 
@@ -251,17 +251,17 @@ function silenceTests() {
     window.logSuppressor.addPattern(/Available commands:/);
     window.logSuppressor.addPattern(/window\.\w+\(\)/);
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('✅ Test noise silenced');
     }
   } else {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('⚠️ Log suppressor not available');
     }
 
 // Specialized function to fix API authentication issues
 async function fixApiAuth() {
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('🔐 Fixing API authentication issues...');
   }
 
@@ -269,41 +269,41 @@ async function fixApiAuth() {
     // Check token status
     if (window.tokenManager) {
       const isExpired = window.tokenManager.isTokenExpired();
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('  - Token expired:', isExpired);
       }
 
       if (isExpired) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('  - Refreshing token...');
         await window.tokenManager.refreshToken();
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('  ✅ Token refreshed');
         }
       } else {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('  ✅ Token is valid');
         }
 
     // Check auth state
     if (window.authStateManager) {
       const authState = window.authStateManager.getAuthState();
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('  - Auth state:', authState.isAuthenticated ? '✅ Authenticated' : '❌ Not authenticated');
       }
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('✅ API authentication check completed');
     return true;
   } catch (error) {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.error('❌ Failed to fix API auth:', error);
     return false;
   }
 
 // Specialized function to suppress extension conflicts
 function suppressExtensionConflicts() {
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('🧩 Suppressing extension conflicts...');
   }
 
@@ -315,17 +315,17 @@ function suppressExtensionConflicts() {
     window.logSuppressor.addPattern(/chrome-extension:/);
     window.logSuppressor.addPattern(/content script\.js/);
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('✅ Extension conflict patterns added');
     }
   } else {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('⚠️ Log suppressor not available');
     }
 
 // Specialized function to handle API 404 errors
 function suppressApiNotFoundErrors() {
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('🚫 Suppressing expected API 404 errors...');
   }
 
@@ -337,17 +337,17 @@ function suppressApiNotFoundErrors() {
     window.logSuppressor.addPattern(/请求的资源未找到/);
     window.logSuppressor.addPattern(/Request failed with status code 404/);
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('✅ API 404 error patterns added');
     }
   } else {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('⚠️ Log suppressor not available');
     }
 
 // Enhanced function to clear repetitive errors
 function clearRepetitiveErrors() {
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('🔄 Clearing repetitive error patterns...');
   }
 
@@ -358,7 +358,7 @@ function clearRepetitiveErrors() {
     window.logSuppressor.addPattern(/testExtensionConflictFix\.js/);
     window.logSuppressor.addPattern(/testManager\.js/);
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('✅ Debug script patterns added');
     }
 
@@ -366,7 +366,7 @@ function clearRepetitiveErrors() {
   if (typeof console.clear === 'function') {
     setTimeout(() => {
       console.clear();
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('🧹 Console cleared - Repetitive errors suppressed');
       }
     }, 100);
@@ -384,23 +384,23 @@ if (typeof window !== 'undefined') {
   window.suppressApiNotFoundErrors = suppressApiNotFoundErrors;
   window.clearRepetitiveErrors = clearRepetitiveErrors;
 
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('🚀 Quick Fix loaded - use window.quickFix() for one-click repair');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('🔇 Use window.quickSilence() for maximum noise reduction');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('🚨 Use window.emergencySilence() for nuclear silence option');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('🔍 Use window.showFixStatus() to check available tools');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('🧪 Use window.silenceTests() to silence test automation noise');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('🔐 Use window.fixApiAuth() to fix authentication issues');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('🧩 Use window.suppressExtensionConflicts() to suppress extension errors');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('🚫 Use window.suppressApiNotFoundErrors() to suppress API 404 errors');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('🔄 Use window.clearRepetitiveErrors() to clear repetitive errors');
   }
 

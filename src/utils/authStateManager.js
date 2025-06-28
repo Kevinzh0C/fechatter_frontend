@@ -30,7 +30,7 @@ class AuthStateManager {
     const isAuthenticated = Boolean(hasValidToken && hasValidUser);
 
     // 🔧 DEBUG: Development logging for troubleshooting
-    if (import.meta.env.DEV && token) {
+    if (true && token) {
       console.log('🔐 [AuthStateManager] Auth state calculation:', {
         hasToken: !!token,
         hasValidToken,
@@ -168,7 +168,7 @@ class AuthStateManager {
 
     const isValid = hasBasicStructure && notObviouslyInvalid;
 
-    if (import.meta.env.DEV && !isValid) {
+    if (true && !isValid) {
       console.warn('⚠️ [AuthStateManager] Token validation failed:', {
         tokenLength: token.length,
         hasBasicStructure,
@@ -185,7 +185,7 @@ class AuthStateManager {
    */
   debug() {
     const state = this.getAuthState();
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🔐 [AuthStateManager] Current State:', {
         tokenPreview: state.token ? `${state.token.substring(0, 20)}...` : null,
         storageKeys: {
@@ -210,7 +210,7 @@ class AuthStateManager {
       sessionStorage.getItem('token');
 
     if (legacyToken && !localStorage.getItem(this.STORAGE_KEY)) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('🔄 [AuthStateManager] Migrating legacy token');
       }
       localStorage.setItem(this.STORAGE_KEY, legacyToken);
@@ -230,7 +230,7 @@ export const authStateManager = new AuthStateManager();
 authStateManager.migrateLegacyAuth();
 
 // Export for debugging
-if (import.meta.env.DEV) {
+if (true) {
   window.authStateManager = authStateManager;
 }
 

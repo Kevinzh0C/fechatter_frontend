@@ -1,43 +1,32 @@
 /**
- * Simplified SSE Configuration
- * Following Occam's Razor: Less is More
+ * Standard SSE Configuration
+ * Following industry best practices for Server-Sent Events
  */
 
-export const SIMPLE_SSE_CONFIG = {
-  // Single retry limit - no complex multi-layer retries
-  MAX_RETRIES: 2,  // Only retry twice, fail fast
-
-  // Simple backoff - no complex strategies
-  RETRY_DELAY: 3000,  // Fixed 3 second delay
-
-  // User experience first
-  SILENT_AFTER_FIRST_FAILURE: true,  // Don't spam users with errors
-
-  // Progressive disclosure
-  SHOW_CONNECTION_STATUS: false,  // Hide technical details by default
-
-  // Performance budget
-  CONNECTION_TIMEOUT: 10000,  // 10 seconds max
-
-  // Feature flags
-  DISABLE_IN_DEVELOPMENT: false,  // Keep it simple - same behavior in all envs
-  USE_MOCK_IN_OFFLINE: false,  // 🚀 CRITICAL FIX: Mock mode completely disabled
+export const SSE_CONFIG = {
+  // Let browser handle reconnection automatically
+  // Industry standard: don't override browser defaults
+  RECONNECT_DELAY: null, // Browser default: 3000ms
+  
+  // Minimal connection timeout
+  // Give browser enough time for initial connection
+  CONNECTION_TIMEOUT: 10000, // 10 seconds
+  
+  // Simple error categories
+  ERROR_TYPES: {
+    NETWORK: 'network',
+    AUTH: 'auth',
+    UNKNOWN: 'unknown'
+  }
 };
 
 /**
- * Get simplified error message for users
- * No technical jargon, just actionable advice
+ * Get simple error type
+ * Don't over-classify errors - keep it simple
  */
-export function getUserFriendlyError(error) {
-  // Check if offline
-  if (!navigator.onLine) {
-    return null;  // Silent when offline - expected behavior
-  }
+export function getSimpleErrorType(error) {
+  // Let browser handle most error scenarios
+  return SSE_CONFIG.ERROR_TYPES.UNKNOWN;
+}
 
-  // For all other errors, keep it simple
-  return {
-    message: "实时更新暂时不可用",
-    action: "页面会自动重连",
-    showRefresh: false  // Don't encourage page refresh for transient issues
-  };
-} 
+export default SSE_CONFIG; 

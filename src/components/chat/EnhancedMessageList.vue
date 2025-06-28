@@ -111,6 +111,14 @@ const unreadCount = ref(0);
 const typingText = ref('');
 const editingMessageId = ref(null);
 
+// 🚀 NEW: Progressive batch loading state
+const loadingBatch = ref(false);
+const batchLoadCount = ref(0);
+const maxBatchSize = ref(15);
+const loadingCooldown = ref(false);
+const cooldownDuration = 1500;
+const scrollVelocityLimit = 120;
+
 // Message grouping logic
 const shouldShowDateSeparator = (message, index) => {
   if (index === 0) return true;
@@ -163,7 +171,7 @@ const formatDate = (dateString) => {
   }
 };
 
-// Scroll management
+// 🚀 ENHANCED: Intelligent scroll management with predictive loading
 const handleScroll = () => {
   const container = messageContainer.value;
   if (!container) return;
@@ -173,8 +181,22 @@ const handleScroll = () => {
 
   showScrollToBottom.value = !isNearBottom;
 
-  if (scrollTop < 100 && !loading.value && hasMore.value) {
-    loadMoreMessages();
+  // 🚀 PREDICTIVE: Dynamic threshold calculation for seamless loading
+  const viewportBasedThreshold = Math.min(clientHeight * 0.75, 500); // 75% of viewport or max 500px
+  const scrollVelocity = Math.abs(scrollTop - lastScrollTop.value);
+  const velocityBonus = Math.min(scrollVelocity * 1.5, 150); // Add velocity bonus up to 150px
+  const dynamicThreshold = viewportBasedThreshold + velocityBonus;
+  
+  // 🎯 Progressive loading zones
+  const urgentZone = 120;    // Immediate load zone
+  const preloadZone = dynamicThreshold; // Predictive load zone
+  
+  if (scrollTop <= urgentZone && !loading.value && hasMore.value) {
+    console.log(`📥 [EnhancedList:UrgentZone] Triggering immediate load at ${scrollTop}px`);
+    loadMoreMessages('urgent');
+  } else if (scrollTop <= preloadZone && !loading.value && hasMore.value) {
+    console.log(`🔮 [EnhancedList:PreloadZone] Triggering predictive load at ${scrollTop}px (threshold: ${preloadZone}px)`);
+    loadMoreMessages('predictive');
   }
 
   if (isNearBottom && !isAutoScrolling.value) {
@@ -202,19 +224,153 @@ const scrollToBottom = async (smooth = true) => {
   }, 500);
 };
 
-// Message operations
-const loadMoreMessages = async () => {
+// 🚀 ENHANCED: Adaptive message loading with mode support
+const loadMoreMessages = async (mode = 'normal') => {
   if (loading.value) return;
 
   loading.value = true;
+  
+  // 🔧 PRECISION: Capture viewport state for zero-jump restoration
+  const container = messageContainer.value;
+  if (!container) {
+    loading.value = false;
+    return;
+  }
+
+  // 🎯 ENHANCED: Multi-point position anchoring for manual loads
+  const beforeState = {
+    scrollTop: container.scrollTop,
+    scrollHeight: container.scrollHeight,
+    clientHeight: container.clientHeight,
+    anchorElement: findStableAnchorElement(container),
+    timestamp: performance.now()
+  };
+
+  // Calculate anchor offset for precise restoration
+  if (beforeState.anchorElement) {
+    const rect = beforeState.anchorElement.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();
+    beforeState.anchorOffset = rect.top - containerRect.top;
+    beforeState.anchorMessageId = beforeState.anchorElement.getAttribute('data-message-id');
+  }
+  
+  // 🎯 ADAPTIVE: Different loading strategies based on trigger mode
+  const loadingStrategies = {
+    urgent: { delay: 50, batchSize: 20 },      // Fast loading for urgent zone
+    predictive: { delay: 100, batchSize: 15 }, // Moderate loading for predictive zone
+    normal: { delay: 200, batchSize: 25 }      // Standard loading for manual triggers
+  };
+  
+  const strategy = loadingStrategies[mode] || loadingStrategies.normal;
+  
   try {
-    // TODO: Implement message loading
-    console.log('Loading more messages for chat:', props.chatId);
+    // Add adaptive delay based on loading mode
+    await new Promise(resolve => setTimeout(resolve, strategy.delay));
+    
+    console.log(`🔄 [EnhancedList:LoadMore:${mode}] ZERO-JUMP loading started for chat:`, props.chatId);
+    
+    // TODO: Implement message loading with adaptive batch size
+    // Example: await fetchMessages(props.chatId, { limit: strategy.batchSize, mode });
+    
+    // 🚀 ZERO-JUMP: Restore scroll position after loading
+    await nextTick();
+    restoreScrollPositionPrecisely(container, beforeState, mode);
+    
   } catch (error) {
-    console.error('Failed to load more messages:', error);
+    console.error(`❌ [EnhancedList:LoadMore:${mode}] Failed to load messages:`, error);
   } finally {
     loading.value = false;
+    console.log(`✅ [EnhancedList:LoadMore:${mode}] Load completed`);
   }
+};
+
+// 🎯 PRECISION: Find most stable anchor element for position restoration
+const findStableAnchorElement = (container) => {
+  const messageElements = container.querySelectorAll('[data-message-id]');
+  if (messageElements.length === 0) return null;
+
+  const containerRect = container.getBoundingClientRect();
+  const viewportCenter = containerRect.top + (containerRect.height * 0.4); // Prefer upper-middle area
+
+  let bestAnchor = null;
+  let minDistance = Infinity;
+
+  messageElements.forEach(element => {
+    const rect = element.getBoundingClientRect();
+    
+    // Skip elements not in viewport or too small
+    if (rect.height < 20 || rect.bottom < containerRect.top || rect.top > containerRect.bottom) {
+      return;
+    }
+
+    const elementCenter = rect.top + (rect.height / 2);
+    const distance = Math.abs(elementCenter - viewportCenter);
+
+    if (distance < minDistance) {
+      minDistance = distance;
+      bestAnchor = element;
+    }
+  });
+
+  return bestAnchor;
+};
+
+// 🚀 ZERO-JUMP: Precision scroll restoration with sub-pixel accuracy
+const restoreScrollPositionPrecisely = (container, beforeState, mode) => {
+  if (!container || !beforeState) return;
+
+  const afterScrollHeight = container.scrollHeight;
+  const heightDifference = afterScrollHeight - beforeState.scrollHeight;
+
+  console.log(`🎯 [EnhancedList:RestorePosition:${mode}] Height diff: ${heightDifference}px`);
+
+  if (heightDifference === 0) {
+    // No new content, maintain position
+    container.scrollTop = beforeState.scrollTop;
+    return;
+  }
+
+  // Strategy 1: Anchor-based restoration (most precise)
+  if (beforeState.anchorElement && beforeState.anchorMessageId) {
+    const anchorElement = container.querySelector(`[data-message-id="${beforeState.anchorMessageId}"]`);
+    
+    if (anchorElement) {
+      // Wait for DOM to fully settle
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const currentRect = anchorElement.getBoundingClientRect();
+          const containerRect = container.getBoundingClientRect();
+          const currentOffset = currentRect.top - containerRect.top;
+          
+          // Calculate precise adjustment needed
+          const offsetDiff = currentOffset - beforeState.anchorOffset;
+          const targetScrollTop = container.scrollTop - offsetDiff;
+          
+          // Apply with bounds checking
+          const maxScrollTop = container.scrollHeight - container.clientHeight;
+          const finalScrollTop = Math.max(0, Math.min(targetScrollTop, maxScrollTop));
+          
+          // Use direct assignment for instant, jump-free positioning
+          container.scrollTop = finalScrollTop;
+          
+          console.log(`✅ [EnhancedList:RestorePosition:${mode}] Anchor-based restoration: ${finalScrollTop}px`);
+        });
+      });
+      return;
+    }
+  }
+
+  // Strategy 2: Height-based restoration (fallback)
+  requestAnimationFrame(() => {
+    const targetScrollTop = beforeState.scrollTop + heightDifference;
+    const maxScrollTop = container.scrollHeight - container.clientHeight;
+    const finalScrollTop = Math.max(0, Math.min(targetScrollTop, maxScrollTop));
+    
+    // Apply instantly for zero-jump experience
+    container.scrollTop = finalScrollTop;
+    
+    console.log(`✅ [EnhancedList:RestorePosition:${mode}] Height-based restoration: ${finalScrollTop}px`);
+  });
 };
 
 const handleEditMessage = (message) => {

@@ -19,7 +19,7 @@ self.addEventListener('install', (event) => {
 self.addEventListener('fetch', (event) => {
   // Skip caching for API requests, SSE connections, and external URLs
   if (event.request.url.includes('/api/') ||
-    event.request.url.includes('45.77.178.85:8080') ||
+          event.request.url.includes('hook-nav-attempt-size.trycloudflare.com') ||
     event.request.url.includes('/events') ||
     event.request.url.includes('127.0.0.1:8080') ||
     event.request.headers.get('accept') === 'text/event-stream' ||

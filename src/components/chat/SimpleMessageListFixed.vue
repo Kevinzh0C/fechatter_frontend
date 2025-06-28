@@ -1,7 +1,14 @@
 <template>
-  <div ref="scrollContainer" class="simple-message-list" @scroll="handleScroll">
-    <!-- 🔧 SIMPLIFIED: Loading indicator without complex transitions -->
-    <div v-if="isLoading" class="loading-indicator">
+  <div ref="scrollContainer" class="simple-message-list">
+    <!-- 🚀 ENHANCED: Progressive batch loading indicator -->
+    <div v-if="loadingBatch" class="loading-indicator batch-loading">
+      <div class="spinner"></div>
+      <span>Loading batch {{ batchLoadCount }} ({{ maxBatchSize }} messages)...</span>
+      <div class="batch-progress">
+        <small>{{ loadingCooldown ? 'Cooldown active' : 'Ready for next batch' }}</small>
+      </div>
+    </div>
+    <div v-else-if="isLoading" class="loading-indicator">
       <div class="spinner"></div>
       <span>Loading messages...</span>
     </div>
@@ -26,6 +33,8 @@
 import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import DiscordMessageItem from '@/components/discord/DiscordMessageItem.vue';
+// 🏆 UNIFIED SCROLL MANAGER INTEGRATION
+import { unifiedScrollManager } from '@/utils/UnifiedScrollManager.js';
 
 // Props
 const props = defineProps({
@@ -54,176 +63,108 @@ const emit = defineEmits(['load-more']);
 const scrollContainer = ref(null);
 const authStore = useAuthStore();
 
-// State
+// State - SIMPLIFIED with unified management
 const isLoading = ref(false);
 const showScrollButton = ref(false);
-const isAutoScrollEnabled = ref(true);
-const lastScrollTop = ref(0);
+const loadingBatch = ref(false);
+const batchLoadCount = ref(0);
 
-// 🔧 FIX: Debounce mechanism to prevent excessive calls
-const scrollDebounceTimer = ref(null);
-const loadMoreDebounceTimer = ref(null);
-const scrollButtonDebounceTimer = ref(null);
+// 🏆 UNIFIED SCROLL INSTANCE
+let scrollInstance = null;
 
-// Computed
-const currentUserId = computed(() => authStore.user?.id);
-
-// 🔧 FIXED: Simplified scroll handler with debouncing
-const handleScroll = () => {
-  if (!scrollContainer.value) return;
-
-  // Clear existing timer
-  if (scrollDebounceTimer.value) {
-    clearTimeout(scrollDebounceTimer.value);
-  }
-
-  // Debounce scroll handling
-  scrollDebounceTimer.value = setTimeout(() => {
-    const container = scrollContainer.value;
-    if (!container) return;
-
-    const { scrollTop, scrollHeight, clientHeight } = container;
-
-    // 🔧 Check if user scrolled up (show scroll button)
-    if (scrollButtonDebounceTimer.value) {
-      clearTimeout(scrollButtonDebounceTimer.value);
+// Initialize unified scroll management
+const initializeUnifiedScroll = () => {
+  if (scrollContainer.value && props.chatId) {
+    // Unregister previous instance if exists
+    if (scrollInstance) {
+      unifiedScrollManager.unregisterChat(props.chatId);
     }
-
-    scrollButtonDebounceTimer.value = setTimeout(() => {
-      const isAtBottom = scrollTop + clientHeight >= scrollHeight - 100;
-      showScrollButton.value = !isAtBottom && props.messages.length > 5;
-    }, 100);
-
-    // 🔧 Load more messages when scrolled to top
-    if (scrollTop < 100 && props.hasMoreMessages && !isLoading.value) {
-      handleLoadMore();
-    }
-
-    lastScrollTop.value = scrollTop;
-  }, 50); // 50ms debounce
-};
-
-// 🔧 FIXED: Promise-based load more (no event listening)
-const handleLoadMore = () => {
-  if (isLoading.value || !props.hasMoreMessages) return;
-
-  // Clear existing timer
-  if (loadMoreDebounceTimer.value) {
-    clearTimeout(loadMoreDebounceTimer.value);
-  }
-
-  // Debounce load more calls
-  loadMoreDebounceTimer.value = setTimeout(() => {
-    isLoading.value = true;
-
-    // Store current scroll position for restoration
-    const container = scrollContainer.value;
-    const currentScrollHeight = container ? container.scrollHeight : 0;
-
-    // Emit load more event and handle Promise completion
-    const loadPromise = emit('load-more');
-
-    // 🔧 FIXED: Handle Promise completion without events
-    if (loadPromise && typeof loadPromise.then === 'function') {
-      loadPromise
-        .then(() => {
-          // Restore scroll position after new messages loaded
-          nextTick(() => {
-            if (container) {
-              const newScrollHeight = container.scrollHeight;
-              const scrollDiff = newScrollHeight - currentScrollHeight;
-              container.scrollTop = lastScrollTop.value + scrollDiff;
-            }
+    
+    // Register with unified manager
+    scrollInstance = unifiedScrollManager.registerChat(props.chatId, scrollContainer.value, {
+      onLoadMore: async () => {
+        // UNIFIED LOAD MORE HANDLING
+        if (loadingBatch.value || !props.hasMoreMessages) return;
+        
+        loadingBatch.value = true;
+        batchLoadCount.value += 1;
+        
+        console.log(`🏆 [SimpleMessageListFixed] Unified load more triggered (batch ${batchLoadCount.value})`);
+        
+        try {
+          await emit('load-more', {
+            mode: 'unified',
+            batchSize: 15,
+            batchNumber: batchLoadCount.value
           });
-        })
-        .catch(error => {
-          console.error('Load more failed:', error);
-        })
-        .finally(() => {
-          isLoading.value = false;
-        });
-    } else {
-      // Fallback if no Promise returned
-      setTimeout(() => {
-        isLoading.value = false;
-      }, 1000);
-    }
-  }, 300); // 300ms debounce for load more
+        } finally {
+          setTimeout(() => {
+            loadingBatch.value = false;
+          }, 1000);
+        }
+      },
+      nearBottomThreshold: 150,
+      historyLoadThreshold: 200
+    });
+    
+    console.log('🏆 [SimpleMessageListFixed] Unified scroll management initialized');
+  }
 };
 
-// 🔧 Simple scroll to bottom
+// Scroll to bottom using unified manager
 const scrollToBottom = (smooth = true) => {
-  if (!scrollContainer.value) return;
-
-  const container = scrollContainer.value;
-  const scrollOptions = {
-    top: container.scrollHeight,
-    behavior: smooth ? 'smooth' : 'instant'
-  };
-
-  container.scrollTo(scrollOptions);
-  showScrollButton.value = false;
+  if (scrollInstance) {
+    scrollInstance.scrollToBottom(smooth);
+    showScrollButton.value = false;
+  }
 };
 
-// 🔧 Watch for new messages and auto-scroll if at bottom
+// UNIFIED: Replace complex message watcher with simple unified approach
 watch(() => props.messages?.length, (newLength, oldLength) => {
-  if (!newLength || newLength <= (oldLength || 0)) return;
-
-  nextTick(() => {
-    if (!scrollContainer.value || !isAutoScrollEnabled.value) return;
-
-    const container = scrollContainer.value;
-    const { scrollTop, scrollHeight, clientHeight } = container;
-    const isNearBottom = scrollTop + clientHeight >= scrollHeight - 150;
-
-    // Auto-scroll only if user was near bottom
-    if (isNearBottom) {
-      scrollToBottom(true);
-    }
-  });
-});
-
-// 🔧 Watch chat changes and reset state
-watch(() => props.chatId, (newChatId, oldChatId) => {
-  if (newChatId !== oldChatId) {
-    // Reset state for new chat
-    isLoading.value = false;
-    showScrollButton.value = false;
-    isAutoScrollEnabled.value = true;
-
-    // Clear all timers
-    [scrollDebounceTimer, loadMoreDebounceTimer, scrollButtonDebounceTimer].forEach(timer => {
-      if (timer.value) {
-        clearTimeout(timer.value);
-        timer.value = null;
+  if (newLength > (oldLength || 0)) {
+    nextTick(() => {
+      if (scrollInstance) {
+        const isInitialLoad = (oldLength || 0) === 0;
+        
+        if (isInitialLoad) {
+          // Initial load - always scroll to bottom
+          scrollInstance.scrollToBottom(false);
+        } else {
+          // New messages - unified manager handles the logic
+          scrollInstance.handleNewMessage();
+        }
       }
     });
-
-    // Scroll to bottom for new chat
-    nextTick(() => {
-      scrollToBottom(false);
-    });
   }
 });
 
-// 🔧 Component lifecycle
-onMounted(() => {
-  // Initial scroll to bottom if messages exist
-  if (props.messages && props.messages.length > 0) {
-    nextTick(() => {
-      scrollToBottom(false);
-    });
+// Watch chat changes and reset state
+watch(() => props.chatId, (newChatId, oldChatId) => {
+  if (newChatId !== oldChatId) {
+    // Reset loading states
+    isLoading.value = false;
+    loadingBatch.value = false;
+    batchLoadCount.value = 0;
+    showScrollButton.value = false;
+
+    console.log(`🔄 [SimpleMessageListFixed] Reset state for new chat: ${newChatId}`);
+
+    // Initialize unified scroll for new chat
+    initializeUnifiedScroll();
   }
+});
+
+// Component lifecycle
+onMounted(() => {
+  // Initialize unified scroll management
+  initializeUnifiedScroll();
 });
 
 onUnmounted(() => {
-  // 🔧 CRITICAL: Clear all timers to prevent memory leaks
-  [scrollDebounceTimer, loadMoreDebounceTimer, scrollButtonDebounceTimer].forEach(timer => {
-    if (timer.value) {
-      clearTimeout(timer.value);
-      timer.value = null;
-    }
-  });
+  // Cleanup unified scroll management
+  if (scrollInstance && props.chatId) {
+    unifiedScrollManager.unregisterChat(props.chatId);
+  }
 });
 
 // Expose methods
@@ -251,6 +192,26 @@ defineExpose({
   padding: 16px;
   color: #6b7280;
   font-size: 14px;
+}
+
+/* 🚀 NEW: Enhanced batch loading indicator */
+.loading-indicator.batch-loading {
+  flex-direction: column;
+  gap: 6px;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(59, 130, 246, 0.05) 100%);
+  border: 1px solid rgba(99, 102, 241, 0.1);
+  border-radius: 8px;
+  margin: 8px 16px;
+}
+
+.batch-progress {
+  font-size: 12px;
+  color: #9ca3af;
+  font-style: italic;
+}
+
+.batch-progress small {
+  opacity: 0.8;
 }
 
 .spinner {

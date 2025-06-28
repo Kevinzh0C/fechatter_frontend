@@ -3,6 +3,7 @@
 /**
  * Copy Configuration Files Script
  * Copies YAML configuration files to public directory for web access
+ * Simplified - only development configuration
  */
 
 import fs from 'fs';
@@ -12,10 +13,9 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Configuration files to copy
+// Configuration files to copy - simplified to only development
 const configs = [
-  { src: 'config/development.yml', dest: 'public/config/development.yml' },
-  { src: 'config/production.yml', dest: 'public/config/production.yml' }
+  { src: 'config/development.yml', dest: 'public/config/development.yml' }
 ];
 
 // Ensure destination directory exists
@@ -34,7 +34,8 @@ configs.forEach(({ src, dest }) => {
       const stats = fs.statSync(dest);
       console.log(`✓ ${path.basename(dest)} (${stats.size} bytes)`);
     } else {
-      console.warn(`⚠ Source file not found: ${src}`);
+      console.error(`✗ Required configuration file not found: ${src}`);
+      process.exit(1);
     }
   } catch (error) {
     console.error(`✗ Failed to copy ${src}:`, error.message);

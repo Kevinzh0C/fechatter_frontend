@@ -309,7 +309,7 @@ export class AuthFlowDiagnostics {
     }[status] || '❓';
 
     console.log(`${statusIcon} ${testName}: ${message}`);
-    if (details && import.meta.env.DEV) {
+    if (details && true) {
       console.log('   Details:', details);
     }
   }

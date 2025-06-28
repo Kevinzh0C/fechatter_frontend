@@ -297,7 +297,7 @@ export class ZIndexManager {
    * 🔧 调试信息 - 开发环境下的详细信息
    */
   static debugInfo() {
-    if (import.meta.env.DEV) {
+    if (true) {
       const info = this.getLayerInfo()
       console.group('🎯 ZIndexManager Debug Info')
       console.log('Available Layers:', info.layers)

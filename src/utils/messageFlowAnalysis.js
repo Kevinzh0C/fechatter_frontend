@@ -13,9 +13,9 @@ class MessageFlowAnalysis {
    * 分析完整消息流程
    */
   analyzeCompleteFlow() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🔍 MESSAGE FLOW ANALYSIS');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('========================\n');
     }
 
@@ -45,9 +45,9 @@ class MessageFlowAnalysis {
    * 1. 用户交互层分析
    */
   analyzeUserInteraction() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('1️⃣ USER INTERACTION LAYER');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('-------------------------');
     }
 
@@ -86,13 +86,13 @@ sendMessage() {
     ];
 
     steps.forEach(s => {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`\n📍 ${s.step}`);
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`   Component: ${s.component}`);
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`   Method: ${s.method}`);
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`   Critical: ${s.criticalPoint}`);
       }
     });
@@ -104,9 +104,9 @@ sendMessage() {
    * 2. 前端处理层分析
    */
   analyzeFrontendProcessing() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n\n2️⃣ FRONTEND PROCESSING LAYER');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('----------------------------');
     }
 
@@ -118,7 +118,7 @@ sendMessage() {
         code: `
 // Chat.vue - Line 605
 async handleSendMessage(messageData) {
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('📮 [Chat.vue] handleSendMessage called:', {
         currentChatId: this.currentChatId,
     content: messageData.content,
@@ -162,13 +162,13 @@ async sendMessage(chatId, messageData) {
     ];
 
     steps.forEach(s => {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`\n📍 ${s.step}`);
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`   Component: ${s.component}`);
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`   Method: ${s.method}`);
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`   Critical: ${s.criticalPoint}`);
       }
     });
@@ -180,9 +180,9 @@ async sendMessage(chatId, messageData) {
    * 3. API调用层分析
    */
   analyzeAPICall() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n\n3️⃣ API CALL LAYER');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('-----------------');
     }
 
@@ -206,9 +206,9 @@ async sendMessage(chatId, messageData) {
       }
     };
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n📡 API Request:');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(JSON.stringify(apiFlow, null, 2));
     }
 
@@ -223,15 +223,15 @@ async sendMessage(chatId, messageData) {
    * 4. 后端响应分析
    */
   analyzeBackendResponse() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n\n4️⃣ BACKEND RESPONSE LAYER');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('-------------------------');
     }
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n📥 Expected Response Structure:');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`{
         success: true,
   data: {
@@ -245,13 +245,13 @@ async sendMessage(chatId, messageData) {
   }
 }`);
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n✅ Response indicates:');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('   - Message saved to database (id: 161)');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('   - Proper timestamps assigned');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('   - Sender information included');
     }
 
@@ -259,9 +259,9 @@ async sendMessage(chatId, messageData) {
    * 5. 前端更新层分析
    */
   analyzeFrontendUpdate() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n\n5️⃣ FRONTEND UPDATE LAYER');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('------------------------');
     }
 
@@ -291,9 +291,9 @@ if (this.messageCache[chatId]) {
     ];
 
     updateSteps.forEach(s => {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`\n📍 ${s.step}`);
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`   Result: ${s.result}`);
       }
     });
@@ -302,31 +302,31 @@ if (this.messageCache[chatId]) {
    * 6. 持久化验证
    */
   analyzePersistence() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n\n6️⃣ PERSISTENCE VERIFICATION');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('---------------------------');
     }
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n🔍 Key Questions:');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('1. Is message saved in database? ✅ YES (id: 161)');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('2. Is message in frontend cache? ✅ YES');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('3. Will it survive page refresh? ✅ YES');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('4. Will it load on channel switch? ✅ YES');
     }
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n📊 Evidence:');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('- Backend returned message with ID');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('- Message replaced in cache');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('- Next fetchMessages will include it');
     }
 
@@ -334,55 +334,55 @@ if (this.messageCache[chatId]) {
    * 生成分析报告
    */
   generateReport() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n\n' + '='.repeat(60));
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('📊 ANALYSIS REPORT');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('='.repeat(60));
     }
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n✅ WORKING CORRECTLY:');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('1. Message sending flow - Complete');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('2. Optimistic UI updates - Working');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('3. Backend persistence - Confirmed');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('4. Cache updates - Working');
     }
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n⚠️ ISSUES FOUND:');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('1. Backend response time: 3.6s (should be <500ms)');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('2. But this is already fixed (now ~30ms)');
     }
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n🎯 CONCLUSION:');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('Messages ARE being saved correctly and WILL persist.');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('The 3.6s delay was before optimization.');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('Current performance is excellent (~30ms).');
     }
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n💡 TO VERIFY:');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('1. Send a message');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('2. Note the message content');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('3. Refresh the page (F5)');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('4. Navigate back to the channel');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('5. Message should still be there');
     }
 
@@ -395,30 +395,30 @@ if (this.messageCache[chatId]) {
     const messages = chatStore.messages;
     const cache = chatStore.messageCache[currentChatId];
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n📊 CURRENT STATE CHECK:');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`Current Chat: ${currentChatId}`);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`Messages in UI: ${messages.length}`);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`Messages in Cache: ${cache?.messages?.length || 0}`);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`Cache timestamp: ${cache ? new Date(cache.timestamp).toLocaleTimeString() : 'N/A'}`);
     }
 
     // 检查最新消息
     const latestMessage = messages[messages.length - 1];
     if (latestMessage) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('\n📝 Latest Message:');
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`ID: ${latestMessage.id}`);
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`Content: ${latestMessage.content}`);
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`Is Optimistic: ${latestMessage.isOptimistic || false}`);
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`Has Server ID: ${!latestMessage.id.toString().startsWith('temp')}`);
       }
 
@@ -441,24 +441,24 @@ if (typeof window !== 'undefined') {
 
     // 快速测试
     testPersistence: async () => {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('🧪 PERSISTENCE TEST');
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('==================\n');
       }
 
       const before = messageFlowAnalysis.checkCurrentMessages();
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('Before state:', before);
       }
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('\n📝 Instructions:');
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('1. Send a test message now');
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('2. Wait for it to appear');
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('3. Run: window.msgFlow.verifyPersistence()');
       }
     },
@@ -468,40 +468,40 @@ if (typeof window !== 'undefined') {
       const latestMsg = state.latestMessage;
 
       if (latestMsg && !latestMsg.id.toString().startsWith('temp')) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('✅ Message has server ID:', latestMsg.id);
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('✅ Message is persisted in database');
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('✅ Message will survive refresh');
         }
 
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('\n🔄 To verify:');
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('1. Refresh page (Cmd+R)');
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('2. Navigate to same channel');
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('3. Message should still be there');
         }
       } else {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('⚠️ Latest message might be optimistic');
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('Wait a moment and try again');
         }
   };
 
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('📊 Message Flow Analysis loaded');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('   Commands:');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('   - window.msgFlow.analyze() - Full flow analysis');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('   - window.msgFlow.check() - Check current state');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('   - window.msgFlow.testPersistence() - Test persistence');
   }
 

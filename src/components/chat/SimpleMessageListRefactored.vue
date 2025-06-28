@@ -80,7 +80,9 @@ const enhancedMessages = computed(() => {
 const registerMessageElement = (messageId, el) => {
   if (el) {
     messageElements.value.set(messageId, el);
-    window.messageDisplayGuarantee?.markMessageDisplayed?.(parseInt(messageId), el, parseInt(props.chatId));
+    // 🔧 DISABLED: MessageDisplayGuarantee for performance optimization
+    // Vue 3 reactive system provides sufficient reliability without DOM queries
+    // window.messageDisplayGuarantee?.markMessageDisplayed?.(parseInt(messageId), el, parseInt(props.chatId));
   } else {
     messageElements.value.delete(messageId);
   }

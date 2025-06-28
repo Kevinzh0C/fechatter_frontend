@@ -442,7 +442,7 @@ export class ScrollToBottomValidator {
 
     const isAtBottom = Math.abs(scrollTop - maxScrollTop) <= tolerance;
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🔍 [ScrollValidator] 滚动位置验证:', {
         scrollTop: Math.round(scrollTop),
         maxScrollTop: Math.round(maxScrollTop),
@@ -529,7 +529,7 @@ export class ScrollToBottomValidator {
 export const scrollToBottomValidator = new ScrollToBottomValidator();
 
 // 🔧 开发环境调试函数
-if (typeof window !== 'undefined' && import.meta.env.DEV) {
+if (typeof window !== 'undefined' && true) {
   window.validateScrollToBottom = () => scrollToBottomValidator.runCompleteValidation();
   window.exportScrollValidationReport = () => scrollToBottomValidator.exportTestReport();
 

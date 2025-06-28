@@ -1,0 +1,238 @@
+/* 🎯 Unified Font Size Fix - 统一字体大小修复
+ * 解决字体大小错乱问题，确保所有消息组件字体大小一致
+ * 基于Discord标准，提供统一的字体大小体系
+ */
+
+:root {
+  /* 🎯 统一字体大小系统 - Discord标准 */
+  --unified-font-size-base: 15px;          /* 基础字体大小 - 消息内容 */
+  --unified-font-size-username: 14px;      /* 用户名字体大小 */
+  --unified-font-size-timestamp: 12px;     /* 时间戳字体大小 */
+  --unified-font-size-small: 12px;         /* 小号字体 */
+  --unified-font-size-large: 16px;         /* 大号字体 */
+  
+  /* 🎯 行高系统 */
+  --unified-line-height-base: 1.5;         /* 基础行高 */
+  --unified-line-height-compact: 1.4;      /* 紧凑行高 */
+  --unified-line-height-relaxed: 1.6;      /* 放松行高 */
+  
+  /* 🎯 字重系统 */
+  --unified-font-weight-normal: 400;       /* 正常字重 */
+  --unified-font-weight-medium: 500;       /* 中等字重 */
+  --unified-font-weight-semibold: 600;     /* 半粗字重 */
+}
+
+/* 🔧 强制统一字体大小 - 最高优先级 */
+
+/* 消息内容统一字体大小 */
+.discord-message-item,
+.message-item,
+.chat-message,
+.message-content,
+.message-text,
+.content-wrapper {
+  font-size: var(--unified-font-size-base) !important;
+  line-height: var(--unified-line-height-base) !important;
+  font-weight: var(--unified-font-weight-normal) !important;
+}
+
+/* 消息内容深度选择器 */
+.content-wrapper :deep(p),
+.content-wrapper :deep(div),
+.content-wrapper :deep(span),
+.message-content p,
+.message-content div,
+.message-content span {
+  font-size: var(--unified-font-size-base) !important;
+  line-height: var(--unified-line-height-base) !important;
+  font-weight: var(--unified-font-weight-normal) !important;
+}
+
+/* 用户名统一字体大小 */
+.username-button,
+.sender-name,
+.user-name,
+.author-name {
+  font-size: var(--unified-font-size-username) !important;
+  line-height: var(--unified-line-height-compact) !important;
+  font-weight: var(--unified-font-weight-medium) !important;
+}
+
+/* 时间戳统一字体大小 */
+time,
+.timestamp,
+.message-timestamp,
+.time-display {
+  font-size: var(--unified-font-size-timestamp) !important;
+  line-height: var(--unified-line-height-compact) !important;
+  font-weight: var(--unified-font-weight-normal) !important;
+}
+
+/* 🎯 特定组件字体大小修复 */
+
+/* DiscordMessageItem 强制统一 */
+.discord-message-item .username-button {
+  font-size: var(--unified-font-size-username) !important;
+  font-weight: var(--unified-font-weight-medium) !important;
+  line-height: var(--unified-line-height-compact) !important;
+}
+
+.discord-message-item .content-wrapper {
+  font-size: var(--unified-font-size-base) !important;
+  line-height: var(--unified-line-height-base) !important;
+  font-weight: var(--unified-font-weight-normal) !important;
+}
+
+.discord-message-item time {
+  font-size: var(--unified-font-size-timestamp) !important;
+  line-height: var(--unified-line-height-compact) !important;
+  font-weight: var(--unified-font-weight-normal) !important;
+}
+
+/* 🔧 覆盖任何冲突的字体大小设置 */
+
+/* 覆盖scoped样式中的字体大小 */
+.message-content {
+  font-size: var(--unified-font-size-base) !important;
+  line-height: var(--unified-line-height-base) !important;
+}
+
+/* 覆盖inline样式和其他优先级设置 */
+[style*="font-size"] {
+  font-size: var(--unified-font-size-base) !important;
+}
+
+/* 特殊元素保持原有大小 */
+.file-size-clean,
+.hash-indicator,
+.file-extension {
+  /* 文件相关信息保持较小字体 */
+  font-size: var(--unified-font-size-small) !important;
+}
+
+/* 🎯 Markdown内容统一 */
+.content-wrapper :deep(h1),
+.content-wrapper :deep(h2),
+.content-wrapper :deep(h3),
+.content-wrapper :deep(h4),
+.content-wrapper :deep(h5),
+.content-wrapper :deep(h6) {
+  font-size: var(--unified-font-size-large) !important;
+  line-height: var(--unified-line-height-compact) !important;
+  font-weight: var(--unified-font-weight-semibold) !important;
+}
+
+.content-wrapper :deep(strong) {
+  font-size: inherit !important;
+  font-weight: var(--unified-font-weight-semibold) !important;
+}
+
+.content-wrapper :deep(em) {
+  font-size: inherit !important;
+  font-style: italic;
+}
+
+.content-wrapper :deep(a) {
+  font-size: inherit !important;
+  font-weight: var(--unified-font-weight-medium) !important;
+}
+
+.content-wrapper :deep(code:not(.hljs code)) {
+  font-size: calc(var(--unified-font-size-base) - 1px) !important;
+  line-height: var(--unified-line-height-compact) !important;
+}
+
+/* 🎯 列表项统一 */
+.content-wrapper :deep(li) {
+  font-size: var(--unified-font-size-base) !important;
+  line-height: var(--unified-line-height-base) !important;
+}
+
+/* 🎯 引用块统一 */
+.content-wrapper :deep(blockquote) {
+  font-size: var(--unified-font-size-base) !important;
+  line-height: var(--unified-line-height-base) !important;
+}
+
+/* 📱 响应式字体大小 - 保持比例一致 */
+@media (max-width: 768px) {
+  :root {
+    --unified-font-size-base: 15px;      /* 移动端保持一致 */
+    --unified-font-size-username: 14px;  /* 移动端保持一致 */
+    --unified-font-size-timestamp: 12px; /* 移动端保持一致 */
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --unified-font-size-base: 16px;      /* 小屏幕稍微增大 */
+    --unified-font-size-username: 15px;  /* 小屏幕稍微增大 */
+    --unified-font-size-timestamp: 13px; /* 小屏幕稍微增大 */
+  }
+}
+
+/* 🌙 暗色主题字体大小保持一致 */
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* 暗色主题下字体大小不变 */
+    --unified-font-size-base: 15px;
+    --unified-font-size-username: 14px;
+    --unified-font-size-timestamp: 12px;
+  }
+}
+
+/* 🎯 高对比度模式字体增强 */
+@media (prefers-contrast: high) {
+  :root {
+    --unified-font-weight-normal: 500;   /* 高对比度下增加字重 */
+    --unified-font-weight-medium: 600;
+    --unified-font-weight-semibold: 700;
+  }
+}
+
+/* 🔧 特殊情况覆盖 */
+
+/* ⚠️ EMOJI处理交给numbers-harmonization.css处理，避免冲突 */
+/* 不在这里设置emoji大小 */
+
+/* 🇯🇵🇨🇳🇰🇷 确保CJK字符保持正常字体大小 */
+.emoji-2x:lang(ja),
+.emoji-2x:lang(zh),
+.emoji-2x:lang(ko),
+.emoji-2x[lang="ja"],
+.emoji-2x[lang="zh"],
+.emoji-2x[lang="ko"] {
+  font-size: var(--unified-font-size-base) !important; /* 恢复正常字体大小 */
+  line-height: var(--unified-line-height-base) !important;
+  margin: 0 !important;
+}
+
+/* 代码块保持等宽字体，但统一大小 */
+.hljs,
+.code-block,
+pre {
+  font-size: calc(var(--unified-font-size-base) - 1px) !important;
+  line-height: var(--unified-line-height-compact) !important;
+}
+
+/* 🎯 Vue组件深度样式修复 */
+* :deep(.message-content),
+* :deep(.content-wrapper),
+* :deep(.message-text),
+* :deep(.discord-message-item) {
+  font-size: var(--unified-font-size-base) !important;
+  line-height: var(--unified-line-height-base) !important;
+}
+
+* :deep(.username-button),
+* :deep(.sender-name) {
+  font-size: var(--unified-font-size-username) !important;
+  line-height: var(--unified-line-height-compact) !important;
+}
+
+/* 🚨 最高优先级修复 - 覆盖任何样式 */
+.force-unified-font-size {
+  font-size: var(--unified-font-size-base) !important;
+  line-height: var(--unified-line-height-base) !important;
+  font-weight: var(--unified-font-weight-normal) !important;
+} 

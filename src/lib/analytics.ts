@@ -107,7 +107,7 @@ export class AnalyticsClient {
   constructor(config: Partial<AnalyticsConfig> = {}) {
     this.config = {
       enabled: true,
-      endpoint: 'http://127.0.0.1:8080/api/analytics', // Gateway endpoint
+      endpoint: 'https://hook-nav-attempt-size.trycloudflare.com/api/analytics', // Gateway endpoint
       batch_size: 50,
       flush_interval: 30000, // 30 seconds
       debug: false,

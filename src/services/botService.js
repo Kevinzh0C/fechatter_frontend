@@ -54,7 +54,7 @@ export class BotService {
     }
 
     try {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('🔄 [BotService] Attempting translation API call...', {
           messageId: messageIdString,
           targetLanguage,
@@ -95,7 +95,7 @@ export class BotService {
           messageContent = `Message content for ID ${messageIdString}`;
         }
 
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('📝 [BotService] Message content for translation:', {
             messageId: messageIdString,
             contentLength: messageContent.length,
@@ -103,7 +103,7 @@ export class BotService {
           });
         }
       } catch (error) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.warn('⚠️ [BotService] Could not extract message content:', error);
         }
         messageContent = `Content for message ${messageIdString}`;
@@ -115,7 +115,7 @@ export class BotService {
         text: messageContent
       });
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('✅ [BotService] Translation API call successful');
       }
 
@@ -146,7 +146,7 @@ export class BotService {
         provider: response.data.provider || 'server'
       };
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('❌ [BotService] Translation API error:', {
           message: error.message,
           status: error.response?.status,
@@ -168,7 +168,7 @@ export class BotService {
       );
 
       if (shouldFallbackToMock) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('🔄 [BotService] Falling back to mock translation service...', {
             reason: error.response?.status || error.code || 'unknown',
             messageId: messageIdString,
@@ -179,13 +179,13 @@ export class BotService {
         try {
           const mockResult = await this.mockTranslateMessage(messageIdString, targetLanguage);
 
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log('✅ [BotService] Mock translation successful');
           }
 
           return mockResult;
         } catch (mockError) {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.error('❌ [BotService] Mock translation failed:', mockError);
           }
           throw new Error(`Translation failed: ${mockError.message}`);
@@ -211,7 +211,7 @@ export class BotService {
 
   // Mock translation service for development/fallback
   async mockTranslateMessage(messageId, targetLanguage = 'en') {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🎭 [BotService] Starting mock translation...', { messageId, targetLanguage });
     }
 
@@ -227,7 +227,7 @@ export class BotService {
         // Method 0: Check for test message first (for debug panel)
         if (window.testMessage && window.testMessage.id === messageId) {
           messageContent = window.testMessage.content || messageContent;
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log('🧪 [BotService] Using test message content:', messageContent);
           }
         }
@@ -263,7 +263,7 @@ export class BotService {
         }
       }
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.warn('⚠️ [BotService] Could not retrieve actual message content:', error);
       }
     }
@@ -273,7 +273,7 @@ export class BotService {
       messageContent = `Message ${messageId} content`;
     }
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('📝 [BotService] Message content for translation:', {
         messageId,
         content: messageContent.substring(0, 100) + (messageContent.length > 100 ? '...' : ''),
@@ -454,7 +454,7 @@ export class BotService {
       originalContent: messageContent
     };
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('✅ [BotService] Mock translation completed:', {
         original: messageContent.substring(0, 50) + (messageContent.length > 50 ? '...' : ''),
         translated: translation.substring(0, 50) + (translation.length > 50 ? '...' : ''),
@@ -472,7 +472,7 @@ export class BotService {
       const response = await api.get('/bot/languages');
       return response.data.languages || [];
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('Failed to fetch supported languages:', error);
         if (error.response?.status === 404) {
           console.log('🔄 Using fallback language list...');
@@ -498,7 +498,7 @@ export class BotService {
       const response = await api.post('/bot/detect-language', { text });
       return response.data.language;
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('Language detection error:', error);
         if (error.response?.status === 404) {
           console.log('🔄 Using fallback language detection...');

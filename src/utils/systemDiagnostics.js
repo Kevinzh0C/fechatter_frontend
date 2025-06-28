@@ -361,7 +361,7 @@ export class SystemDiagnostics {
 }
 
 // 🔧 Global diagnostic functions
-if (typeof window !== 'undefined' && import.meta.env.DEV) {
+if (typeof window !== 'undefined' && true) {
   window.runSystemDiagnostics = async () => {
     const diagnostics = new SystemDiagnostics();
     return await diagnostics.runAllTests();

@@ -4,27 +4,27 @@
  */
 
 export function cleanupSSEConnections() {
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('🧹 Starting SSE connection cleanup...');
   }
 
   // 1. 清理全局管理器中的连接
   if (window.sseGlobalManager) {
     const status = window.sseGlobalManager.getStatus();
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`Found ${status.connections.length} connections in global manager`);
     }
 
     // 重置管理器
     window.sseGlobalManager.reset();
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('✅ Global manager reset');
     }
 
   // 2. 断开当前服务的连接
   if (window.realtimeCommunicationService) {
     window.realtimeCommunicationService.disconnect();
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('✅ Current service disconnected');
     }
 
@@ -41,21 +41,21 @@ export function cleanupSSEConnections() {
       if (conn && conn.close) {
         try {
           conn.close();
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log(`✅ Closed EventSource connection ${index + 1}`);
           }
         } catch (e) {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.warn(`Failed to close connection ${index + 1}:`, e);
           }
     });
 
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('🧹 SSE cleanup completed');
   }
 
 // 自动执行清理（在开发环境）
-if (import.meta.env.DEV) {
+if (true) {
   // 将清理函数暴露到window对象
   window.cleanupSSE = cleanupSSEConnections;
 

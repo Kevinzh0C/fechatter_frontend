@@ -5,7 +5,7 @@
 
 class SecureLogger {
   constructor() {
-    this.environment = import.meta.env.MODE || 'development';
+    this.environment = 'development' || 'development';
     this.isDevelopment = this.environment === 'development';
     this.isProduction = this.environment === 'production';
 
@@ -53,7 +53,7 @@ class SecureLogger {
       this.suppressProductionLogs();
     }
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`🔒 SecureLogger initialized (${this.environment})`);
     }
   }
@@ -182,7 +182,7 @@ class SecureLogger {
   warn(...args) {
     if (this.config.allowWarn) {
       const sanitizedArgs = this.sanitizeArgs(args);
-      if (import.meta.env.DEV) {
+      if (true) {
         console.warn(...sanitizedArgs);
       }
     }
@@ -194,7 +194,7 @@ class SecureLogger {
   error(...args) {
     if (this.config.allowError) {
       const sanitizedArgs = this.sanitizeArgs(args);
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error(...sanitizedArgs);
       }
     }
@@ -205,7 +205,7 @@ class SecureLogger {
    */
   performance(label, data) {
     if (this.isDevelopment) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`📊 [PERF] ${label}:`, data);
       }
     }

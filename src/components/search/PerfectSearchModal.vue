@@ -235,6 +235,9 @@ import { useRouter } from 'vue-router'
 // Import navigation styles
 import '@/styles/messageNavigation.css'
 
+// 🔵⚡ Import Blue Beam Search Controller
+import { blueBeamSearchController } from '@/utils/blueBeamSearchController.js'
+
 // 🔧 Router instance for navigation
 const router = useRouter()
 
@@ -840,7 +843,7 @@ const applySuggestion = (suggestion) => {
   handleSearch()
 }
 
-// 🎯 Enhanced Production-grade message navigation with timeout and error recovery
+// 🎯 Enhanced Production-grade message navigation with blue beam effects
 const jumpToMessage = async (result) => {
   console.log('🎯 [MessageJump] 🎯 DAG-Enhanced: Starting navigation chain:', {
     messageId: result.id,
@@ -1247,8 +1250,8 @@ const loadViaScrollTrigger = async (result) => {
     const originalScrollTop = scrollContainer.scrollTop
     const originalScrollHeight = scrollContainer.scrollHeight
 
-    // 滚动到顶部触发加载
-    scrollContainer.scrollTop = 0
+    // 🔴 DISABLED: 滚动到顶部触发加载 (can cause jumping)
+    // scrollContainer.scrollTop = 0
 
     // 等待加载触发
     await new Promise(resolve => setTimeout(resolve, 500))
@@ -1378,8 +1381,8 @@ const triggerLoadMoreMessages = async () => {
       // 保存当前滚动位置
       const currentScrollTop = scrollContainer.scrollTop
 
-      // 滚动到顶部触发加载
-      scrollContainer.scrollTop = 0
+      // 🔴 DISABLED: 滚动到顶部触发加载 (can cause jumping)
+      // scrollContainer.scrollTop = 0
 
       // 等待加载触发
       await new Promise(resolve => setTimeout(resolve, 200))
@@ -1431,86 +1434,37 @@ const waitForLoadingComplete = async () => {
 // 🔧 新增：安全滚动到消息
 const scrollToMessageSafely = (messageElement) => {
   try {
-    console.log(`🎯 [PerfectSearch] 🎯 DAG-Scroll: Starting safe scroll to message`)
+    console.log(`🔵 [BlueBeamSearch] Starting blue beam navigation to message`)
 
-    // 清除之前的高亮
-    document.querySelectorAll('.message-highlight, .search-target, .blue-pulse-beam-highlight').forEach(el => {
-      el.classList.remove('message-highlight', 'search-target', 'blue-pulse-beam-highlight',
-        'blue-beam-fast', 'blue-beam-intense', 'navigation-target')
-      // 清除蓝色光束相关元素
-      const scanner = el.querySelector('.blue-beam-scanner')
-      const indicator = el.querySelector('.blue-beam-indicator')
-      if (scanner) scanner.remove()
-      if (indicator) indicator.remove()
-      // 清除内联样式
-      el.style.transform = ''
-      el.style.background = ''
-      el.style.boxShadow = ''
-      el.style.zIndex = ''
-      el.style.position = ''
+    // Clear any existing highlights
+    blueBeamSearchController.clearAllBlueBeams()
+
+    // Apply blue beam effect with search query
+    const result = blueBeamSearchController.applyBlueBeamTarget(messageElement, {
+      intensity: 'intense', // Use intense blue beam for search results
+      searchQuery: searchQuery.value,
+      duration: 7000, // 7 seconds for search results
+      scrollBehavior: 'smooth',
+      showIndicator: true,
+      autoCleanup: true
     })
 
-    // 🌊 ENHANCED: 使用新的边框流动光束高亮 
-    console.log(`🌊 [FlowingBeam] 🚀 Applying enhanced flowing beam effect to message ${messageElement.dataset.messageId}`)
-
-    // 🌊 流动光束：添加边框内流动的光束效果（非脉冲）
-    messageElement.classList.add('blue-pulse-beam-highlight', 'blue-beam-intense')
-
-    // 🌊 ENHANCED: 增加更明显的视觉效果
-    messageElement.style.transform = 'scale(1.03)'
-    messageElement.style.zIndex = '100'
-    messageElement.style.position = 'relative'
-
-    // 计算最佳滚动位置
-    const rect = messageElement.getBoundingClientRect()
-    const containerRect = messageElement.closest('.simple-message-list, .messages-container')?.getBoundingClientRect()
-
-    let scrollOptions = {
-      behavior: 'smooth',
-      block: 'center',
-      inline: 'nearest'
+    if (result.success) {
+      console.log(`🔵 [BlueBeamSearch] Blue beam effect applied successfully`)
+      return { success: true, scrolled: true, effect: 'blue_beam_intense' }
+    } else {
+      console.warn(`🔵 [BlueBeamSearch] Blue beam effect failed:`, result.reason)
+      // Fallback to basic scroll
+      messageElement.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+        inline: 'nearest'
+      })
+      return { success: true, scrolled: true, effect: 'fallback_scroll' }
     }
-
-    // 如果消息已经基本可见，使用更温和的滚动
-    if (containerRect && rect.top >= containerRect.top && rect.bottom <= containerRect.bottom) {
-      scrollOptions.block = 'nearest'
-    }
-
-    // 执行滚动
-    messageElement.scrollIntoView(scrollOptions)
-
-    // 添加滚动完成监听
-    const scrollContainer = messageElement.closest('.simple-message-list, .messages-container')
-    if (scrollContainer) {
-      const onScrollEnd = () => {
-        console.log(`✅ [PerfectSearch] 🎯 DAG-Scroll: Scroll completed, message highlighted with enhanced flowing beam`)
-        scrollContainer.removeEventListener('scrollend', onScrollEnd)
-      }
-
-      scrollContainer.addEventListener('scrollend', onScrollEnd)
-
-      // 备用计时器（如果scrollend不支持）
-      setTimeout(onScrollEnd, 1000)
-    }
-
-    // 🌊 ENHANCED: 流动光束清理 - 延长持续时间到8秒
-    setTimeout(() => {
-      // 移除流动光束类
-      messageElement.classList.remove('blue-pulse-beam-highlight', 'blue-beam-intense')
-
-      // 平滑恢复原始样式
-      messageElement.style.transform = 'scale(1)'
-      messageElement.style.zIndex = ''
-      messageElement.style.position = ''
-
-      console.log(`🌊 [FlowingBeam] 🚀 Enhanced flowing beam removed from message ${messageElement.dataset.messageId}`)
-      console.log(`🔄 [PerfectSearch] 🎯 DAG-Scroll: Enhanced flowing beam highlight removed after 8 seconds`)
-    }, 8000) // 🌊 从4秒增加到8秒
-
-    return { success: true, scrolled: true, effect: 'enhanced_flowing_beam' }
 
   } catch (error) {
-    console.error(`❌ [PerfectSearch] 🎯 DAG-Scroll: Scroll to message failed:`, error)
+    console.error(`❌ [BlueBeamSearch] Blue beam navigation failed:`, error)
     return { success: false, error: error.message }
   }
 }

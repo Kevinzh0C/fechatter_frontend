@@ -240,11 +240,13 @@ function previous() {
 }
 
 function zoomIn() {
-  zoomLevel.value = Math.min(zoomLevel.value * 1.5, 5);
+  // Reduced button zoom sensitivity from 1.5x to 1.25x for more precise control
+  zoomLevel.value = Math.min(zoomLevel.value * 1.25, 5);
 }
 
 function zoomOut() {
-  zoomLevel.value = Math.max(zoomLevel.value / 1.5, 0.5);
+  // Reduced button zoom sensitivity from 1.5x to 1.25x for more precise control  
+  zoomLevel.value = Math.max(zoomLevel.value / 1.25, 0.5);
   constrainPosition();
 }
 
@@ -259,7 +261,8 @@ function resetView() {
 
 function handleWheel(event) {
   event.preventDefault();
-  const delta = event.deltaY > 0 ? 0.9 : 1.1;
+  // Reduced wheel zoom sensitivity from 0.9/1.1 to 0.95/1.05 for smoother control
+  const delta = event.deltaY > 0 ? 0.95 : 1.05;
   const newZoom = Math.max(0.5, Math.min(5, zoomLevel.value * delta));
   zoomLevel.value = newZoom;
   constrainPosition();
@@ -311,10 +314,15 @@ function handleDrag(event) {
         y: event.touches[0].clientY - dragStart.value.y
       };
     } else if (event.touches.length === 2 && touchStartDistance > 0) {
-      // Pinch zoom
+      // Pinch zoom with reduced sensitivity
       const currentDistance = getTouchDistance(event.touches);
-      const scale = currentDistance / touchStartDistance;
-      zoomLevel.value = Math.max(0.5, Math.min(5, zoomLevel.value * scale));
+      const rawScale = currentDistance / touchStartDistance;
+      
+      // Apply sensitivity dampening: reduce the scale change by 50%
+      const dampening = 0.5;
+      const dampenedScale = 1 + (rawScale - 1) * dampening;
+      
+      zoomLevel.value = Math.max(0.5, Math.min(5, zoomLevel.value * dampenedScale));
       touchStartDistance = currentDistance;
     }
   }

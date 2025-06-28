@@ -357,7 +357,7 @@ const performanceStats = computed(() => {
 });
 
 const isDev = computed(() => {
-  return import.meta.env.DEV;
+  return true;
 });
 
 // Debounced Search Function - Cognitive Load Optimization

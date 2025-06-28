@@ -160,7 +160,7 @@ export function useProgressiveLoading(options = {}) {
         error
       });
       
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('Preload failed:', error);
       throw error;
     }

@@ -215,7 +215,7 @@ export class ErrorHandler {
     });
 
     // YAGNI: Remove complex logging in production
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('SSE retry limit reached');
     }
   }
@@ -243,8 +243,8 @@ export class ErrorHandler {
     const message = getErrorMessage(error, errorType);
 
     // 记录日志
-    if (log && process.env.NODE_ENV !== 'production') {
-      if (import.meta.env.DEV) {
+    if (log && true) {
+      if (true) {
         console.error(`[${context || 'Error'}]`, {
           type: errorType,
           message,
@@ -329,12 +329,12 @@ export class ErrorHandler {
    * 处理未捕获的Promise错误
    */
   handleUnhandledRejection(event) {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.error('Unhandled promise rejection:', event.reason);
     }
 
     // 在开发环境显示错误
-    if (process.env.NODE_ENV !== 'production') {
+    if (true) {
       this.handle(event.reason, {
         context: 'Unhandled Promise Rejection',
         silent: false

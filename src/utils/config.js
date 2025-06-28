@@ -1,64 +1,63 @@
 /**
  * Application Configuration Management
- * Centralizes environment variables and provides type-safe configuration access
+ * Simplified - Development mode defaults only
  */
 
 // =============================================================================
-// Environment Configuration
+// Simplified Configuration - Development Defaults Only
 // =============================================================================
 
-// 统一配置文件 - 通过vite代理访问，避免CORS
 export const config = {
-  // API配置 - 使用相对路径
-  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
-  sseURL: import.meta.env.VITE_SSE_URL || '/events',
-  fileBaseURL: import.meta.env.VITE_FILE_BASE_URL || '/files',
-  timeout: parseInt(import.meta.env.VITE_REQUEST_TIMEOUT) || 15000,
-  maxRetries: parseInt(import.meta.env.VITE_MAX_RETRIES) || 3,
-  retryDelay: parseInt(import.meta.env.VITE_RETRY_DELAY) || 1000,
+  // API configuration - simplified to development defaults
+  baseURL: '/api',  // Always use Vite proxy for localhost, direct ngrok for remote
+  sseURL: '/events',
+  fileBaseURL: '/files',
+  timeout: 15000,
+  maxRetries: 3,
+  retryDelay: 1000,
 
   // Application Configuration
   app: {
-    name: import.meta.env.VITE_APP_NAME || 'Fechatter',
-    version: import.meta.env.VITE_APP_VERSION || '1.0.0',
-    description: import.meta.env.VITE_APP_DESCRIPTION || 'Modern team chat application',
-    environment: import.meta.env.MODE || 'development',
+    name: 'Fechatter',
+    version: '1.0.0',
+    description: 'Modern team chat application',
+    environment: 'development',  // Always development
   },
 
-  // Development Configuration
+  // Development Configuration - always enabled
   dev: {
-    debug: import.meta.env.VITE_DEBUG === 'true',
-    enableDevtools: import.meta.env.VITE_ENABLE_DEVTOOLS === 'true',
-    isDevelopment: import.meta.env.DEV,
-    isProduction: import.meta.env.PROD,
+    debug: true,  // Always debug mode
+    enableDevtools: true,
+    isDevelopment: true,  // Always development
+    isProduction: false,  // Never production
   },
 
-  // Feature Flags
+  // Feature Flags - all enabled for development
   features: {
-    fileUpload: import.meta.env.VITE_ENABLE_FILE_UPLOAD !== 'false',
-    voiceMessages: import.meta.env.VITE_ENABLE_VOICE_MESSAGES === 'true',
-    videoCalls: import.meta.env.VITE_ENABLE_VIDEO_CALLS === 'true',
-    notifications: import.meta.env.VITE_ENABLE_NOTIFICATIONS !== 'false',
-    darkMode: import.meta.env.VITE_ENABLE_DARK_MODE !== 'false',
-    animations: import.meta.env.VITE_ENABLE_ANIMATIONS !== 'false',
+    fileUpload: true,
+    voiceMessages: true,
+    videoCalls: true,
+    notifications: true,
+    darkMode: true,
+    animations: true,
   },
 
   // UI Configuration
   ui: {
-    defaultTheme: import.meta.env.VITE_DEFAULT_THEME || 'light',
-    lazyLoading: import.meta.env.VITE_LAZY_LOADING !== 'false',
-    imageOptimization: import.meta.env.VITE_IMAGE_OPTIMIZATION !== 'false',
+    defaultTheme: 'light',
+    lazyLoading: true,
+    imageOptimization: true,
   },
 
   // Performance Configuration
   performance: {
-    cacheDuration: parseInt(import.meta.env.VITE_CACHE_DURATION) || 3600,
+    cacheDuration: 3600,
   },
 
   // Security Configuration
   security: {
-    enableCSP: import.meta.env.VITE_ENABLE_CSP !== 'false',
-    allowedOrigins: (import.meta.env.VITE_ALLOWED_ORIGINS || 'http://localhost:*,http://127.0.0.1:*').split(','),
+    enableCSP: true,
+    allowedOrigins: ['http://localhost:*', 'http://127.0.0.1:*', 'https://*.vercel.app', 'https://*.trycloudflare.com'],
   },
 };
 
@@ -89,21 +88,21 @@ export const getAppConfig = () => ({ ...config.app });
 
 /**
  * Check if running in development mode
- * @returns {boolean} True if in development mode
+ * @returns {boolean} Always true (simplified)
  */
-export const isDevelopment = () => config.dev.isDevelopment;
+export const isDevelopment = () => true;
 
 /**
  * Check if running in production mode
- * @returns {boolean} True if in production mode
+ * @returns {boolean} Always false (simplified)
  */
-export const isProduction = () => config.dev.isProduction;
+export const isProduction = () => false;
 
 /**
  * Check if debug mode is enabled
- * @returns {boolean} True if debug mode is enabled
+ * @returns {boolean} Always true (simplified)
  */
-export const isDebugEnabled = () => config.dev.debug;
+export const isDebugEnabled = () => true;
 
 /**
  * Get environment-specific configuration
@@ -126,20 +125,14 @@ export const getEnvConfig = (key, defaultValue = null) => {
 };
 
 /**
- * Validate required environment variables
- * @returns {object} Validation result with missing variables
+ * Validate required environment variables - simplified
+ * @returns {object} Always valid (simplified)
  */
 export const validateEnvironment = () => {
-  const required = [
-    'VITE_API_BASE_URL',
-  ];
-
-  const missing = required.filter(key => !import.meta.env[key]);
-
   return {
-    isValid: missing.length === 0,
-    missing,
-    warnings: missing.length > 0 ? ['Some environment variables are missing'] : [],
+    isValid: true,
+    missing: [],
+    warnings: [],
   };
 };
 
@@ -148,10 +141,6 @@ export const validateEnvironment = () => {
  * @returns {object} Configuration summary
  */
 export const getConfigSummary = () => {
-  if (!config.dev.debug) {
-    return { debug: 'Debug mode disabled' };
-  }
-
   return {
     api: {
       baseURL: config.baseURL,
@@ -166,33 +155,16 @@ export const getConfigSummary = () => {
 };
 
 /**
- * Initialize configuration and perform validations
+ * Initialize configuration and perform validations - simplified
  */
 export const initializeConfig = () => {
-  const validation = validateEnvironment();
+  console.group('🔧 Fechatter Configuration (Simplified)');
+  console.log('Environment: development (always)');
+  console.log('API Base URL:', config.baseURL);
+  console.log('Features:', config.features);
+  console.groupEnd();
 
-  if (config.dev.debug) {
-    console.group('🔧 Fechatter Configuration');
-    if (import.meta.env.DEV) {
-      console.log('Environment:', config.app.environment);
-    }
-    if (import.meta.env.DEV) {
-      console.log('API Base URL:', config.baseURL);
-    }
-    if (import.meta.env.DEV) {
-      console.log('Features:', config.features);
-    }
-
-    if (!validation.isValid) {
-      if (import.meta.env.DEV) {
-        console.warn('Missing environment variables:', validation.missing);
-      }
-    }
-
-    console.groupEnd();
-  }
-
-  return validation;
+  return validateEnvironment();
 };
 
 // =============================================================================

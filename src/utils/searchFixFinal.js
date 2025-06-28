@@ -12,9 +12,9 @@ class SearchFixFinal {
    * Main fix method - run all fixes
    */
   async runFix() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🔍 [SEARCH FIX] Starting comprehensive search fix...');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('=================================================');
     }
 
@@ -28,12 +28,12 @@ class SearchFixFinal {
       // Step 3: Apply permanent fix if needed
       await this.applyPermanentFix();
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('\n✅ [SEARCH FIX] Complete!');
       }
 
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('❌ [SEARCH FIX] Failed:', error);
       }
 
@@ -41,7 +41,7 @@ class SearchFixFinal {
    * Step 1: Refresh authentication token
    */
   async refreshAuth() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n1️⃣ Refreshing authentication...');
     }
 
@@ -72,7 +72,7 @@ class SearchFixFinal {
             issuedAt: Date.now()
           });
 
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log('✅ Token refreshed and saved to tokenManager');
           }
 
@@ -85,7 +85,7 @@ class SearchFixFinal {
         if (authStore) {
           authStore.token = token;
           authStore.user = data.data.user;
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log('✅ Auth store updated');
           }
 
@@ -95,7 +95,7 @@ class SearchFixFinal {
       }
 
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('❌ Auth refresh failed:', error);
       throw error;
     }
@@ -104,7 +104,7 @@ class SearchFixFinal {
    * Step 2: Test search with fresh token
    */
   async testSearchWithFreshToken() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n2️⃣ Testing search with fresh token...');
     }
 
@@ -126,7 +126,7 @@ class SearchFixFinal {
       });
 
       const data = await response.json();
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('📊 Direct API response:', data);
       }
 
@@ -138,14 +138,14 @@ class SearchFixFinal {
           limit: 5
         });
 
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('📊 SearchService response:', serviceResponse);
         }
 
       return true;
 
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('❌ Search test failed:', error);
       return false;
     }
@@ -154,7 +154,7 @@ class SearchFixFinal {
    * Step 3: Apply permanent fix
    */
   async applyPermanentFix() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n3️⃣ Applying permanent fix...');
     }
 
@@ -166,14 +166,14 @@ class SearchFixFinal {
 
       if (updateApiInstance) {
         updateApiInstance();
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('✅ API instance updated');
         }
 
     // Fix 2: Clear search state manager cache
     if (window.searchStateManager) {
       window.searchStateManager.reset();
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('✅ Search state manager reset');
       }
 
@@ -185,11 +185,11 @@ class SearchFixFinal {
         const chatStore = window.pinia._s.get('chat');
         if (chatStore && chatStore.fetchChatDataParallel) {
           await chatStore.fetchChatDataParallel(parseInt(chatId));
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log('✅ Chat data reloaded');
           }
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('✅ All fixes applied');
     }
 
@@ -197,7 +197,7 @@ class SearchFixFinal {
    * Quick fix method - just refresh token and clear cache
    */
   async quickFix() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('⚡ [QUICK FIX] Running quick search fix...');
     }
 
@@ -210,25 +210,25 @@ class SearchFixFinal {
       // Refresh token
       await this.refreshAuth();
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('✅ Quick fix complete! Try searching again.');
       }
 
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('❌ Quick fix failed:', error);
       }
 
 // Create global instance
 window.searchFixFinal = new SearchFixFinal();
 
-if (import.meta.env.DEV) {
+if (true) {
   console.log('🔍 Search Fix Final loaded');
-if (import.meta.env.DEV) {
+if (true) {
   console.log('💡 Commands:');
-if (import.meta.env.DEV) {
+if (true) {
   console.log('   window.searchFixFinal.runFix() - Run complete fix');
-if (import.meta.env.DEV) {
+if (true) {
   console.log('   window.searchFixFinal.quickFix() - Quick token refresh');
 }
 

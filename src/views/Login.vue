@@ -1,6 +1,6 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-md w-full space-y-8">
+  <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 login-layout-override" data-page="login">
+    <div class="max-w-md w-full space-y-8 login-form-override">
       <div>
         <div class="flex justify-center mb-4">
           <AppIcon :size="64" :preserve-gradient="true" start-color="#6366f1" end-color="#8b5cf6"
@@ -175,7 +175,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, shallowRef } from 'vue';
+import { ref, computed, onMounted, onUnmounted, shallowRef, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import { optimizeLoginPerformance, analyzeLoginPerformance } from '@/utils/login-performance';
@@ -200,7 +200,7 @@ const password = ref('');
 const isSubmitting = ref(false);
 const mounted = ref(false);
 const showDevHints = ref(false);
-const showDevAccounts = ref(false); // Initially hide dev accounts
+const showDevAccounts = ref(true); // 🔧 CRITICAL FIX: 默认展开快速登录，在所有环境下都可用
 const ErrorComponent = shallowRef(null);
 
 // 不再需要轮播状态，改为滚动容器
@@ -255,22 +255,94 @@ const handleAutoFill = (credentials) => {
   fillCredentials(credentials.email, credentials.password);
 };
 
-// Toggle development accounts visibility
-const toggleDevAccounts = () => {
-  showDevAccounts.value = !showDevAccounts.value;
+// Toggle development accounts visibility with state cleanup
+const toggleDevAccounts = async () => {
+  console.log('🔄 [Login] Toggling dev accounts, current state:', showDevAccounts.value);
+  
+  const container = document.querySelector('.dev-accounts-floating-container');
+  const dropdown = document.querySelector('.dev-accounts-dropdown');
+  
+  if (showDevAccounts.value) {
+    // Closing modal - clean up state
+    console.log('🚪 [Login] Closing dev accounts modal');
+    
+    // Add closing state
+    if (container) {
+      container.setAttribute('data-state', 'closing');
+      container.classList.add('state-transitioning');
+    }
+    
+    // Wait for transition
+    await new Promise(resolve => setTimeout(resolve, 200));
+    
+    // Actually close
+    showDevAccounts.value = false;
+    
+    // Clean up DOM state
+    setTimeout(() => {
+      if (container) {
+        container.removeAttribute('data-state');
+        container.classList.remove('state-transitioning');
+      }
+      if (dropdown) {
+        dropdown.removeAttribute('data-modal-state');
+      }
+    }, 50);
+    
+  } else {
+    // Opening modal - reset state first
+    console.log('🚀 [Login] Opening dev accounts modal');
+    
+    // Force reset any residual state
+    if (container) {
+      container.setAttribute('data-state', 'opening');
+      container.classList.add('state-transitioning');
+    }
+    
+    if (dropdown) {
+      dropdown.setAttribute('data-modal-state', 'resetting');
+    }
+    
+    // Wait one frame to ensure DOM update
+    await new Promise(resolve => requestAnimationFrame(resolve));
+    
+    // Actually open
+    showDevAccounts.value = true;
+    
+    // Set to open state
+    setTimeout(() => {
+      if (container) {
+        container.setAttribute('data-state', 'open');
+        container.classList.remove('state-transitioning');
+      }
+      if (dropdown) {
+        dropdown.removeAttribute('data-modal-state');
+      }
+    }, 50);
+  }
+  
+  console.log('✅ [Login] Dev accounts toggle completed, new state:', showDevAccounts.value);
 };
 
 // Handle keyboard events for developer accounts  
 const handleKeyDown = (event) => {
   if (event.key === 'Escape' && showDevAccounts.value) {
-    showDevAccounts.value = false;
+    toggleDevAccounts();
   }
 };
 
 // 简化版登录处理
 const handleSubmit = async () => {
-  // 防止重复提交
-  if (!email.value || !password.value || isLoading.value) {
+  // 🔧 CRITICAL FIX: 简化防重复提交逻辑
+  if (isLoading.value || isSubmitting.value) {
+    console.log('🛡️ [LOGIN] Login already in progress, ignoring duplicate submission');
+    return;
+  }
+
+  // 🔧 CRITICAL FIX: 基本输入验证，不阻塞提交
+  if (!email.value?.trim() || !password.value) {
+    console.warn('⚠️ [LOGIN] Missing credentials');
+    authStore.error = 'Email and password are required';
     return;
   }
 
@@ -278,7 +350,9 @@ const handleSubmit = async () => {
     isSubmitting.value = true;
     authStore.error = null;
 
-    // 显示简洁的登录状态
+    console.log('🔐 [LOGIN] Starting simplified login process...');
+
+    // 显示登录状态
     preloadProgress.value = {
       isVisible: true,
       message: '正在登录...'
@@ -287,118 +361,94 @@ const handleSubmit = async () => {
     // Track login attempt
     const loginStartTime = Date.now();
 
-    // 使用简化的登录方法
+    // 🔧 SIMPLIFIED: 直接调用login，信任authStore实现
     const success = await authStore.login(email.value.trim(), password.value);
 
     if (success) {
+      console.log('✅ [LOGIN] Login successful, proceeding with navigation');
+
       // Track successful login
       analytics.trackUserLogin(email.value.trim(), 'password');
-
-      // Track login performance
-      const loginDuration = Date.now() - loginStartTime;
       analytics.track('navigation', {
         from: 'login_form',
         to: 'authenticated',
-        duration_ms: loginDuration
+        duration_ms: Date.now() - loginStartTime
       });
+
       // 显示成功状态
       preloadProgress.value = {
         isVisible: true,
-        message: '登录成功，验证状态...'
+        message: '登录成功，正在跳转...'
       };
 
-      // 🔧 ENHANCED: Wait for auth state to be fully ready
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // 🔧 CRITICAL FIX: 最小等待时间确保状态同步
+      await new Promise(resolve => setTimeout(resolve, 200));
 
-      // 🔧 ENHANCED: Pre-verification wait with improved timing
-      // 🔧 REFACTORED: Simplified verification - trust the refactored login process
-      if (import.meta.env.DEV) {
-        console.log('🔍 [LOGIN] Verifying refactored auth state...');
-      }
-
-      // 🔧 CRITICAL: Brief stabilization for UI state updates
-      await new Promise(resolve => {
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            setTimeout(resolve, 150); // Brief stabilization only
-          });
+      // 🔧 SIMPLIFIED: 信任导航成功，立即触发ChatBar数据加载
+      console.log('🚀 [LOGIN] Navigating to: /home');
+      await router.push('/home');
+      console.log('✅ [LOGIN] Navigation completed successfully');
+      
+      // 🔧 CRITICAL FIX: 使用事件驱动的ChatBar数据加载，而不是延迟触发
+      try {
+        const { useChatStore } = await import('@/stores/chat');
+        const chatStore = useChatStore();
+        
+        console.log('🎯 [LOGIN] Triggering immediate ChatBar data loading...');
+        
+        // 立即检查并初始化ChatStore
+        if (!chatStore.isInitialized) {
+          await chatStore.initialize();
+        }
+        
+        // 立即加载chats数据
+        await chatStore.fetchChats();
+        
+        console.log(`✅ [LOGIN] ChatBar data loaded: ${chatStore.chats.length} chats`);
+        
+        // 🔧 CRITICAL FIX: 强制触发Vue响应式更新
+        // 触发chatStore的响应式更新，确保App.vue的计算属性立即重新计算
+        chatStore.$patch({
+          // 强制触发响应式更新的技巧
+          _forceUpdate: (chatStore._forceUpdate || 0) + 1,
+          // 确保isInitialized状态是最新的
+          isInitialized: true,
+          // 确保loading状态被重置
+          loading: false
         });
-      });
-
-      // 🔧 CRITICAL FIX: Simplified verification approach to avoid blocking
-      const isAuthReady = await verifyAuthStateReady();
-
-      if (!isAuthReady) {
-        // 🔧 SINGLE RETRY: One simple retry if the first check fails
-        if (import.meta.env.DEV) {
-          console.warn('🚨 [LOGIN] Initial auth verification failed, attempting one retry...');
-        }
-
-        await new Promise(resolve => setTimeout(resolve, 100)); // Brief wait
-        const retryResult = await verifyAuthStateReady();
-
-        if (!retryResult) {
-          // 🔧 TOLERANT: Check if we at least have basic auth data
-          const hasBasicAuth = authStore.token && authStore.user;
-          if (!hasBasicAuth) {
-            throw new Error('Authentication failed - no valid auth data found');
-          } else {
-            if (import.meta.env.DEV) {
-              console.warn('⚠️ [LOGIN] Verification failed but basic auth exists - proceeding');
-            }
-          }
-        }
+        
+        // 🔧 NEW: 额外的Vue nextTick确保UI更新
+        await nextTick();
+        
+        // 🔧 NEW: 发送事件通知App.vue ChatBar已经准备好
+        window.dispatchEvent(new CustomEvent('chatbar-ready', { 
+          detail: { 
+            source: 'login', 
+            chatsCount: chatStore.chats.length,
+            timestamp: Date.now()
+          } 
+        }));
+        
+        // 🔧 NEW: 额外确保App.vue收到数据更新
+        // 直接触发App.vue的响应式更新
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('force-sidebar-update', {
+            detail: { chatsCount: chatStore.chats.length }
+          }));
+        }, 100);
+        
+      } catch (chatError) {
+        console.error('❌ [LOGIN] Failed to load ChatBar data:', chatError);
+        // 即使失败也发送事件，让App.vue知道需要备用加载
+        window.dispatchEvent(new CustomEvent('chatbar-load-failed', { 
+          detail: { source: 'login', error: chatError.message } 
+        }));
       }
-
-      // 显示导航状态
-      preloadProgress.value = {
-        isVisible: true,
-        message: '正在跳转...'
-      };
-
-      // 短暂延迟确保UI状态更新
-      await new Promise(resolve => setTimeout(resolve, 150));
-
-      // 🔧 ENHANCED: Better navigation logic with duplicate check
-      const currentPath = window.location.pathname;
-      const redirectPath = sessionStorage.getItem('redirectPath');
-      let targetPath = '/home';
-
-      // Determine target path
-      if (redirectPath && redirectPath !== '/login' && redirectPath !== '/') {
-        sessionStorage.removeItem('redirectPath');
-        targetPath = redirectPath;
-        console.log('🔍 [LOGIN] Redirecting to stored path:', redirectPath);
-      } else {
-        console.log('🔍 [LOGIN] Redirecting to home');
-      }
-
-      // 🔧 CRITICAL FIX: Simplified navigation with better error handling
-      if (currentPath !== targetPath) {
-        try {
-          console.log('🚀 [LOGIN] Navigating from', currentPath, 'to', targetPath);
-
-          await router.push(targetPath);
-          console.log('✅ [LOGIN] Navigation successful to:', targetPath);
-        } catch (error) {
-          const errorName = error?.name || 'Unknown';
-          const errorMessage = error?.message || '';
-
-          if (errorName === 'NavigationDuplicated' || errorMessage.includes('Avoided redundant navigation')) {
-            console.log('🔍 [LOGIN] Navigation duplicate detected - user already at target');
-            return; // This is success, not failure
-          } else {
-            console.warn('⚠️ [LOGIN] Router navigation failed:', error);
-            // Fallback to location.assign for any other navigation issues
-            window.location.assign(targetPath);
-          }
-        }
-      } else {
-        console.log('🔍 [LOGIN] Already at target path, no navigation needed');
-      }
+    } else {
+      throw new Error('Login failed - no success returned from authStore');
     }
   } catch (error) {
-    console.error('Login failed:', error);
+    console.error('❌ [LOGIN] Login failed:', error);
 
     // Track login error
     analytics.trackError(
@@ -409,26 +459,25 @@ const handleSubmit = async () => {
       'login_form'
     );
 
+    // 清除进度显示
     preloadProgress.value = {
       isVisible: false,
       message: ''
     };
 
-    if (authStore.error) {
-      const errorMessage = typeof authStore.error === 'string'
-        ? authStore.error
-        : authStore.error.message || 'Login failed';
-      console.error('Authentication error:', errorMessage);
+    // 显示错误信息
+    if (!authStore.error) {
+      authStore.error = error.message || 'Login failed. Please try again.';
     }
   } finally {
     isSubmitting.value = false;
-    // 清除进度显示
+    // 延迟清除进度显示
     setTimeout(() => {
       preloadProgress.value = {
         isVisible: false,
         message: ''
       };
-    }, 1000);
+    }, 2000);
   }
 };
 
@@ -439,7 +488,7 @@ const verifyAuthStateReady = async () => {
   try {
     // 🔧 ENHANCED: Longer wait for state synchronization stability
     // Give auth.js setImmediateAuthState more time to complete
-    await new Promise(resolve => setTimeout(resolve, 200));
+    await new Promise(resolve => setTimeout(resolve, 500));
 
     // 🔧 ESSENTIAL CHECKS: Only verify what's absolutely necessary
     const hasToken = !!authStore.token && authStore.token.length > 10;
@@ -452,7 +501,7 @@ const verifyAuthStateReady = async () => {
     // 🔧 TOLERANT: Accept if we have functional auth OR store reports auth
     const isReady = hasFunctionalAuth || isAuthReported;
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🔍 [LOGIN] Simplified auth verification:', {
         hasToken,
         hasUser,
@@ -471,58 +520,55 @@ const verifyAuthStateReady = async () => {
   }
 };
 
-onMounted(() => {
-  console.log('🔍 [Login.vue] Component mounted, starting initialization...')
-  mounted.value = true;
-
-  // 🚀 启用性能优化
-  optimizeLoginPerformance();
-
-  // 清除错误状态
-  authStore.error = null;
-
-  // 🎯 添加键盘事件监听器
-  document.addEventListener('keydown', handleKeyDown);
-
-  console.log('🔍 [Login.vue] Looking for TestAccountQuickLogin component...')
-  console.log('🔍 [Login.vue] Components available:', Object.keys(components))
-
-  // 使用 requestAnimationFrame 优化初始化
-  requestAnimationFrame(() => {
-    // 聚焦邮箱输入框
-    const emailInput = document.querySelector('[data-testid="email-input"]');
-    if (emailInput) emailInput.focus();
-
-    // 延迟显示开发提示（避免阻塞初始渲染）
-    setTimeout(() => {
-      showDevHints.value = import.meta.env.DEV;
-      console.log('🔍 [Login.vue] showDevHints set to:', showDevHints.value)
-
-      // 开发环境下显示性能分析
-      if (import.meta.env.DEV) {
-        setTimeout(() => {
-          analyzeLoginPerformance();
-        }, 1000);
-      }
-    }, 100);
-
-    // 检查TestAccountQuickLogin组件是否存在
-    setTimeout(() => {
-      const testAccountElement = document.querySelector('.test-accounts-panel');
-      console.log('🔍 [Login.vue] TestAccountQuickLogin panel element found:', !!testAccountElement);
+onMounted(async () => {
+  console.log('🔍 [Login.vue] Component mounted, starting initialization...');
+  
+  // 🔧 PERFORMANCE: Start timing login performance
+  const loginStartTime = performance.now();
+  
+  try {
+    // 🔧 PERFORMANCE: Batch all synchronous operations first
+    console.log('🔍 [Login.vue] On login page, checking component state...');
+    
+    // Quick auth state check (synchronous)
+    const authStore = useAuthStore();
+    if (authStore.isAuthenticated) {
+      console.log('✅ [Login.vue] User already authenticated, redirecting...');
+      await router.push('/');
+      return;
+    }
+    
+    console.log('✅ [Login.vue] Login component state checked');
+    
+    // 🔧 PERFORMANCE: Initialize UI state immediately
+    showDevHints.value = true;
+    showDevAccounts.value = true;
+    console.log('🔍 [Login.vue] Quick login will be available and visible in all environments');
+    
+    // 🔧 PERFORMANCE: Defer non-critical operations
+    nextTick(() => {
+      console.log('🔍 [Login.vue] Looking for native quick login system...');
       
-      const quickLoginElement = document.querySelector('[data-testid*="test"], [class*="test-account"], .test-accounts-panel');
-      console.log('🔍 [Login.vue] Any test account related element found:', !!quickLoginElement);
-    }, 2000);
-  });
-
-  // 预加载错误组件（在空闲时间）
-  if ('requestIdleCallback' in window) {
-    requestIdleCallback(() => {
-      loadErrorComponent();
+      // Quick DOM checks (non-blocking)
+      const devHintsTrigger = document.querySelector('[data-dev-hints-trigger]');
+      const nativeDevAccounts = document.querySelectorAll('[data-native-dev-account]');
+      
+      console.log('🔍 [Login.vue] Dev hints trigger element found:', !!devHintsTrigger);
+      console.log('🔍 [Login.vue] Native dev account elements found:', nativeDevAccounts.length);
+      
+      // 🔧 PERFORMANCE: Log completion time
+      const loginEndTime = performance.now();
+      const loginDuration = Math.round(loginEndTime - loginStartTime);
+      console.log(`Login performance: ${loginDuration}ms`);
+      
+      // 🔧 PERFORMANCE: Only warn if significantly slow
+      if (loginDuration > 500) {
+        console.warn(`⚠️ [Login.vue] Slow login initialization: ${loginDuration}ms`);
+      }
     });
-  } else {
-    setTimeout(loadErrorComponent, 200);
+    
+  } catch (error) {
+    console.error('❌ [Login.vue] Initialization error:', error);
   }
 });
 

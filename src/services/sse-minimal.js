@@ -1,407 +1,668 @@
 /**
- * Minimal SSE Service
- * Following Frontend Design Principles:
- * - Local State First
- * - YAGNI (You Aren't Gonna Need It)
- * - Function > Class where possible
- * - One Screen Rule (errors should be unobtrusive)
+ * Industry-Standard SSE Service
+ * Following best practices from MDN, WHATWG, and real-world implementations
  * 
- * 🚀 CRITICAL FIX: Auto-reregister listeners on reconnection
+ * Key principles:
+ * 1. Trust the browser's EventSource API
+ * 2. Keep it simple and stupid (KISS)
+ * 3. Let the browser handle reconnection
+ * 4. Minimal application-level intervention
  */
 
-import { SIMPLE_SSE_CONFIG, getUserFriendlyError } from '@/config/sse-simple-config';
-
-class MinimalSSEService {
+class StandardSSEService {
   constructor() {
-    // Minimal state - only what we actually need
     this.eventSource = null;
-    this.retryCount = 0;
     this.listeners = new Map();
-
-    // No complex state management - just connected or not
-    this.connected = false;
-
-    // 🚀 NEW: Store listener registration callbacks for auto-reregistration
-    this.listenerRegistrators = new Set();
-    this.lastToken = null;
+    this.listenerRegistrators = new Set(); // 🆕 Store registrator functions
+    this.isConnected = false;
+    this.url = null;
+    this.fallbackTimer = null;
+    this.useFallback = false;
+    this.connectionAttempts = 0;
+    this.lastPollTime = 0; // 🆕 Track last poll to avoid duplicates
+    this.seenMessageIds = new Set(); // 🆕 Track seen messages to avoid duplicates
   }
 
   /**
-   * 🚀 NEW: Register a listener registrator for auto-reregistration
+   * 🆕 Add listener registrator function (required by chat store)
    */
-  addListenerRegistrator(registrator) {
-    if (typeof registrator === 'function') {
-      this.listenerRegistrators.add(registrator);
-
-      if (import.meta.env.DEV) {
-        console.log(`📡 [SSE] Added listener registrator. Total: ${this.listenerRegistrators.size}`);
-      }
-    }
-  }
-
-  /**
-   * 🚀 NEW: Remove a listener registrator
-   */
-  removeListenerRegistrator(registrator) {
-    this.listenerRegistrators.delete(registrator);
-
-    if (import.meta.env.DEV) {
-      console.log(`📡 [SSE] Removed listener registrator. Total: ${this.listenerRegistrators.size}`);
+  addListenerRegistrator(registratorFn) {
+    if (typeof registratorFn === 'function') {
+      this.listenerRegistrators.add(registratorFn);
+      console.log('[SSE] Listener registrator added');
+    } else {
+      console.warn('[SSE] Invalid registrator function provided');
     }
   }
 
   /**
-   * 🚀 NEW: Auto-reregister all listeners after reconnection
+   * 🆕 Re-register all listeners (called after reconnection)
    */
-  _reregisterAllListeners() {
-    if (this.listenerRegistrators.size === 0) {
-      if (import.meta.env.DEV) {
-        console.warn('⚠️ [SSE] No listener registrators available for reregistration');
-      }
-      return;
-    }
-
-    if (import.meta.env.DEV) {
-      console.log(`🔄 [SSE] Auto-reregistering ${this.listenerRegistrators.size} listener registrators...`);
-    }
-
-    // Clear existing listeners
-    this.listeners.clear();
-
-    // Re-register all listeners
+  reregisterListeners() {
     this.listenerRegistrators.forEach(registrator => {
       try {
         registrator();
-        if (import.meta.env.DEV) {
-          console.log('✅ [SSE] Successfully re-registered listeners via registrator');
-        }
+        console.log('[SSE] Listener re-registered successfully');
       } catch (error) {
-        if (import.meta.env.DEV) {
-          console.error('❌ [SSE] Failed to re-register listeners:', error);
-        }
+        console.warn('[SSE] Failed to re-register listener:', error);
       }
     });
-
-    if (import.meta.env.DEV) {
-      const totalListeners = Array.from(this.listeners.values()).reduce((sum, arr) => sum + arr.length, 0);
-      console.log(`✅ [SSE] Reregistration complete. Total listeners: ${totalListeners}`);
-    }
   }
 
   /**
-   * Connect to SSE - keep it simple
+   * Connect to SSE endpoint
+   * 🔧 ENHANCED: Better authentication and error handling
    */
-  connect(token) {
-    // 🚀 CRITICAL DEBUG: Add comprehensive logging
-    if (import.meta.env.DEV) {
-      console.log('🔗 [SSE] connect() called with token:', token ? `${token.substring(0, 10)}...` : 'null');
-    }
-
-    // Store token for reconnection
-    this.lastToken = token;
-
-    // 🚀 CRITICAL FIX: Validate token before attempting connection
-    if (!token) {
-      if (import.meta.env.DEV) {
-        console.error('❌ [SSE] Cannot connect: No token provided');
-      }
-      return;
-    }
-
-    // 🚀 CRITICAL FIX: Validate token format
-    if (typeof token !== 'string' || token.length < 10) {
-      if (import.meta.env.DEV) {
-        console.error('❌ [SSE] Invalid token format:', typeof token, token?.length);
-      }
-      return;
-    }
-
-    // Already connected? Done.
-    if (this.connected && this.eventSource) {
-      if (import.meta.env.DEV) {
-        console.log('✅ [SSE] Already connected, skipping');
-      }
-      return;
-    }
-
-    // 🚀 CRITICAL FIX: Always try real SSE connection, no mock mode
-    // Removed offline check that was causing mock mode
-
-    try {
-      // 🚀 CRITICAL FIX: Enhanced URL construction with validation
-      const baseUrl = import.meta.env.VITE_SSE_URL || '/events';
-      const fullUrl = `${baseUrl}?access_token=${encodeURIComponent(token)}`;
-
-      if (import.meta.env.DEV) {
-        console.log('🚀 [SSE] Creating EventSource with URL:', fullUrl);
-        console.log('🔍 [SSE] Environment check - VITE_SSE_URL:', import.meta.env.VITE_SSE_URL);
-        console.log('🔍 [SSE] Base URL:', baseUrl);
-        console.log('🔍 [SSE] Token length:', token.length);
-        console.log('🔍 [SSE] Full URL length:', fullUrl.length);
-      }
-
-      // 🚀 CRITICAL FIX: Validate URL before EventSource creation
-      try {
-        new URL(fullUrl, window.location.origin);
-        if (import.meta.env.DEV) {
-          console.log('✅ [SSE] URL validation passed');
-        }
-      } catch (urlError) {
-        if (import.meta.env.DEV) {
-          console.error('❌ [SSE] Invalid URL construction:', urlError);
-        }
-        return;
-      }
-
-      if (import.meta.env.DEV) {
-        console.log('🎯 [SSE] About to create EventSource...');
-      }
-
-      this.eventSource = new EventSource(fullUrl);
-
-      if (import.meta.env.DEV) {
-        console.log('✅ [SSE] EventSource object created successfully');
-        console.log('🔍 [SSE] EventSource initial readyState:', this.eventSource.readyState);
-        console.log('🔍 [SSE] EventSource URL property:', this.eventSource.url);
-      }
-
-      // Success handler - 🚀 CRITICAL FIX: Defensive against null EventSource
-      this.eventSource.onopen = (event) => {
-        this.connected = true;
-        this.retryCount = 0;
-
-        if (import.meta.env.DEV) {
-          console.log('✅ [SSE] CONNECTION OPENED! Real-time updates connected');
-
-          // 🚀 CRITICAL FIX: Use event.target instead of this.eventSource to avoid null reference
-          const eventSource = event.target || this.eventSource;
-          if (eventSource) {
-            console.log('🌐 [SSE] EventSource URL:', eventSource.url);
-            console.log('📡 [SSE] ReadyState:', eventSource.readyState);
-          } else {
-            console.log('⚠️ [SSE] EventSource reference is null, but connection opened');
-          }
-        }
-
-        // 🚀 CRITICAL FIX: Auto-reregister listeners on successful connection
-        if (this.listenerRegistrators.size > 0) {
-          setTimeout(() => {
-            this._reregisterAllListeners();
-          }, 100); // Small delay to ensure connection is stable
-        }
-      };
-
-      // Message handler - delegate to listeners
-      this.eventSource.onmessage = (event) => {
-        if (import.meta.env.DEV) {
-          console.log('📨 [SSE] Message received:', event.data.substring(0, 100));
-        }
-        this.handleMessage(event);
-      };
-
-      // 🚀 CRITICAL FIX: Enhanced error handler with detailed diagnostics
-      this.eventSource.onerror = (error) => {
-        if (import.meta.env.DEV) {
-          console.error('❌ [SSE] EventSource error event:', error);
-          console.log('🔍 [SSE] Error event details:');
-          console.log('  - Type:', error.type);
-          console.log('  - Target:', error.target);
-
-          // 🚀 CRITICAL FIX: Use event.target as fallback if this.eventSource is null
-          const eventSource = error.target || this.eventSource;
-          console.log('  - ReadyState at error:', eventSource?.readyState);
-          console.log('  - URL at error:', eventSource?.url);
-
-          // Log readyState meanings
-          const readyStates = {
-            0: 'CONNECTING',
-            1: 'OPEN',
-            2: 'CLOSED'
-          };
-          console.log(`  - ReadyState meaning: ${readyStates[eventSource?.readyState] || 'UNKNOWN'}`);
-
-          // Check if this is an immediate failure (readyState still 0)
-          if (eventSource?.readyState === 0) {
-            console.error('🚨 [SSE] IMMEDIATE CONNECTION FAILURE - EventSource never connected');
-            console.log('💡 [SSE] This suggests URL, token, or network issues');
-            console.log('💡 [SSE] Check browser Network tab for failed requests');
-          } else if (eventSource?.readyState === 2) {
-            console.error('🚨 [SSE] CONNECTION CLOSED - EventSource was closed');
-            console.log('💡 [SSE] This suggests server closed the connection');
-          }
-        }
-        this.handleError(error);
-      };
-
-      // 🚀 CRITICAL DEBUG: Monitor EventSource state changes
-      if (import.meta.env.DEV) {
-        setTimeout(() => {
-          console.log('🔍 [SSE] EventSource state after 1 second:');
-          console.log(`  - ReadyState: ${this.eventSource?.readyState}`);
-          console.log(`  - Connected flag: ${this.connected}`);
-
-          if (this.eventSource?.readyState === 0) {
-            console.warn('⚠️ [SSE] Still CONNECTING after 1 second - this may indicate issues');
-          }
-        }, 1000);
-
-        setTimeout(() => {
-          console.log('🔍 [SSE] EventSource state after 3 seconds:');
-          console.log(`  - ReadyState: ${this.eventSource?.readyState}`);
-          console.log(`  - Connected flag: ${this.connected}`);
-
-          if (this.eventSource?.readyState === 0) {
-            console.error('❌ [SSE] STILL CONNECTING after 3 seconds - connection likely failed');
-            console.log('💡 [SSE] Check proxy logs for /events requests');
-            console.log('💡 [SSE] If no /events requests, EventSource creation failed silently');
-          }
-        }, 3000);
-      }
-
-    } catch (error) {
-      // 🚀 CRITICAL FIX: Enhanced error handling with detailed diagnostics
-      this.connected = false;
-      if (import.meta.env.DEV) {
-        console.error('❌ [SSE] EventSource creation failed with exception:', error);
-        console.log('🔍 [SSE] Exception details:');
-        console.log('  - Name:', error.name);
-        console.log('  - Message:', error.message);
-        console.log('  - Stack:', error.stack);
-
-        if (error.name === 'SecurityError') {
-          console.error('🚨 [SSE] SECURITY ERROR - URL or origin issue');
-          console.log('💡 [SSE] Check CORS configuration or URL format');
-        } else if (error.name === 'SyntaxError') {
-          console.error('🚨 [SSE] SYNTAX ERROR - Invalid URL format');
-          console.log('💡 [SSE] Check URL construction logic');
-        }
-      }
-    }
-  }
-
-  /**
-   * Handle errors with minimal disruption and smart backoff
-   */
-  handleError(error) {
-    this.connected = false;
-
-    // 🚀 CRITICAL FIX: Enhanced error classification to prevent endless loops
-    const eventSource = error.target || this.eventSource;
-    const isImmediateFailure = eventSource?.readyState === 0;
-    const isConnectionClosed = eventSource?.readyState === 2;
-
-    if (import.meta.env.DEV) {
-      console.log('🔍 [SSE] Error classification:');
-      console.log(`  - Immediate failure: ${isImmediateFailure}`);
-      console.log(`  - Connection closed: ${isConnectionClosed}`);
-      console.log(`  - Current retry count: ${this.retryCount}`);
-    }
-
-    // Close the connection
-    if (this.eventSource) {
-      this.eventSource.close();
-      this.eventSource = null;
-    }
-
-    // 🚀 CRITICAL FIX: Prevent endless retry loops for persistent failures
-    if (isImmediateFailure && this.retryCount >= 1) {
-      if (import.meta.env.DEV) {
-        console.error('🚨 [SSE] PERSISTENT CONNECTION FAILURE - stopping retries');
-        console.log('💡 [SSE] This suggests server/proxy issues that won\'t resolve with retries');
-      }
-      return; // Stop retrying for immediate failures after first attempt
-    }
-
-    // Should we retry?
-    if (this.retryCount < SIMPLE_SSE_CONFIG.MAX_RETRIES) {
-      this.retryCount++;
-
-      // 🚀 ENHANCED: Progressive backoff for different error types
-      let retryDelay = SIMPLE_SSE_CONFIG.RETRY_DELAY;
-
-      if (isImmediateFailure) {
-        // Longer delay for immediate failures (likely server/proxy issues)
-        retryDelay = Math.min(10000, SIMPLE_SSE_CONFIG.RETRY_DELAY * Math.pow(2, this.retryCount));
-        if (import.meta.env.DEV) {
-          console.log(`⏱️ [SSE] Using extended backoff: ${retryDelay}ms for immediate failure`);
-        }
-      } else if (isConnectionClosed) {
-        // Standard delay for normal disconnections
-        retryDelay = SIMPLE_SSE_CONFIG.RETRY_DELAY;
-        if (import.meta.env.DEV) {
-          console.log(`⏱️ [SSE] Using standard retry delay: ${retryDelay}ms for closed connection`);
-        }
-      }
-
-      if (import.meta.env.DEV) {
-        console.log(`🔄 [SSE] Scheduling retry ${this.retryCount}/${SIMPLE_SSE_CONFIG.MAX_RETRIES} in ${retryDelay}ms`);
-      }
-
-      // Simple retry with calculated delay
-      setTimeout(() => {
-        if (this.lastToken && this.retryCount <= SIMPLE_SSE_CONFIG.MAX_RETRIES) {
-          if (import.meta.env.DEV) {
-            console.log(`🔄 [SSE] Executing retry ${this.retryCount}/${SIMPLE_SSE_CONFIG.MAX_RETRIES}`);
-          }
-          this.connect(this.lastToken);
-        }
-      }, retryDelay);
-
-      // Silent retry - no error messages
-      if (SIMPLE_SSE_CONFIG.SILENT_AFTER_FIRST_FAILURE && this.retryCount > 1) {
-        return;
-      }
+  async connect(token = null) {
+    this.connectionAttempts++;
+    
+    // 🔧 ENHANCED: Better environment detection
+    const currentPort = window.location.port;
+    const isViteEnv = currentPort === '5173' || currentPort === '5174';
+    
+    let baseUrl;
+    if (isViteEnv) {
+      baseUrl = '/events'; // Force proxy
+      console.log('[SSE] Using Vite proxy URL:', baseUrl);
     } else {
-      // 🚀 ENHANCED: Better max retries handling
-      if (import.meta.env.DEV) {
-        console.error(`❌ [SSE] Max retries (${SIMPLE_SSE_CONFIG.MAX_RETRIES}) reached, giving up`);
-        console.log('💡 [SSE] SSE will remain disconnected until manual reconnection or page refresh');
+      // Production or staging environment
+      try {
+        const { getSseUrl } = await import('@/utils/apiUrlResolver.js');
+        baseUrl = await getSseUrl();
+        console.log('[SSE] Using resolved URL:', baseUrl);
+      } catch (error) {
+        console.warn('[SSE] Failed to resolve URL, using fallback:', error);
+        baseUrl = '/events'; // Fallback to relative path
       }
     }
+    
+    if (!baseUrl) {
+      console.error('[SSE] No base URL available');
+      return;
+    }
 
-    // Max retries reached - show simple message if configured
-    const userError = getUserFriendlyError(error);
-    if (userError && !SIMPLE_SSE_CONFIG.SILENT_AFTER_FIRST_FAILURE) {
-      this.showSimpleNotification(userError.message);
+    // 🔧 ENHANCED: Better token retrieval with multiple strategies
+    if (!token) {
+      token = await this.getTokenWithMultipleStrategies();
+    }
+
+    if (!token) {
+      console.error('[SSE] No authentication token available for SSE connection');
+      this.startPollingFallback(null); // Start polling without auth to check connectivity
+      return;
+    }
+
+    // 🆕 NEW: Attempt to refresh token if expired/expiring
+    token = await this.refreshTokenIfNeeded(token);
+    
+    if (!token) {
+      console.error('[SSE] Token expired and refresh failed, user needs to re-login');
+      // Clear auth state to trigger re-login
+      this.clearAuthState();
+      return;
+    }
+
+    // 🔧 ENHANCED: Better token validation
+    if (!this.isValidJWTFormat(token)) {
+      console.error('[SSE] Invalid token format for SSE:', token.substring(0, 20) + '...');
+      return;
+    }
+
+    // Clean URL construction with proper token format
+    this.url = `${baseUrl}?access_token=${encodeURIComponent(token)}`;
+    
+    console.log('[SSE] Attempting connection to:', this.url.replace(/access_token=[^&]+/, 'access_token=***'));
+    
+    // 🔧 NEW: Try SSE first, fallback to polling if fails
+    try {
+      await this.trySSEConnection();
+    } catch (error) {
+      console.warn('[SSE] SSE connection failed, falling back to polling:', error);
+      this.startPollingFallback(token);
     }
   }
 
-  // 🚀 CRITICAL FIX: Mock mode completely removed
-  // No fake connections - only real SSE connections allowed
+  /**
+   * 🔧 ENHANCED: Multi-strategy token retrieval with proper error handling
+   */
+  async getTokenWithMultipleStrategies() {
+    const strategies = [
+      // Strategy 1: Direct localStorage (fastest, most reliable)
+      () => {
+        const token = localStorage.getItem('auth_token');
+        if (token && token.length > 20) {
+          console.log('[SSE] Using auth_token from localStorage');
+          return token;
+        }
+        return null;
+      },
+
+      // Strategy 2: Auth store (Vue/Pinia store)
+      async () => {
+        try {
+          const { useAuthStore } = await import('@/stores/auth');
+          const authStore = useAuthStore();
+          const token = authStore.token;
+          if (token && token.length > 20) {
+            console.log('[SSE] Using token from auth store');
+            return token;
+          }
+        } catch (error) {
+          console.warn('[SSE] Failed to get token from auth store:', error);
+        }
+        return null;
+      },
+
+      // Strategy 3: TokenManager (memory-based)
+      async () => {
+        try {
+          if (window.tokenManager) {
+            const token = window.tokenManager.getAccessToken();
+            if (token && token.length > 20) {
+              console.log('[SSE] Using token from tokenManager');
+              return token;
+            }
+          }
+        } catch (error) {
+          console.warn('[SSE] Failed to get token from tokenManager:', error);
+        }
+        return null;
+      },
+
+      // Strategy 4: Alternative localStorage keys
+      () => {
+        const keys = ['access_token', 'token', 'fechatter_auth'];
+        for (const key of keys) {
+          const token = localStorage.getItem(key);
+          if (token && token.length > 20) {
+            console.log(`[SSE] Using token from localStorage key: ${key}`);
+            return token;
+          }
+        }
+        return null;
+      }
+    ];
+
+    for (const strategy of strategies) {
+      try {
+        const token = await strategy();
+        if (token) {
+          return token;
+        }
+      } catch (error) {
+        console.warn('[SSE] Token strategy failed:', error);
+      }
+    }
+
+    console.error('[SSE] All token retrieval strategies failed');
+    return null;
+  }
+
+  /**
+   * 🔧 NEW: Validate JWT format and expiry
+   */
+  isValidJWTFormat(token) {
+    if (!token || typeof token !== 'string') return false;
+    const parts = token.split('.');
+    if (parts.length !== 3 || !parts.every(part => part.length > 0)) return false;
+    
+    // 🆕 NEW: Check token expiry
+    try {
+      const payload = JSON.parse(atob(parts[1]));
+      const now = Math.floor(Date.now() / 1000);
+      
+      if (payload.exp && payload.exp <= now) {
+        console.warn('[SSE] Token is expired:', {
+          exp: payload.exp,
+          expDate: new Date(payload.exp * 1000).toISOString(),
+          now: now,
+          nowDate: new Date(now * 1000).toISOString(),
+          expiredSecondsAgo: now - payload.exp
+        });
+        return false;
+      }
+      
+      // 🆕 Warn if token expires soon (within 5 minutes)
+      if (payload.exp && (payload.exp - now) < 300) {
+        console.warn('[SSE] Token expires soon:', {
+          expiresIn: payload.exp - now,
+          expiresAt: new Date(payload.exp * 1000).toISOString()
+        });
+      }
+      
+      return true;
+    } catch (error) {
+      console.warn('[SSE] Failed to decode JWT payload:', error);
+      return false;
+    }
+  }
+
+  /**
+   * 🆕 NEW: Attempt to refresh expired token before connecting
+   */
+  async refreshTokenIfNeeded(token) {
+    if (!token) return null;
+    
+    try {
+      const parts = token.split('.');
+      if (parts.length !== 3) return token; // Not JWT, return as-is
+      
+      const payload = JSON.parse(atob(parts[1]));
+      const now = Math.floor(Date.now() / 1000);
+      
+      // If token is expired or expires within 2 minutes, try to refresh
+      if (payload.exp && (payload.exp - now) < 120) {
+        console.log('[SSE] Token expired or expiring soon, attempting refresh...');
+        
+        // Try to refresh using auth store
+        try {
+          const { useAuthStore } = await import('@/stores/auth');
+          const authStore = useAuthStore();
+          
+          // Check if auth store has token available (auth store doesn't refresh directly)
+          const storeToken = authStore.token;
+          if (storeToken && storeToken !== token && storeToken.length > 20) {
+            console.log('[SSE] Using fresh token from auth store');
+            return storeToken;
+          }
+        } catch (refreshError) {
+          console.warn('[SSE] Token refresh via auth store failed:', refreshError);
+        }
+        
+        // Try to refresh using token manager
+        try {
+          if (window.tokenManager && typeof window.tokenManager.refreshToken === 'function') {
+            await window.tokenManager.refreshToken();
+            const newToken = window.tokenManager.getAccessToken();
+            
+            if (newToken && newToken !== token) {
+              console.log('[SSE] Token refreshed via tokenManager');
+              return newToken;
+            }
+          }
+        } catch (refreshError) {
+          console.warn('[SSE] Token refresh via tokenManager failed:', refreshError);
+        }
+        
+        console.error('[SSE] Unable to refresh expired token, user needs to re-login');
+        return null; // Token expired and can't refresh
+      }
+      
+      return token; // Token is still valid
+    } catch (error) {
+      console.warn('[SSE] Token validation failed:', error);
+      return token; // Return original token if validation fails
+    }
+  }
+
+  /**
+   * Try SSE connection with timeout
+   */
+  async trySSEConnection() {
+    return new Promise((resolve, reject) => {
+      const connectionTimeout = setTimeout(() => {
+        console.warn('[SSE] Connection timeout, SSE service may be unavailable');
+        console.warn('[SSE] EventSource readyState:', this.eventSource?.readyState);
+        console.warn('[SSE] EventSource URL:', this.eventSource?.url);
+        
+        if (this.eventSource) {
+          this.eventSource.close();
+          this.eventSource = null;
+        }
+        reject(new Error('SSE connection timeout'));
+      }, 10000); // 🔧 Increased timeout from 5s to 10s
+
+      try {
+        this.eventSource = new EventSource(this.url);
+        
+        // 🔧 ENHANCED: Better connection monitoring
+        let connectionMonitorInterval = setInterval(() => {
+          if (this.eventSource) {
+            const readyState = this.eventSource.readyState;
+            const states = ['CONNECTING', 'OPEN', 'CLOSED'];
+            console.log(`[SSE] Connection monitor: ${states[readyState]} (${readyState})`);
+            
+            if (readyState === EventSource.CLOSED) {
+              console.warn('[SSE] Connection closed unexpectedly during connection attempt');
+              clearInterval(connectionMonitorInterval);
+              clearTimeout(connectionTimeout);
+              reject(new Error('SSE connection closed unexpectedly'));
+            }
+          }
+        }, 2000); // Check every 2 seconds
+        
+        // Success handler
+        this.eventSource.onopen = () => {
+          clearTimeout(connectionTimeout);
+          clearInterval(connectionMonitorInterval);
+          this.isConnected = true;
+          this.useFallback = false; // 🔧 Clear fallback flag on successful SSE
+          console.log('[SSE] EventSource connected successfully');
+          console.log('[SSE] EventSource URL:', this.eventSource.url);
+          console.log('[SSE] EventSource readyState:', this.eventSource.readyState);
+          // 🆕 Re-register listeners after successful connection
+          this.reregisterListeners();
+          resolve();
+        };
+
+        // Message handler
+        this.eventSource.onmessage = (event) => {
+          this.handleMessage(event);
+        };
+
+        // Error handler - 🔧 ENHANCED with better diagnostics
+        this.eventSource.onerror = (error) => {
+          clearTimeout(connectionTimeout);
+          clearInterval(connectionMonitorInterval);
+          this.isConnected = false;
+          
+          const readyState = this.eventSource?.readyState;
+          const url = this.eventSource?.url;
+          const states = ['CONNECTING', 'OPEN', 'CLOSED'];
+          
+          console.warn('[SSE] EventSource error occurred');
+          console.warn('[SSE] Error readyState:', readyState, `(${states[readyState] || 'UNKNOWN'})`);
+          console.warn('[SSE] Error URL:', url);
+          console.warn('[SSE] Error event:', error);
+          
+          // 🔧 ENHANCED: Provide specific error diagnostics
+          if (readyState === EventSource.CONNECTING) {
+            console.warn('[SSE] Error during connection - likely network or CORS issue');
+          } else if (readyState === EventSource.CLOSED) {
+            console.warn('[SSE] Connection was closed - likely authentication or server issue');
+          }
+          
+          if (this.eventSource) {
+            this.eventSource.close();
+            this.eventSource = null;
+          }
+          
+          reject(new Error(`SSE connection failed - readyState: ${readyState}`));
+        };
+
+        console.log('[SSE] EventSource created, waiting for connection...');
+        console.log('[SSE] EventSource URL:', this.url.replace(/access_token=[^&]+/, 'access_token=***'));
+        console.log('[SSE] EventSource initial readyState:', this.eventSource.readyState);
+        
+      } catch (error) {
+        clearTimeout(connectionTimeout);
+        console.error('[SSE] Failed to create EventSource:', error);
+        console.error('[SSE] Error name:', error.name);
+        console.error('[SSE] Error message:', error.message);
+        reject(error);
+      }
+    });
+  }
+
+  /**
+   * Start HTTP polling as fallback
+   * 🔧 ENHANCED: Smarter polling with current chat awareness
+   */
+  async startPollingFallback(token) {
+    console.log('[SSE] Starting HTTP polling fallback');
+    this.useFallback = true;
+    this.isConnected = true; // Mark as "connected" for API compatibility
+    
+    // 🆕 Re-register listeners for fallback mode too
+    this.reregisterListeners();
+    
+    // 🔧 ENHANCED: Smarter polling interval based on activity
+    const getPollingInterval = () => {
+      const currentChatId = this.getCurrentChatId();
+      if (!currentChatId) return 5000; // 5 seconds if no active chat
+      return 2000; // 2 seconds for active chat
+    };
+    
+    // Poll with dynamic interval
+    this.fallbackTimer = setInterval(async () => {
+      try {
+        await this.pollForMessages(token);
+      } catch (error) {
+        console.warn('[SSE] Polling error:', error);
+      }
+    }, getPollingInterval());
+
+    // Initial poll
+    setTimeout(() => this.pollForMessages(token), 100);
+  }
+
+  /**
+   * Poll for messages using HTTP
+   * 🔧 COMPLETELY FIXED: Use correct existing endpoints with proper auth
+   */
+  async pollForMessages(token) {
+    try {
+      const currentChatId = this.getCurrentChatId();
+      
+      if (!currentChatId) {
+        // 🔧 NEW: If no current chat, poll workspace chats for any new activity
+        await this.pollWorkspaceActivity(token);
+        return;
+      }
+      
+      // 🔧 RATE LIMITING: Avoid too frequent polls
+      const now = Date.now();
+      if (now - this.lastPollTime < 1000) { // Minimum 1 second between polls
+        return;
+      }
+      this.lastPollTime = now;
+      
+      const apiBase = window.location.port === '5173' || window.location.port === '5174' ? 
+                     '' : 'https://hook-nav-attempt-size.trycloudflare.com';
+      
+      if (!token) {
+        console.debug('[SSE] No token available for polling');
+        return;
+      }
+      
+      // 🔧 FIXED: Use correct working chat messages endpoint
+      const response = await fetch(`${apiBase}/api/chat/${currentChatId}/messages?limit=3`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true'
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        
+        // Extract messages from API response (various response formats)
+        const messages = data.data || data.messages || data || [];
+        
+        if (Array.isArray(messages) && messages.length > 0) {
+          // Process messages (they're usually sorted newest first)
+          messages.slice(0, 2).forEach(message => { // Only process latest 2 to avoid spam
+            const messageId = message.id || message.message_id;
+            
+            // 🔧 DEDUPLICATION: Skip if we've already seen this message
+            if (this.seenMessageIds.has(messageId)) {
+              return;
+            }
+            this.seenMessageIds.add(messageId);
+            
+            // Clean up old seen IDs (keep only last 100)
+            if (this.seenMessageIds.size > 100) {
+              const idsArray = Array.from(this.seenMessageIds);
+              this.seenMessageIds.clear();
+              idsArray.slice(-50).forEach(id => this.seenMessageIds.add(id));
+            }
+            
+            // Simulate SSE message format for new messages
+            this.handleMessage({
+              data: JSON.stringify({
+                type: 'new_message',
+                id: messageId,
+                content: message.content,
+                sender_id: message.sender_id,
+                sender: message.sender,
+                chat_id: message.chat_id || currentChatId,
+                created_at: message.created_at,
+                files: message.files || [],
+                mentions: message.mentions || []
+              })
+            });
+          });
+        }
+      } else if (response.status === 401) {
+        console.warn('[SSE] Polling auth failed, token may be expired');
+        
+        // 🆕 Try to refresh token once before giving up
+        try {
+          const refreshedToken = await this.refreshTokenIfNeeded(token);
+          if (refreshedToken && refreshedToken !== token) {
+            console.log('[SSE] Token refreshed during polling, will retry');
+            // Update token for next poll
+            token = refreshedToken;
+            return; // Continue polling with new token
+          }
+        } catch (refreshError) {
+          console.warn('[SSE] Token refresh during polling failed:', refreshError);
+        }
+        
+        // If refresh failed, clear auth state and stop polling
+        console.error('[SSE] Authentication failed and refresh unsuccessful, clearing auth state');
+        this.clearAuthState();
+        
+        // Stop polling to avoid spam
+        if (this.fallbackTimer) {
+          clearInterval(this.fallbackTimer);
+          this.fallbackTimer = null;
+        }
+        
+        // Disconnect SSE service
+        this.isConnected = false;
+        this.useFallback = false;
+      } else {
+        console.warn('[SSE] Polling response not OK:', response.status, response.statusText);
+      }
+    } catch (error) {
+      console.warn('[SSE] Polling request failed:', error);
+      
+      // On network error, reduce polling frequency
+      if (this.fallbackTimer) {
+        clearInterval(this.fallbackTimer);
+        this.fallbackTimer = setInterval(async () => {
+          try {
+            await this.pollForMessages(token);
+          } catch (error) {
+            console.warn('[SSE] Polling error:', error);
+          }
+        }, 10000); // Reduce to every 10 seconds on error
+      }
+    }
+  }
+
+  /**
+   * 🔧 NEW: Poll workspace activity when no active chat
+   */
+  async pollWorkspaceActivity(token) {
+    if (!token) return;
+    
+    try {
+      const apiBase = window.location.port === '5173' || window.location.port === '5174' ? 
+                     '' : 'https://hook-nav-attempt-size.trycloudflare.com';
+      
+      const response = await fetch(`${apiBase}/api/workspace/chats`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true'
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        // Could process workspace-level updates here
+        console.debug('[SSE] Workspace activity poll successful');
+      }
+    } catch (error) {
+      console.debug('[SSE] Workspace activity poll failed:', error);
+    }
+  }
+
+  /**
+   * 🔧 ENHANCED: Get current chat ID from various sources with better reliability
+   */
+  getCurrentChatId() {
+    // Try to get from URL first (most reliable)
+    const urlChatId = window.location.pathname.match(/\/chat\/(\d+)/)?.[1];
+    if (urlChatId) {
+      return parseInt(urlChatId);
+    }
+    
+    // Try Vue router
+    try {
+      if (window.$router?.currentRoute?.value?.params?.id) {
+        const routerId = window.$router.currentRoute.value.params.id;
+        return parseInt(routerId);
+      }
+    } catch (error) {
+      // Router not available
+    }
+    
+    // Try to get from store if available
+    try {
+      const chatStore = window.useChatStore?.();
+      if (chatStore?.currentChatId) {
+        return chatStore.currentChatId;
+      }
+    } catch (error) {
+      // Store not available
+    }
+    
+    // Try from global store access
+    try {
+      if (window.__pinia_stores__?.chat) {
+        const chatStore = window.__pinia_stores__.chat();
+        if (chatStore?.currentChatId) {
+          return chatStore.currentChatId;
+        }
+      }
+    } catch (error) {
+      // Global store not available
+    }
+    
+    return null;
+  }
 
   /**
    * Handle incoming messages
+   * Parse and dispatch to listeners
    */
   handleMessage(event) {
     try {
       const data = JSON.parse(event.data);
-
-      // Notify all listeners for this event type
-      const listeners = this.listeners.get(data.type) || [];
+      
+      // Dispatch to type-specific listeners
+      const eventType = data.type || 'message';
+      const listeners = this.listeners.get(eventType) || [];
+      
       listeners.forEach(callback => {
         try {
           callback(data);
-        } catch (err) {
-          // Listener error - don't crash the service
-          if (import.meta.env.DEV) {
-            console.warn('SSE listener error:', err);
-          }
+        } catch (error) {
+          console.warn('[SSE] Listener error:', error);
         }
       });
-    } catch (err) {
-      // Invalid message - ignore
+      
+    } catch (error) {
+      // Invalid JSON - ignore gracefully
+      console.warn('[SSE] Invalid JSON in message:', event.data);
     }
   }
 
   /**
    * Subscribe to events
+   * Industry standard event listener pattern
    */
   on(eventType, callback) {
     if (!this.listeners.has(eventType)) {
       this.listeners.set(eventType, []);
     }
+    
     this.listeners.get(eventType).push(callback);
-
+    
     // Return unsubscribe function
     return () => {
       const listeners = this.listeners.get(eventType) || [];
@@ -413,118 +674,282 @@ class MinimalSSEService {
   }
 
   /**
-   * Disconnect and cleanup
+   * Disconnect
+   * Clean shutdown including fallback timer
    */
   disconnect() {
-    this.connected = false;
-    this.retryCount = 0;
-
     if (this.eventSource) {
       this.eventSource.close();
       this.eventSource = null;
     }
-
+    
+    // 🔧 NEW: Clean up fallback timer
+    if (this.fallbackTimer) {
+      clearInterval(this.fallbackTimer);
+      this.fallbackTimer = null;
+    }
+    
+    this.isConnected = false;
+    this.useFallback = false;
     this.listeners.clear();
+    this.listenerRegistrators.clear(); // 🆕 Clear registrators too
+    this.seenMessageIds.clear(); // 🆕 Clear seen messages
+    console.log('[SSE] Disconnected and cleaned up');
   }
 
   /**
-   * Get token helper - 🚀 ENHANCED with multiple fallback sources
+   * 🆕 NEW: Clear authentication state when token is expired and can't be refreshed
    */
-  getToken() {
+  clearAuthState() {
     try {
-      // 🚀 CRITICAL FIX: Try multiple token sources in priority order
-
-      // Priority 1: Pinia authStore (same source used in main.js)
-      if (window.__PINIA__?.state?.value?.auth?.token) {
-        const authToken = window.__PINIA__.state.value.auth.token;
-        if (import.meta.env.DEV) {
-          console.log('🎫 [SSE] Token from Pinia authStore:', authToken ? authToken.substring(0, 20) + '...' : 'null');
+      // Clear localStorage auth data
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+      localStorage.removeItem('auth');
+      localStorage.removeItem('auth_user');
+      
+      // Clear tokenManager if available
+      if (window.tokenManager && typeof window.tokenManager.clearTokens === 'function') {
+        window.tokenManager.clearTokens();
+      }
+      
+      // Clear auth store if available
+      import('@/stores/auth').then(({ useAuthStore }) => {
+        const authStore = useAuthStore();
+        if (typeof authStore.clearAuth === 'function') {
+          authStore.clearAuth();
         }
-        return authToken;
-      }
-
-      // Priority 2: tokenManager (for consistency)
-      const tokenManager = window.tokenManager;
-      if (tokenManager?.getAccessToken) {
-        const managerToken = tokenManager.getAccessToken();
-        if (managerToken) {
-          if (import.meta.env.DEV) {
-            console.log('🎫 [SSE] Token from tokenManager:', managerToken.substring(0, 20) + '...');
-          }
-          return managerToken;
-        }
-      }
-
-      // Priority 3: localStorage fallback
-      const localToken = localStorage.getItem('auth_token');
-      if (localToken) {
-        if (import.meta.env.DEV) {
-          console.log('🎫 [SSE] Token from localStorage fallback:', localToken.substring(0, 20) + '...');
-        }
-        return localToken;
-      }
-
-      if (import.meta.env.DEV) {
-        console.warn('⚠️ [SSE] No token found in any source!');
-      }
-      return null;
-
+      }).catch(() => {
+        // Auth store not available, ignore
+      });
+      
+      console.log('[SSE] Authentication state cleared due to expired token');
     } catch (error) {
-      if (import.meta.env.DEV) {
-        console.error('❌ [SSE] Error getting token:', error);
+      console.warn('[SSE] Failed to clear auth state:', error);
+    }
+  }
+
+  /**
+   * Get authentication token (DEPRECATED - use getTokenWithMultipleStrategies)
+   * Kept for backward compatibility
+   */
+  async getToken() {
+    return this.getTokenWithMultipleStrategies();
+  }
+
+  /**
+   * Get connection status
+   */
+  get connected() {
+    return this.isConnected && (this.eventSource?.readyState === EventSource.OPEN || this.useFallback);
+  }
+
+  /**
+   * Get ready state
+   */
+  get readyState() {
+    if (this.useFallback) return 1; // Simulate OPEN state for fallback
+    return this.eventSource?.readyState || EventSource.CLOSED;
+  }
+
+  /**
+   * 🔧 NEW: Diagnostic method to test SSE connection independently
+   */
+  async diagnoseSSEConnection(token = null) {
+    console.log('🔍 [SSE DIAGNOSIS] Starting SSE connection diagnosis...');
+    
+    if (!token) {
+      token = await this.getTokenWithMultipleStrategies();
+    }
+    
+    if (!token) {
+      console.error('🔍 [SSE DIAGNOSIS] No token available for diagnosis');
+      return { success: false, error: 'No authentication token' };
+    }
+    
+    // Validate token format
+    if (!this.isValidJWTFormat(token)) {
+      console.error('🔍 [SSE DIAGNOSIS] Invalid token format');
+      return { success: false, error: 'Invalid token format' };
+    }
+    
+    // Test URL construction
+    const currentPort = window.location.port;
+    const isViteEnv = currentPort === '5173' || currentPort === '5174';
+    const baseUrl = isViteEnv ? '/events' : 'https://hook-nav-attempt-size.trycloudflare.com/events';
+    const testUrl = `${baseUrl}?access_token=${encodeURIComponent(token)}`;
+    
+    console.log('🔍 [SSE DIAGNOSIS] Test URL:', testUrl.replace(/access_token=[^&]+/, 'access_token=***'));
+    console.log('🔍 [SSE DIAGNOSIS] Environment:', isViteEnv ? 'Vite (proxy)' : 'Production');
+    
+    return new Promise((resolve) => {
+      const timeout = setTimeout(() => {
+        if (testEventSource) {
+          testEventSource.close();
+        }
+        console.warn('🔍 [SSE DIAGNOSIS] Connection test timed out after 15 seconds');
+        resolve({ 
+          success: false, 
+          error: 'Connection timeout',
+          readyState: testEventSource?.readyState,
+          url: testUrl
+        });
+      }, 15000);
+      
+      let testEventSource;
+      
+      try {
+        testEventSource = new EventSource(testUrl);
+        console.log('🔍 [SSE DIAGNOSIS] EventSource created, initial readyState:', testEventSource.readyState);
+        
+        testEventSource.onopen = () => {
+          clearTimeout(timeout);
+          console.log('✅ [SSE DIAGNOSIS] Connection successful!');
+          console.log('🔍 [SSE DIAGNOSIS] Final readyState:', testEventSource.readyState);
+          console.log('🔍 [SSE DIAGNOSIS] Connection URL:', testEventSource.url);
+          
+          testEventSource.close();
+          resolve({ 
+            success: true, 
+            readyState: testEventSource.readyState,
+            url: testEventSource.url
+          });
+        };
+        
+        testEventSource.onmessage = (event) => {
+          console.log('📨 [SSE DIAGNOSIS] Received message:', event.data.substring(0, 100) + '...');
+        };
+        
+        testEventSource.onerror = (error) => {
+          clearTimeout(timeout);
+          const readyState = testEventSource?.readyState;
+          const states = ['CONNECTING', 'OPEN', 'CLOSED'];
+          
+          console.error('❌ [SSE DIAGNOSIS] Connection failed');
+          console.error('🔍 [SSE DIAGNOSIS] Error readyState:', readyState, `(${states[readyState] || 'UNKNOWN'})`);
+          console.error('🔍 [SSE DIAGNOSIS] Error event:', error);
+          
+          let errorReason = 'Unknown error';
+          if (readyState === EventSource.CONNECTING) {
+            errorReason = 'Failed to establish connection (network/CORS issue)';
+          } else if (readyState === EventSource.CLOSED) {
+            errorReason = 'Connection closed by server (auth/server issue)';
+          }
+          
+          testEventSource.close();
+          resolve({ 
+            success: false, 
+            error: errorReason,
+            readyState: readyState,
+            url: testUrl
+          });
+        };
+        
+        // Monitor connection progress
+        let progressCount = 0;
+        const progressMonitor = setInterval(() => {
+          progressCount++;
+          if (testEventSource) {
+            const readyState = testEventSource.readyState;
+            const states = ['CONNECTING', 'OPEN', 'CLOSED'];
+            console.log(`🔍 [SSE DIAGNOSIS] Progress check ${progressCount}: ${states[readyState]} (${readyState})`);
+            
+            if (readyState === EventSource.CLOSED) {
+              clearInterval(progressMonitor);
+            }
+          } else {
+            clearInterval(progressMonitor);
+          }
+        }, 3000);
+        
+        // Clear progress monitor on completion
+        setTimeout(() => clearInterval(progressMonitor), 15000);
+        
+      } catch (error) {
+        clearTimeout(timeout);
+        console.error('❌ [SSE DIAGNOSIS] Failed to create EventSource:', error);
+        resolve({ 
+          success: false, 
+          error: `EventSource creation failed: ${error.message}`,
+          url: testUrl
+        });
       }
-      return null;
-    }
-  }
-
-  /**
-   * Simple notification helper
-   */
-  showSimpleNotification(message) {
-    // Use existing notification system if available
-    const errorHandler = window.errorHandler;
-    if (errorHandler?.showNotification) {
-      errorHandler.showNotification('info', message);
-    }
-  }
-
-  /**
-   * Get simple connection status
-   */
-  getStatus() {
-    return {
-      connected: this.connected,
-      retries: this.retryCount
-    };
-  }
-
-  /**
-   * Get connection state (compatibility method)
-   */
-  getConnectionState() {
-    return {
-      isConnected: this.connected,
-      state: this.connected ? 'connected' : 'disconnected',
-      reconnectAttempts: this.retryCount,
-      latency: 0,
-      connectionType: 'SSE'
-    };
-  }
-
-  /**
-   * Check if connected (compatibility getter)
-   */
-  get isConnected() {
-    return this.connected;
+    });
   }
 }
 
 // Export singleton instance
-const minimalSSEService = new MinimalSSEService();
+export const sseService = new StandardSSEService();
 
-// Expose to window for compatibility with existing code
-if (typeof window !== 'undefined') {
-  window.realtimeCommunicationService = minimalSSEService;
+// Development debugging
+if (import.meta.env.DEV) {
+  window.sseService = sseService;
+  
+  // 🔧 NEW: Global diagnostic function for easy testing
+  window.testSSEConnection = async () => {
+    console.log('🧪 [GLOBAL TEST] Starting SSE connection test...');
+    const result = await sseService.diagnoseSSEConnection();
+    
+    if (result.success) {
+      console.log('✅ [GLOBAL TEST] SSE connection test PASSED');
+      console.log('🔧 [GLOBAL TEST] The SSE endpoint is working correctly');
+      console.log('🔧 [GLOBAL TEST] If automatic connection still fails, check service initialization');
+    } else {
+      console.error('❌ [GLOBAL TEST] SSE connection test FAILED');
+      console.error('🔧 [GLOBAL TEST] Error:', result.error);
+      console.error('🔧 [GLOBAL TEST] This explains why SSE falls back to HTTP polling');
+      
+      // Provide specific troubleshooting advice
+      if (result.error.includes('timeout')) {
+        console.error('💡 [GLOBAL TEST] Troubleshooting: Check if backend SSE endpoint is running');
+        console.error('💡 [GLOBAL TEST] Troubleshooting: Verify Vite proxy configuration');
+      } else if (result.error.includes('auth')) {
+        console.error('💡 [GLOBAL TEST] Troubleshooting: Check authentication token validity');
+        console.error('💡 [GLOBAL TEST] Troubleshooting: Verify token format and expiration');
+      } else if (result.error.includes('network') || result.error.includes('CORS')) {
+        console.error('💡 [GLOBAL TEST] Troubleshooting: Check network connectivity');
+        console.error('💡 [GLOBAL TEST] Troubleshooting: Verify CORS headers on backend');
+      }
+    }
+    
+    return result;
+  };
+  
+  // 🔧 NEW: Force SSE connection test (bypasses normal flow)
+  window.forceSSETest = async () => {
+    console.log('🚀 [FORCE TEST] Forcing SSE connection test...');
+    
+    // Disconnect current connection
+    sseService.disconnect();
+    
+    // Wait a moment
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Try diagnosis first
+    const diagnosis = await sseService.diagnoseSSEConnection();
+    
+    if (diagnosis.success) {
+      console.log('✅ [FORCE TEST] Diagnosis passed, attempting normal connection...');
+      
+      // Try normal connection
+      try {
+        await sseService.connect();
+        console.log('✅ [FORCE TEST] Normal connection successful');
+      } catch (error) {
+        console.error('❌ [FORCE TEST] Normal connection failed despite diagnosis success:', error);
+      }
+    } else {
+      console.error('❌ [FORCE TEST] Diagnosis failed, normal connection will also fail');
+    }
+    
+    return diagnosis;
+  };
+  
+  console.log('🔧 [DEV] SSE diagnostic functions available:');
+  console.log('  - testSSEConnection() - Test SSE connection independently');
+  console.log('  - forceSSETest() - Force SSE connection test');
+  console.log('  - sseService.diagnoseSSEConnection() - Detailed diagnosis');
 }
 
-export default minimalSSEService; 
+export default sseService; 

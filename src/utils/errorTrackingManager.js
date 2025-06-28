@@ -135,7 +135,7 @@ class ErrorTrackingManager {
    */
   updateError(errorId, updates) {
     if (!this.errorTable[errorId]) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.warn(`Unknown error ID: ${errorId}`);
       return false;
     }
@@ -149,7 +149,7 @@ class ErrorTrackingManager {
     // Log the update
     this.logUpdate(errorId, oldStatus, updates.status || oldStatus, updates);
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`📊 [ErrorTracker] Updated ${errorId}: ${oldStatus} → ${updates.status || oldStatus}`);
     return true;
   }
@@ -208,25 +208,25 @@ class ErrorTrackingManager {
   generateReport() {
     const stats = this.getStatistics();
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('📊 Error Tracking Report');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('========================');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`📅 Session: ${new Date(this.sessionStartTime).toLocaleString('zh-CN')}`);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`📊 Total Errors: ${stats.total}`);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`✅ Fixed: ${stats.fixed}`);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`🔴 Active: ${stats.active}`);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`🔄 Regressed: ${stats.regressed}`);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`🟡 Partial: ${stats.partial}`);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`📈 Success Rate: ${stats.successRate}%`);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('');
     }
 
@@ -235,28 +235,28 @@ class ErrorTrackingManager {
       .filter(e => ['ACTIVE', 'REGRESSED'].includes(e.status));
 
     if (problematicErrors.length > 0) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('🚨 Current Issues:');
       problematicErrors.forEach(error => {
         const status = error.status === 'ACTIVE' ? '🔴' : '🔄';
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log(`${status} [${error.id}] ${error.description}`);
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log(`   Last seen: ${error.lastOccurrence}`);
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log(`   Symptoms: ${error.symptoms}`);
         }
       });
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('');
       }
 
     // Show recent updates
     if (this.updateLog.length > 0) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('📝 Recent Updates:');
       this.updateLog.slice(-5).forEach(update => {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log(`   ${update.timestamp.substring(11, 19)} [${update.errorId}] ${update.oldStatus} → ${update.newStatus}`);
         }
       });
@@ -334,11 +334,11 @@ class ErrorTrackingManager {
         });
         observer.observe({ entryTypes: ['navigation'] });
     } catch (err) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.warn('Performance observer not available:', err);
       }
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('👁️ Console error monitoring activated (non-intrusive, preserves error sources)');
     }
 
@@ -370,13 +370,13 @@ if (typeof window !== 'undefined') {
   // Auto-start monitoring
   errorTracker.monitorConsoleErrors();
 
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('📊 Error Tracking Manager loaded');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('   - window.getErrorReport() - Get current status');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('   - window.getCriticalErrors() - Get critical issues');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('   - window.analyzeErrorPatterns() - Pattern analysis');
   }
 

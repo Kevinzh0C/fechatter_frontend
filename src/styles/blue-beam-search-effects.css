@@ -1,0 +1,218 @@
+/**
+ * 🎯 Blue Beam Search Effects - Simplified Border-Only Version
+ * Lightweight blinking border targeting system
+ */
+
+/* 🎯 Blue Target - Static solid border on hover */
+.blue-beam-target {
+  position: relative;
+  border: 2px solid #3b82f6;
+  border-radius: 8px;
+  transition: border-color 0.3s ease;
+}
+
+/* 🎯 Blue Target Hover - Static solid border */
+.blue-beam-target:hover {
+  border-color: #60a5fa;
+}
+
+/* 🚀 Intense Version - Static solid border */
+.blue-beam-intense {
+  position: relative;
+  border: 3px solid #2563eb;
+  border-radius: 8px;
+  transition: border-color 0.3s ease;
+}
+
+/* 🚀 Intense Version Hover - Static solid border */
+.blue-beam-intense:hover {
+  border-color: #93c5fd;
+}
+
+/* 🎯 Target Indicator - Solid and substantial design */
+.blue-beam-target::after {
+  content: '🎯 Target';
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  
+  background: linear-gradient(135deg, 
+    #3b82f6 0%, 
+    #60a5fa 50%, 
+    #3b82f6 100%
+  );
+  color: rgba(255, 255, 255, 0.98);
+  
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  
+  box-shadow: 
+    0 4px 16px rgba(59, 130, 246, 0.4),
+    0 2px 8px rgba(59, 130, 246, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  
+  z-index: 1001;
+  white-space: nowrap;
+  
+  pointer-events: none;
+  user-select: none;
+  
+  /* 实体边框 */
+  border: 1.5px solid rgba(255, 255, 255, 0.6);
+  
+  /* 静态显示，移除动画 */
+  opacity: 0.95;
+  transform: scale(1);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.blue-beam-intense::after {
+  content: '🎯 Target';
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  
+  background: linear-gradient(135deg, 
+    #2563eb 0%, 
+    #3b82f6 50%, 
+    #2563eb 100%
+  );
+  color: rgba(255, 255, 255, 1);
+  
+  padding: 8px 14px;
+  border-radius: 22px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.4px;
+  
+  box-shadow: 
+    0 6px 20px rgba(37, 99, 235, 0.5),
+    0 3px 12px rgba(59, 130, 246, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  
+  z-index: 1001;
+  white-space: nowrap;
+  
+  pointer-events: none;
+  user-select: none;
+  
+  /* 实体边框 */
+  border: 2px solid rgba(255, 255, 255, 0.7);
+  
+  /* 静态显示，移除动画 */
+  opacity: 0.98;
+  transform: scale(1);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* 悬浮时的轻微高亮效果 */
+.blue-beam-target:hover::after {
+  opacity: 1;
+  transform: scale(1.02);
+}
+
+.blue-beam-intense:hover::after {
+  opacity: 1;
+  transform: scale(1.03);
+}
+
+/* 🔍 Blue search highlight - Simple version */
+.blue-search-highlight {
+  background-color: rgba(59, 130, 246, 0.2);
+  color: #1e40af;
+  border-radius: 3px;
+  padding: 1px 2px;
+  font-weight: 600;
+}
+
+/* 📱 Mobile optimization - Solid design maintained */
+@media (max-width: 768px) {
+  .blue-beam-target {
+    border-width: 1px;
+  }
+  
+  .blue-beam-intense {
+    border-width: 2px;
+  }
+  
+  .blue-beam-target::after {
+    top: -6px;
+    right: -6px;
+    font-size: 10px;
+    padding: 4px 10px;
+    border-radius: 16px;
+    font-weight: 500;
+    letter-spacing: 0.2px;
+    border-width: 1px;
+    
+    box-shadow: 
+      0 3px 12px rgba(59, 130, 246, 0.3),
+      0 1px 6px rgba(59, 130, 246, 0.25),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+  
+  .blue-beam-intense::after {
+    top: -8px;
+    right: -8px;
+    font-size: 11px;
+    padding: 6px 12px;
+    border-radius: 18px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    border-width: 1.5px;
+    
+    box-shadow: 
+      0 4px 16px rgba(37, 99, 235, 0.4),
+      0 2px 8px rgba(59, 130, 246, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  }
+}
+
+/* 🔧 Ensure proper visibility */
+.blue-beam-target,
+.blue-beam-intense {
+  overflow: visible;
+}
+
+/* 🎯 Accessibility - Static design support */
+@media (prefers-reduced-motion: reduce) {
+  .blue-beam-target,
+  .blue-beam-intense {
+    border-color: #3b82f6 !important;
+    transition: none;
+  }
+  
+  .blue-beam-target:hover,
+  .blue-beam-intense:hover {
+    border-color: #60a5fa !important;
+  }
+  
+  .blue-beam-target::after,
+  .blue-beam-intense::after {
+    opacity: 0.95 !important;
+    transform: none !important;
+    transition: none;
+    
+    /* 保持实体设计 */
+    box-shadow: 
+      0 4px 16px rgba(59, 130, 246, 0.3),
+      0 2px 8px rgba(59, 130, 246, 0.25),
+      inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
+  }
+  
+  .blue-beam-intense::after {
+    opacity: 0.98 !important;
+    box-shadow: 
+      0 6px 20px rgba(37, 99, 235, 0.4),
+      0 3px 12px rgba(59, 130, 246, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+  }
+  
+  .blue-beam-target:hover::after,
+  .blue-beam-intense:hover::after {
+    transform: none !important;
+  }
+} 

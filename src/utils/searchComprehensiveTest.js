@@ -13,9 +13,9 @@ class SearchComprehensiveTest {
    * Run all search functionality tests
    */
   async runAll() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🔍 [COMPREHENSIVE SEARCH TEST] Starting complete validation...');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('===============================================================');
     }
 
@@ -28,7 +28,7 @@ class SearchComprehensiveTest {
 
       this.generateReport();
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('🔍 [COMPREHENSIVE TEST] Test suite failed:', error);
       this.testResults.push({
         test: 'Test Suite Execution',
@@ -40,42 +40,42 @@ class SearchComprehensiveTest {
    * Test 1: Authentication Flow
    */
   async testAuthenticationFlow() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n1️⃣ Testing Authentication Flow');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('------------------------------');
     }
 
     // Check token manager existence
     if (window.tokenManager) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('✅ Token manager available');
       this.testResults.push({ test: 'Token Manager', status: 'PASS' });
     } else {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('❌ Token manager not found');
       this.testResults.push({ test: 'Token Manager', status: 'FAIL' });
 
     // Check auth store
     if (window.$router && window.$router.app && window.$router.app.config.globalProperties) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('✅ Auth store accessible');
       this.testResults.push({ test: 'Auth Store', status: 'PASS' });
     } else {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('⚠️ Auth store access method unclear');
       this.testResults.push({ test: 'Auth Store', status: 'PARTIAL' });
 
     // Test token retrieval
     const token = window.tokenManager?.getAccessToken();
     if (token) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('✅ Authentication token available');
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('🔐 Token preview:', token.substring(0, 20) + '...');
       this.testResults.push({ test: 'Token Retrieval', status: 'PASS' });
     } else {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('❌ No authentication token found');
       this.testResults.push({ test: 'Token Retrieval', status: 'FAIL' });
 
@@ -83,16 +83,16 @@ class SearchComprehensiveTest {
    * Test 2: Search Button Logic
    */
   async testSearchButtonLogic() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n2️⃣ Testing Search Button Logic');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('------------------------------');
     }
 
     // Find search button
     const searchButton = document.querySelector('button[title*="Search"]');
     if (searchButton) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('✅ Search button found in DOM');
       this.testResults.push({ test: 'Search Button DOM', status: 'PASS' });
 
@@ -100,15 +100,15 @@ class SearchComprehensiveTest {
       try {
         const clickEvent = new MouseEvent('click', { bubbles: true });
         searchButton.dispatchEvent(clickEvent);
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('✅ Search button click simulation successful');
         this.testResults.push({ test: 'Button Click', status: 'PASS' });
       } catch (error) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('❌ Search button click failed:', error.message);
         this.testResults.push({ test: 'Button Click', status: 'FAIL', error: error.message });
     } else {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('❌ Search button not found in DOM');
       this.testResults.push({ test: 'Search Button DOM', status: 'FAIL' });
 
@@ -120,11 +120,11 @@ class SearchComprehensiveTest {
         bubbles: true
       });
       document.dispatchEvent(keyEvent);
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('✅ Keyboard shortcut simulation successful');
       this.testResults.push({ test: 'Keyboard Shortcut', status: 'PASS' });
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('❌ Keyboard shortcut failed:', error.message);
       this.testResults.push({ test: 'Keyboard Shortcut', status: 'FAIL', error: error.message });
 
@@ -132,9 +132,9 @@ class SearchComprehensiveTest {
    * Test 3: API Call
    */
   async testAPICall() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n3️⃣ Testing Search API Call');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('-------------------------');
     }
 
@@ -147,7 +147,7 @@ class SearchComprehensiveTest {
         throw new Error('SearchService not available');
       }
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('✅ SearchService loaded');
       this.testResults.push({ test: 'SearchService Load', status: 'PASS' });
 
@@ -157,13 +157,13 @@ class SearchComprehensiveTest {
         limit: 5
       };
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('🔍 Testing API call with params:', testParams);
       const response = await SearchService.search(testParams);
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('✅ Search API call successful');
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('📊 Response summary:', {
         resultsCount: response.results?.length || 0,
         total: response.total,
@@ -174,16 +174,16 @@ class SearchComprehensiveTest {
 
       // Validate response structure
       if (response.results && Array.isArray(response.results)) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('✅ Response structure valid');
         this.testResults.push({ test: 'Response Structure', status: 'PASS' });
       } else {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('❌ Invalid response structure');
         this.testResults.push({ test: 'Response Structure', status: 'FAIL' });
 
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('❌ Search API call failed:', error.message);
       this.testResults.push({ test: 'API Call', status: 'FAIL', error: error.message });
 
@@ -191,9 +191,9 @@ class SearchComprehensiveTest {
    * Test 4: Response Processing
    */
   async testResponseProcessing() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n4️⃣ Testing Response Processing');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('-----------------------------');
     }
 
@@ -234,14 +234,14 @@ class SearchComprehensiveTest {
         }
       };
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('✅ Response processing successful');
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('📋 Normalized response:', normalizedResponse);
       this.testResults.push({ test: 'Response Processing', status: 'PASS' });
 
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('❌ Response processing failed:', error.message);
       this.testResults.push({ test: 'Response Processing', status: 'FAIL', error: error.message });
 
@@ -249,9 +249,9 @@ class SearchComprehensiveTest {
    * Test 5: UI Integration
    */
   async testUIIntegration() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n5️⃣ Testing UI Integration');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('-----------------------');
     }
 
@@ -261,22 +261,22 @@ class SearchComprehensiveTest {
       document.querySelector('.search-modal');
 
     if (searchModal) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('✅ Search modal found in DOM');
       this.testResults.push({ test: 'Search Modal DOM', status: 'PASS' });
     } else {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('⚠️ Search modal not currently visible (expected if not triggered)');
       this.testResults.push({ test: 'Search Modal DOM', status: 'PARTIAL' });
 
     // Test for search input elements
     const searchInputs = document.querySelectorAll('input[placeholder*="Search"]');
     if (searchInputs.length > 0) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('✅ Search input elements found:', searchInputs.length);
       this.testResults.push({ test: 'Search Input Elements', status: 'PASS' });
     } else {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('❌ No search input elements found');
       this.testResults.push({ test: 'Search Input Elements', status: 'FAIL' });
 
@@ -289,31 +289,31 @@ class SearchComprehensiveTest {
     const failed = this.testResults.filter(r => r.status === 'FAIL').length;
     const partial = this.testResults.filter(r => r.status === 'PARTIAL').length;
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n📊 COMPREHENSIVE SEARCH TEST REPORT');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('====================================');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`⏱️  Duration: ${duration}ms`);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`✅ Passed: ${passed}`);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`❌ Failed: ${failed}`);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`⚠️  Partial: ${partial}`);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`📈 Success Rate: ${((passed / this.testResults.length) * 100).toFixed(1)}%`);
     }
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n📋 Detailed Results:');
     this.testResults.forEach(result => {
       const status = result.status === 'PASS' ? '✅' :
         result.status === 'FAIL' ? '❌' : '⚠️';
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`${status} ${result.test}`);
       if (result.error) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log(`   Error: ${result.error}`);
         }
     });
@@ -324,9 +324,9 @@ class SearchComprehensiveTest {
       details: this.testResults
     };
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n💡 Results stored in window.searchTestResults');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🔍 Run window.searchComprehensiveTest.runAll() to test again');
     }
 
@@ -334,9 +334,9 @@ class SearchComprehensiveTest {
 window.SearchComprehensiveTest = SearchComprehensiveTest;
 window.searchComprehensiveTest = new SearchComprehensiveTest();
 
-if (import.meta.env.DEV) {
+if (true) {
   console.log('🔍 Search Comprehensive Test loaded');
-if (import.meta.env.DEV) {
+if (true) {
   console.log('📋 Run window.searchComprehensiveTest.runAll() to start testing');
 }
 

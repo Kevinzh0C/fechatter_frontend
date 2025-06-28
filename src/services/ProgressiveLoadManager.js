@@ -76,7 +76,7 @@ export class ProgressiveLoadManager {
     // 事件系统
     this.eventListeners = new Map();
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🔄 [ProgressiveLoadManager] 渐进式加载管理器已初始化');
     }
   }
@@ -93,7 +93,7 @@ export class ProgressiveLoadManager {
     this.resetScrollMetrics();
     this.resetLoadingState();
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`🔄 [ProgressiveLoadManager] 已为 chat ${chatId} 初始化`);
     }
 
@@ -282,7 +282,7 @@ export class ProgressiveLoadManager {
    */
   async executeProgressiveLoad(strategy) {
     if (this.loadingState.isLoading) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`🔄 [ProgressiveLoadManager] 跳过重复加载请求 (${strategy.type})`);
       }
       return { success: false, reason: 'already_loading' };
@@ -291,7 +291,7 @@ export class ProgressiveLoadManager {
     this.loadingState.isLoading = true;
     this.loadingState.lastLoadTime = Date.now();
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`🔄 [ProgressiveLoadManager] 执行 ${strategy.type} 加载策略:`, {
         batchSize: strategy.batchSize,
         interval: strategy.interval
@@ -327,7 +327,7 @@ export class ProgressiveLoadManager {
           reason: result.reason || 'success'
         });
 
-        if (import.meta.env.DEV) {
+        if (true) {
           if (messageCount > 0) {
             console.log(`✅ [ProgressiveLoadManager] ${strategy.type} 加载完成: +${messageCount} 条消息`);
           } else {
@@ -338,7 +338,7 @@ export class ProgressiveLoadManager {
         return { success: true, messageCount, reason: result.reason };
       } else {
         // 🔧 处理加载失败但不抛出错误的情况
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log(`⚠️ [ProgressiveLoadManager] ${strategy.type} 加载未成功:`, result.reason || 'unknown');
         }
 
@@ -358,7 +358,7 @@ export class ProgressiveLoadManager {
       const isTimeoutError = error.message.includes('timeout');
       const isNetworkError = error.message.includes('network') || error.message.includes('fetch');
 
-      if (import.meta.env.DEV) {
+      if (true) {
         if (isTimeoutError) {
           console.log(`⏰ [ProgressiveLoadManager] ${strategy.type} 加载超时，可能已无更多消息`);
         } else if (isNetworkError) {
@@ -484,7 +484,7 @@ export class ProgressiveLoadManager {
     this.resetScrollMetrics();
     this.resetLoadingState();
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🛑 [ProgressiveLoadManager] 已停止');
     }
 
@@ -544,7 +544,7 @@ export class ProgressiveLoadManager {
 export const progressiveLoadManager = new ProgressiveLoadManager();
 
 // 开发环境下全局可用
-if (import.meta.env.DEV) {
+if (true) {
   window.progressiveLoadManager = progressiveLoadManager;
   console.log('🔄 ProgressiveLoadManager 全局可用');
 } 

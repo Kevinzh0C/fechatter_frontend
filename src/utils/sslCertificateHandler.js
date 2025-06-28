@@ -3,7 +3,7 @@
  * Helps users handle self-signed certificate issues
  */
 
-const BACKEND_URL = 'https://45.77.178.85:8443';
+const BACKEND_URL = 'https://hook-nav-attempt-size.trycloudflare.com';
 
 /**
  * Check if backend is accessible
@@ -42,7 +42,7 @@ export function getSSLInstructions() {
       '1. Click "Accept Certificate" button below',
       '2. A new tab will open to the backend server',
       '3. Click "Advanced" or "Show Details"',
-      '4. Click "Proceed to 45.77.178.85 (unsafe)" or "Accept Risk"',
+      '4. Click "Proceed to hook-nav-attempt-size.trycloudflare.com (unsafe)" or "Accept Risk"',
       '5. Close the tab and return here',
       '6. Refresh this page and try logging in again'
     ],

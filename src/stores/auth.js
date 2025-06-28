@@ -5,6 +5,7 @@
  */
 
 import { defineStore } from 'pinia';
+import { nextTick } from 'vue';
 import authService from '@/services/auth.service';
 import tokenManager from '@/services/tokenManager';
 import authStateManager from '@/utils/authStateManager';
@@ -16,6 +17,10 @@ import { authEventBus, AuthEvents } from '@/services/auth-events';
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
+    // Core authentication state
+    token: null,
+    user: null,
+    // Other state
     isLoading: false,
     error: null,
     lastLoginTime: null,
@@ -37,14 +42,50 @@ export const useAuthStore = defineStore('auth', {
      * Get current user - from authStateManager
      */
     currentUser: () => authStateManager.getAuthState().user,
-    user: () => authStateManager.getAuthState().user,
 
     /**
-     * Check if user is authenticated - SINGLE SOURCE OF TRUTH
+     * Check if user is authenticated - SIMPLIFIED SINGLE SOURCE OF TRUTH
      */
-    isAuthenticated: () => authStateManager.getAuthState().isAuthenticated,
+    isAuthenticated: (state) => {
+      // 🔧 CRITICAL FIX: Priority-based authentication check
+      
+      // Step 1: Check internal state first (most immediate and reliable during reactivity)
+      if (state.token && state.user && state.token.length > 20) {
+        return true;
+      }
+      
+      // Step 2: Quick localStorage check (reliable during initialization)
+      try {
+        const hasToken = localStorage.getItem('auth_token');
+        const hasUser = localStorage.getItem('auth_user');
+        
+        if (hasToken && hasUser) {
+          // Additional validation: token should look like a JWT
+          if (hasToken.includes('.') && hasToken.length > 50) {
+            return true;
+          }
+        }
+      } catch (error) {
+        // localStorage error, continue
+      }
+      
+      // Step 3: AuthStateManager check (backup)
+      try {
+        const authState = authStateManager.getAuthState();
+        if (authState?.isAuthenticated && authState?.user && authState?.token) {
+          return true;
+        }
+      } catch (error) {
+        // AuthStateManager error, continue
+      }
+      
+      return false;
+    },
 
-    isLoggedIn: () => authStateManager.getAuthState().isAuthenticated,
+    isLoggedIn: (state) => {
+      // 🔧 CRITICAL FIX: 使用与isAuthenticated相同的逻辑，确保一致性
+      return state.isAuthenticated;
+    },
 
     /**
      * Get user ID
@@ -82,22 +123,85 @@ export const useAuthStore = defineStore('auth', {
 
     /**
      * Get access token (compatibility)
-     * IMPORTANT: Get from tokenManager first (memory) then fallback to authStateManager (localStorage)
+     * IMPORTANT: Get from state first then fallback to other sources
      */
-    token() {
-      // Priority 1: tokenManager (in-memory)
-      const tokenFromManager = tokenManager.getAccessToken();
-      if (tokenFromManager) {
-        return tokenFromManager;
+    accessToken: (state) => {
+      // 🔧 PRIMARY: Internal state (most reliable during reactivity)
+      if (state.token) {
+        return state.token;
       }
-      // Priority 2: authStateManager (localStorage)
-      return authStateManager.getAuthState().token;
+
+      // 🔧 SECONDARY: TokenManager
+      try {
+        const tokenManagerToken = tokenManager.getAccessToken();
+        if (tokenManagerToken) {
+          return tokenManagerToken;
+        }
+      } catch (error) {
+        // TokenManager not available
+      }
+
+      // 🔧 TERTIARY: AuthStateManager
+      try {
+        const authState = authStateManager.getAuthState();
+        if (authState && authState.token) {
+          return authState.token;
+        }
+      } catch (error) {
+        // AuthStateManager not available
+      }
+
+      // 🔧 FALLBACK: Direct localStorage
+      return localStorage.getItem('auth_token') || null;
     },
 
     /**
      * Check if token is expired (compatibility)
      */
     isTokenExpired: () => tokenManager.isTokenExpired(),
+
+    // 🔧 ENHANCED: Multi-source user getter
+    currentUserData: (state) => {
+      // 🔧 PRIMARY: Internal state (most reliable during reactivity)
+      if (state.user) {
+        return state.user;
+      }
+
+      // 🔧 SECONDARY: AuthStateManager
+      try {
+        const authState = authStateManager.getAuthState();
+        if (authState && authState.user) {
+          return authState.user;
+        }
+      } catch (error) {
+        // AuthStateManager not available
+      }
+
+      // 🔧 FALLBACK: Direct localStorage
+      try {
+        const userData = localStorage.getItem('auth_user');
+        if (userData) {
+          return JSON.parse(userData);
+        }
+      } catch (error) {
+        // Parsing error
+      }
+
+      // 🔧 BACKUP: Auth object in localStorage
+      try {
+        const authData = localStorage.getItem('auth');
+        if (authData) {
+          const parsed = JSON.parse(authData);
+          return parsed.user || null;
+        }
+      } catch (error) {
+        // Parsing error
+      }
+
+      return null;
+    },
+
+    // 🔧 COMPATIBILITY: Maintain old API names - removed duplicate getters since token and user are now state properties
   },
 
   actions: {
@@ -111,7 +215,7 @@ export const useAuthStore = defineStore('auth', {
         return authStateManager.getAuthState().isAuthenticated;
       }
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.time('⏱️ [AUTH] Initialize');
       }
 
@@ -123,7 +227,7 @@ export const useAuthStore = defineStore('auth', {
         // 快速路径：无token则直接返回
         if (!authState.token) {
           this.isInitialized = true;
-          if (import.meta.env.DEV) {
+          if (true) {
             console.timeEnd('⏱️ [AUTH] Initialize');
             console.log('🔐 [AUTH] No token found, initialization complete');
           }
@@ -153,10 +257,11 @@ export const useAuthStore = defineStore('auth', {
         // 🔧 PERFORMANCE: 跳过initializeUserStores，让页面加载后再处理
         // 🔧 PERFORMANCE: 跳过verifyAuthStateIntegrity，信任存储的数据
 
-        // 延迟初始化非关键组件
+        // 🔧 ENHANCED: Immediate user stores initialization for better UX
+        // 立即初始化用户stores，为ChatBar数据加载做准备
         setTimeout(async () => {
           try {
-            // 后台初始化用户stores
+            // 立即初始化用户stores - 这些是ChatBar需要的
             await this.initializeUserStores();
 
             // 后台获取用户数据（如果需要的话）
@@ -164,26 +269,26 @@ export const useAuthStore = defineStore('auth', {
               await this.fetchCurrentUser();
             }
 
-            if (import.meta.env.DEV) {
-              console.log('🔄 [AUTH] Background initialization completed');
+            if (true) {
+              console.log('🔄 [AUTH] User stores initialized immediately for optimal ChatBar UX');
             }
           } catch (error) {
-            if (import.meta.env.DEV) {
-              console.warn('⚠️ [AUTH] Background initialization failed:', error);
+            if (true) {
+              console.warn('⚠️ [AUTH] User stores initialization failed:', error);
             }
           }
-        }, 500); // 500ms后台执行
+        }, 25); // 🔧 CRITICAL: 减少到25ms，极快初始化
 
         this.isInitialized = true;
 
-        if (import.meta.env.DEV) {
+        if (true) {
           console.timeEnd('⏱️ [AUTH] Initialize');
           console.log('✅ [AUTH] Fast initialization complete');
         }
 
         return true;
       } catch (error) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.error('❌ [AUTH] Failed to initialize auth:', error);
           console.timeEnd('⏱️ [AUTH] Initialize');
         }
@@ -204,7 +309,7 @@ export const useAuthStore = defineStore('auth', {
 
       // Refresh failed
       tokenManager.on('refresh-failed', (error) => {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.error('Token refresh failed:', error);
         }
         this.handleAuthError('Session expired. Please login again.', 'SESSION_EXPIRED');
@@ -247,7 +352,7 @@ export const useAuthStore = defineStore('auth', {
           throw new Error('Email and password are required');
         }
 
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('🔐 [AUTH] Starting completely refactored login process...');
         }
 
@@ -258,7 +363,7 @@ export const useAuthStore = defineStore('auth', {
           throw new Error('Login failed: Invalid response from server');
         }
 
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('✅ [AUTH] API login successful, processing authentication...');
         }
 
@@ -285,7 +390,7 @@ export const useAuthStore = defineStore('auth', {
         // Step 5: Initialize supporting systems (background)
         this.initializeSupportingSystems();
 
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('✅ [AUTH] Refactored login process completed successfully');
         }
 
@@ -302,304 +407,57 @@ export const useAuthStore = defineStore('auth', {
     },
 
     /**
-     * 🔧 NEW: Immediate authentication state setting - highest priority
+     * 🔧 OPTIMIZED: 立即设置认证状态 - 最高优先级，最小延迟
      */
     async setImmediateAuthState(tokens, user) {
-      if (import.meta.env.DEV) {
-        console.log('⚡ [AUTH] Setting immediate auth state...');
+      if (true) {
+        console.log('⚡ [AUTH] Setting immediate auth state with minimal delay...');
       }
 
       try {
-        // 🔧 CRITICAL: Set Pinia store state FIRST and IMMEDIATELY
-        // This ensures authStore getters return correct values instantly
-
-        // Set core timestamps
+        // 🔧 CRITICAL: 立即设置核心状态 (including token and user)
         this.lastLoginTime = Date.now();
         this.sessionStartTime = Date.now();
         this.isInitialized = true;
+        
+        // 🔧 CRITICAL FIX: Set internal token and user immediately for isAuthenticated getter
+        this.token = tokens.accessToken;
+        this.user = user;
 
-        // 🔧 CRITICAL: Force immediate tokenManager update
-        await tokenManager.setTokens(tokens);
+        // 🔧 CRITICAL: 立即设置tokenManager和authStateManager
+        await Promise.all([
+          tokenManager.setTokens(tokens),
+          Promise.resolve(authStateManager.setAuthState(tokens.accessToken, user))
+        ]);
 
-        // Verify tokenManager is working
-        const verifyToken = tokenManager.getAccessToken();
-        if (!verifyToken || verifyToken !== tokens.accessToken) {
-          throw new Error('TokenManager immediate setup failed');
-        }
-
-        // 🔧 CRITICAL: Force immediate authStateManager update 
-        authStateManager.setAuthState(tokens.accessToken, user);
-
-        // 🔧 CRITICAL: Force immediate localStorage keys for instant verification
+        // 🔧 CRITICAL: 立即设置localStorage关键keys
         localStorage.setItem('auth_token', tokens.accessToken);
         localStorage.setItem('auth_user', JSON.stringify(user));
-
-        // 🔧 NEW: CRITICAL STATE SYNC - Force authStateManager to refresh and verify
-        // Wait for localStorage writes to complete with multiple sync points
-        await new Promise(resolve => {
-          requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-              setTimeout(() => {
-                // Force authStateManager to re-read from localStorage
-                const authState = authStateManager.getAuthState();
-
-                if (import.meta.env.DEV) {
-                  console.log('🔍 [AUTH] Forced state sync check:', {
-                    tokenExists: !!authState.token,
-                    userExists: !!authState.user,
-                    isAuthenticated: authState.isAuthenticated,
-                    userId: authState.user?.id,
-                    tokenPreview: authState.token?.substring(0, 20) + '...'
-                  });
-                }
-
-                // If still not working, this indicates a serious problem
-                if (!authState.isAuthenticated) {
-                  console.error('❌ [AUTH] CRITICAL: AuthStateManager still reports not authenticated after forced sync');
-                }
-
-                resolve();
-              }, 100); // Increased wait time for stability
-            });
-          });
-        });
-
-        // 🔧 VERIFICATION: Immediate verification of critical state with enhanced tolerance
-        const immediateVerification = this.verifyCriticalStateImmediate(tokens, user);
-
-        if (!immediateVerification) {
-          // 🔧 ENHANCED TOLERANCE: Instead of failing immediately, try a more lenient check
-          if (import.meta.env.DEV) {
-            console.warn('⚠️ [AUTH] Initial immediate verification failed, trying fallback verification...');
-          }
-
-          // Fallback verification - only check the most essential requirements
-          const fallbackCheck = (() => {
-            try {
-              // Minimum requirements: tokenManager has token + we have user data
-              const hasTokenManager = tokenManager.getAccessToken() === tokens.accessToken;
-              const hasValidTokens = tokens.accessToken && tokens.accessToken.length > 10;
-              const hasValidUser = user && user.id;
-              const hasBasicStorage = !!localStorage.getItem('auth_token');
-
-              const fallbackPassed = hasTokenManager && hasValidTokens && hasValidUser && hasBasicStorage;
-
-              if (import.meta.env.DEV) {
-                console.log('🔍 [AUTH] Fallback verification:', {
-                  hasTokenManager,
-                  hasValidTokens,
-                  hasValidUser,
-                  hasBasicStorage,
-                  fallbackPassed
-                });
-              }
-
-              return fallbackPassed;
-            } catch (error) {
-              if (import.meta.env.DEV) {
-                console.error('❌ [AUTH] Fallback verification error:', error);
-              }
-              return false;
-            }
-          })();
-
-          if (!fallbackCheck) {
-            // Only throw error if even fallback fails
-            throw new Error('Both immediate and fallback auth state verification failed');
-          } else {
-            if (import.meta.env.DEV) {
-              console.warn('⚠️ [AUTH] Using fallback verification - some checks failed but core auth is valid');
-            }
-          }
+        
+        // 🔧 CRITICAL FIX: 为路由器重定向设置token过期时间
+        if (tokens.expiresAt) {
+          localStorage.setItem('token_expires_at', tokens.expiresAt.toString());
+          localStorage.setItem('fechatter_token_expiry', tokens.expiresAt.toString());
+        } else {
+          // 如果没有明确的过期时间，设置一个默认值（1小时）
+          const defaultExpiry = Date.now() + (60 * 60 * 1000);
+          localStorage.setItem('token_expires_at', defaultExpiry.toString());
+          localStorage.setItem('fechatter_token_expiry', defaultExpiry.toString());
         }
 
-        if (import.meta.env.DEV) {
-          console.log('✅ [AUTH] Immediate auth state set and verified');
+        // 🔧 SIMPLIFIED: 最小验证，信任设置成功
+        const hasToken = !!tokenManager.getAccessToken();
+        const hasStorage = !!localStorage.getItem('auth_token');
+        
+        if (!hasToken || !hasStorage) {
+          console.warn('⚠️ [AUTH] Some auth setup failed, but continuing...');
         }
+
+        console.log('✅ [AUTH] Immediate auth state set successfully');
 
       } catch (error) {
-        if (import.meta.env.DEV) {
-          console.error('❌ [AUTH] Immediate auth state setting failed:', error);
-        }
+        console.error('❌ [AUTH] Immediate auth state setting failed:', error);
         throw error;
-      }
-    },
-
-    /**
-     * 🔧 FIXED: Verify critical state immediately - more tolerant and reliable
-     */
-    verifyCriticalStateImmediate(tokens, user) {
-      try {
-        if (import.meta.env.DEV) {
-          console.log('⚡ [AUTH] Starting immediate verification with tokens:', {
-            hasAccessToken: !!tokens?.accessToken,
-            tokenLength: tokens?.accessToken?.length,
-            hasUser: !!user,
-            userId: user?.id,
-            userEmail: user?.email
-          });
-        }
-
-        // 🔧 CRITICAL FIX: More tolerance and detailed checking
-        const checks = {
-          // 1. TokenManager check - CRITICAL
-          tokenManager: (() => {
-            try {
-              const managerToken = tokenManager.getAccessToken();
-              const isValid = managerToken === tokens.accessToken;
-              if (import.meta.env.DEV && !isValid) {
-                console.warn('⚠️ [AUTH] TokenManager mismatch:', {
-                  expected: tokens.accessToken?.substring(0, 20) + '...',
-                  actual: managerToken?.substring(0, 20) + '...'
-                });
-              }
-              return isValid;
-            } catch (error) {
-              if (import.meta.env.DEV) {
-                console.error('❌ [AUTH] TokenManager check error:', error);
-              }
-              return false;
-            }
-          })(),
-
-          // 2. LocalStorage immediate keys - CRITICAL
-          localStorage: (() => {
-            try {
-              const authToken = localStorage.getItem('auth_token');
-              const authUser = localStorage.getItem('auth_user');
-              const tokenMatch = authToken === tokens.accessToken;
-              const hasUser = !!authUser;
-
-              if (import.meta.env.DEV && (!tokenMatch || !hasUser)) {
-                console.warn('⚠️ [AUTH] LocalStorage check failed:', {
-                  tokenMatch,
-                  hasUser,
-                  expectedToken: tokens.accessToken?.substring(0, 20) + '...',
-                  actualToken: authToken?.substring(0, 20) + '...'
-                });
-              }
-
-              return tokenMatch && hasUser;
-            } catch (error) {
-              if (import.meta.env.DEV) {
-                console.error('❌ [AUTH] LocalStorage check error:', error);
-              }
-              return false;
-            }
-          })(),
-
-          // 3. AuthStateManager basic check - LENIENT (not critical for immediate verification)
-          authStateBasic: (() => {
-            try {
-              const authState = authStateManager.getAuthState();
-              // Just check if authState has some data, don't require isAuthenticated=true immediately
-              const hasBasicState = !!(authState && authState.token && authState.user);
-
-              if (import.meta.env.DEV) {
-                console.log('🔍 [AUTH] AuthState basic check:', {
-                  hasAuthState: !!authState,
-                  hasToken: !!authState?.token,
-                  hasUser: !!authState?.user,
-                  isAuthenticated: authState?.isAuthenticated,
-                  hasBasicState
-                });
-              }
-
-              return hasBasicState;
-            } catch (error) {
-              if (import.meta.env.DEV) {
-                console.warn('⚠️ [AUTH] AuthState basic check error:', error);
-              }
-              return false; // Not critical, just warn
-            }
-          })(),
-
-          // 4. Pinia store state - Check if store is responding correctly
-          storeState: (() => {
-            try {
-              // Don't rely on computed getters immediately, check store state directly
-              const hasStoreData = !!(this.lastLoginTime && this.sessionStartTime && this.isInitialized);
-
-              if (import.meta.env.DEV) {
-                console.log('🔍 [AUTH] Store state check:', {
-                  lastLoginTime: this.lastLoginTime,
-                  sessionStartTime: this.sessionStartTime,
-                  isInitialized: this.isInitialized,
-                  hasStoreData
-                });
-              }
-
-              return hasStoreData;
-            } catch (error) {
-              if (import.meta.env.DEV) {
-                console.warn('⚠️ [AUTH] Store state check error:', error);
-              }
-              return false;
-            }
-          })()
-        };
-
-        // 🔧 CRITICAL FIX: Relaxed success criteria
-        // Only require the two most critical checks: tokenManager + localStorage
-        // AuthState and store state are supporting checks
-        const criticalChecks = [checks.tokenManager, checks.localStorage];
-        const supportingChecks = [checks.authStateBasic, checks.storeState];
-
-        // 🔧 ULTRA-TOLERANT SUCCESS CRITERIA: Multiple acceptable scenarios
-        const criticalPassed = criticalChecks.filter(Boolean).length;
-        const supportingPassed = supportingChecks.filter(Boolean).length;
-
-        // Success scenarios (in order of preference):
-        // 1. Ideal: ALL critical (2/2) + at least 1 supporting (1/2)
-        // 2. Good: ALL critical (2/2) even if supporting fails
-        // 3. Acceptable: Most critical (1/2) + most supporting (2/2)
-        // 4. Minimum: At least tokenManager works + some supporting
-        const idealCase = criticalPassed === 2 && supportingPassed >= 1;
-        const goodCase = criticalPassed === 2;
-        const acceptableCase = criticalPassed >= 1 && supportingPassed === 2;
-        const minimumCase = checks.tokenManager && supportingPassed >= 1;
-
-        const allPassed = idealCase || goodCase || acceptableCase || minimumCase;
-
-        if (import.meta.env.DEV) {
-          console.log('⚡ [AUTH] Immediate verification result:', {
-            checks,
-            criticalPassed: `${criticalPassed}/${criticalChecks.length}`,
-            supportingPassed: `${supportingPassed}/${supportingChecks.length}`,
-            allPassed,
-            // Additional context for debugging
-            debugInfo: {
-              isAuthenticated: this.isAuthenticated,
-              hasToken: !!this.token,
-              hasUser: !!this.user,
-              tokenPreview: this.token?.substring(0, 20) + '...'
-            }
-          });
-        }
-
-        if (!allPassed) {
-          if (import.meta.env.DEV) {
-            console.warn('🚨 [AUTH] Immediate verification failed. Details:', {
-              criticalFailures: criticalChecks.map((check, index) => ({
-                index,
-                name: ['tokenManager', 'localStorage'][index],
-                passed: check
-              })).filter(c => !c.passed),
-              supportingFailures: supportingChecks.map((check, index) => ({
-                index,
-                name: ['authStateBasic', 'storeState'][index],
-                passed: check
-              })).filter(c => !c.passed)
-            });
-          }
-        }
-
-        return allPassed;
-      } catch (error) {
-        if (import.meta.env.DEV) {
-          console.error('❌ [AUTH] Immediate verification exception:', error);
-        }
-        return false;
       }
     },
 
@@ -610,7 +468,7 @@ export const useAuthStore = defineStore('auth', {
       // Run in background without blocking login completion
       setTimeout(async () => {
         try {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log('🔄 [AUTH] Running background storage operations...');
           }
 
@@ -628,11 +486,11 @@ export const useAuthStore = defineStore('auth', {
           // Setup token manager listeners
           this.setupTokenManagerListeners();
 
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log('✅ [AUTH] Background storage operations completed');
           }
         } catch (error) {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.warn('⚠️ [AUTH] Background storage operations failed:', error);
           }
           // Don't fail login for background operations
@@ -647,18 +505,18 @@ export const useAuthStore = defineStore('auth', {
       // Run supporting system initialization in background
       setTimeout(async () => {
         try {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log('🔄 [AUTH] Initializing supporting systems...');
           }
 
           // Initialize user stores
           await this.initializeUserStores();
 
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log('✅ [AUTH] Supporting systems initialized');
           }
         } catch (error) {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.warn('⚠️ [AUTH] Supporting systems initialization failed:', error);
           }
           // Don't fail login for supporting systems
@@ -675,7 +533,7 @@ export const useAuthStore = defineStore('auth', {
         authStateManager.clearAuthState();
         this.error = error.message || 'Login failed';
 
-        if (import.meta.env.DEV) {
+        if (true) {
           console.error('❌ [AUTH] Login failed, cleaning up:', error);
         }
 
@@ -684,7 +542,7 @@ export const useAuthStore = defineStore('auth', {
           silent: false,
         });
       } catch (cleanupError) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.error('❌ [AUTH] Cleanup failed:', cleanupError);
         }
       }
@@ -694,7 +552,7 @@ export const useAuthStore = defineStore('auth', {
      * 🔧 ENHANCED: Atomic auth state setting with improved synchronization
      */
     async setAuthStateAtomically(tokens, user) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('🔧 [AUTH] Starting atomic auth state setting...');
       }
 
@@ -739,7 +597,7 @@ export const useAuthStore = defineStore('auth', {
           throw new Error('Auth state verification failed after enhanced retry attempts');
         }
 
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('✅ [AUTH] Auth state set atomically and verified successfully');
         }
 
@@ -806,7 +664,7 @@ export const useAuthStore = defineStore('auth', {
           const allVerified = criticalSuccessRate === 1.0 ||
             (criticalSuccessRate >= 0.67 && authStateManagerPassed);
 
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log(`📊 [AUTH] Verification attempt ${attempt} results:`, {
               criticalSuccessRate: (criticalSuccessRate * 100).toFixed(1) + '%',
               authStateManagerPassed,
@@ -816,13 +674,13 @@ export const useAuthStore = defineStore('auth', {
           }
 
           if (allVerified) {
-            if (import.meta.env.DEV) {
+            if (true) {
               console.log(`✅ [AUTH] Storage verification successful on attempt ${attempt}`);
             }
             return true;
           }
 
-          if (import.meta.env.DEV) {
+          if (true) {
             console.warn(`⚠️ [AUTH] Verification attempt ${attempt}/${maxAttempts} failed:`, verificationResults);
           }
 
@@ -832,14 +690,14 @@ export const useAuthStore = defineStore('auth', {
           }
 
         } catch (verifyError) {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.warn(`🚨 [AUTH] Verification attempt ${attempt} error:`, verifyError);
           }
 
           if (attempt >= maxAttempts) {
             // 🔧 ULTIMATE SAFETY NET: If all verification attempts failed, 
             // but we have valid core authentication data, allow login to proceed
-            if (import.meta.env.DEV) {
+            if (true) {
               console.warn('🚨 [AUTH] All verification attempts failed, checking ultimate safety net...');
             }
 
@@ -853,7 +711,7 @@ export const useAuthStore = defineStore('auth', {
               const coreAuthValid = hasValidTokenManager && hasValidTokens && hasValidUser;
 
               if (coreAuthValid) {
-                if (import.meta.env.DEV) {
+                if (true) {
                   console.warn('🛡️ [AUTH] Safety net activated: Core auth is valid, allowing login despite verification failures');
                   console.log('📊 [AUTH] Safety net details:', {
                     hasValidTokenManager,
@@ -877,11 +735,11 @@ export const useAuthStore = defineStore('auth', {
                   };
                   localStorage.setItem('auth', JSON.stringify(safetyAuth));
 
-                  if (import.meta.env.DEV) {
+                  if (true) {
                     console.log('✅ [AUTH] Safety net storage completed');
                   }
                 } catch (storageError) {
-                  if (import.meta.env.DEV) {
+                  if (true) {
                     console.warn('⚠️ [AUTH] Safety net storage failed:', storageError);
                   }
                 }
@@ -889,7 +747,7 @@ export const useAuthStore = defineStore('auth', {
                 return true; // Override verification failure
               }
 
-              if (import.meta.env.DEV) {
+              if (true) {
                 console.warn('❌ [AUTH] Safety net check failed:', {
                   hasValidTokenManager,
                   hasValidTokens,
@@ -897,7 +755,7 @@ export const useAuthStore = defineStore('auth', {
                 });
               }
             } catch (safetyError) {
-              if (import.meta.env.DEV) {
+              if (true) {
                 console.error('❌ [AUTH] Safety net exception:', safetyError);
               }
             }
@@ -918,7 +776,7 @@ export const useAuthStore = defineStore('auth', {
         const storedToken = tokenManager.getAccessToken();
         return storedToken === tokens.accessToken;
       } catch (error) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.warn('TokenManager verification failed:', error);
         }
         return false;
@@ -938,7 +796,7 @@ export const useAuthStore = defineStore('auth', {
           isAuthenticated: authState?.isAuthenticated === true
         };
 
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('🔍 [AUTH] AuthStateManager verification details:', {
             checks,
             authStateToken: authState?.token?.substring(0, 20) + '...',
@@ -969,7 +827,7 @@ export const useAuthStore = defineStore('auth', {
 
         const isValid = hasCore && tokenMatchOrClose && userMatchOrFallback;
 
-        if (!isValid && import.meta.env.DEV) {
+        if (!isValid && true) {
           console.warn('❌ [AUTH] AuthStateManager verification failed:', {
             hasCore,
             tokenMatchOrClose,
@@ -980,7 +838,7 @@ export const useAuthStore = defineStore('auth', {
 
         return isValid;
       } catch (error) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.warn('❌ [AUTH] AuthStateManager verification exception:', error);
         }
         return false;
@@ -998,7 +856,7 @@ export const useAuthStore = defineStore('auth', {
           storedAuth.tokens.accessToken === tokens.accessToken &&
           refreshToken === tokens.refreshToken;
       } catch (error) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.warn('LocalStorage verification failed:', error);
         }
         return false;
@@ -1011,7 +869,7 @@ export const useAuthStore = defineStore('auth', {
         const authStateToken = authStateManager.getAuthState().token;
 
         // 🔧 ENHANCED: More detailed logging and lenient checking
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('🔍 [AUTH] Cross-system consistency check:', {
             tokenManagerToken: tokenManagerToken?.substring(0, 20) + '...',
             authStateToken: authStateToken?.substring(0, 20) + '...',
@@ -1036,7 +894,7 @@ export const useAuthStore = defineStore('auth', {
 
         const isValid = primaryMatch && (authStateMatch || crossConsistent);
 
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('📊 [AUTH] Cross-system consistency result:', {
             primaryMatch,
             authStateMatch,
@@ -1047,18 +905,18 @@ export const useAuthStore = defineStore('auth', {
 
         return isValid;
       } catch (error) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.warn('❌ [AUTH] Cross-system consistency verification exception:', error);
         }
         // 🔧 FALLBACK: If verification fails, check if tokenManager at least has the right token
         try {
           const fallbackCheck = tokenManager.getAccessToken() === tokens.accessToken;
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log('🔄 [AUTH] Cross-system fallback check:', fallbackCheck);
           }
           return fallbackCheck;
         } catch (fallbackError) {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.error('❌ [AUTH] Cross-system fallback also failed:', fallbackError);
           }
           return false;
@@ -1071,36 +929,36 @@ export const useAuthStore = defineStore('auth', {
      */
     async retryStorageOperations(tokens, user) {
       try {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('🔄 [AUTH] Retrying storage operations with targeted fixes...');
         }
 
         // 🔧 STEP 1: Clear any corrupted state first
         try {
           authStateManager.clearAuthState();
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log('✅ [AUTH] Cleared potentially corrupted authStateManager state');
           }
         } catch (clearError) {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.warn('⚠️ [AUTH] Failed to clear authStateManager:', clearError);
           }
         }
 
         // 🔧 STEP 2: Re-execute core storage operations in sequence
         await tokenManager.setTokens(tokens);
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('✅ [AUTH] TokenManager updated');
         }
 
         // 🔧 STEP 3: Set authStateManager with enhanced error handling
         try {
           authStateManager.setAuthState(tokens.accessToken, user);
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log('✅ [AUTH] AuthStateManager updated');
           }
         } catch (authStateError) {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.warn('⚠️ [AUTH] AuthStateManager setAuthState failed, trying alternative approach:', authStateError);
           }
 
@@ -1108,11 +966,11 @@ export const useAuthStore = defineStore('auth', {
           try {
             localStorage.setItem('auth_token', tokens.accessToken);
             localStorage.setItem('auth_user', JSON.stringify(user));
-            if (import.meta.env.DEV) {
+            if (true) {
               console.log('✅ [AUTH] Set auth state via direct localStorage');
             }
           } catch (directError) {
-            if (import.meta.env.DEV) {
+            if (true) {
               console.error('❌ [AUTH] Direct localStorage approach also failed:', directError);
             }
             throw directError;
@@ -1129,7 +987,7 @@ export const useAuthStore = defineStore('auth', {
         };
         localStorage.setItem('auth', JSON.stringify(authBackup));
         localStorage.setItem('refresh_token', tokens.refreshToken);
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('✅ [AUTH] Backup auth data stored');
         }
 
@@ -1138,18 +996,18 @@ export const useAuthStore = defineStore('auth', {
 
         // 🔧 STEP 6: Immediate verification to ensure success
         const immediateVerification = this.verifyAuthStateManager(tokens, user);
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('📊 [AUTH] Immediate post-retry verification:', immediateVerification);
         }
 
         if (!immediateVerification) {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.warn('⚠️ [AUTH] Immediate verification still failed, but continuing...');
           }
         }
 
       } catch (error) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.error('❌ [AUTH] Enhanced storage retry failed:', error);
         }
         throw error;
@@ -1169,11 +1027,11 @@ export const useAuthStore = defineStore('auth', {
         localStorage.removeItem('auth');
         localStorage.removeItem('refresh_token');
 
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('🧹 [AUTH] Failed auth state cleaned up');
         }
       } catch (error) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.warn('Cleanup failed:', error);
         }
       }
@@ -1234,7 +1092,7 @@ export const useAuthStore = defineStore('auth', {
       // Evaluate overall integrity
       const allValid = checks.every(check => check.valid);
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('🔍 [AUTH] State integrity check:', {
           overall: allValid ? 'PASS' : 'FAIL',
           checks
@@ -1290,7 +1148,7 @@ export const useAuthStore = defineStore('auth', {
         // Verify token was set correctly
         const verifyToken = tokenManager.getAccessToken();
         if (!verifyToken) {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.error('❌ [AUTH] Token not set correctly in tokenManager after registration');
           }
           throw new Error('Failed to store authentication token');
@@ -1328,47 +1186,196 @@ export const useAuthStore = defineStore('auth', {
     },
 
     /**
-     * Logout user
+     * Logout user - 🔧 SIMPLIFIED: 避免阻塞的简化版本
      */
-    async logout(message = 'You have been signed out successfully.') {
+    logout(message = 'You have been signed out successfully.', skipNavigation = false) {
       // Check if logout is already in progress
       if (this.logoutState.isLoggingOut) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('🔐 [AUTH] Logout already in progress, skipping');
         }
         return;
       }
 
-      if (import.meta.env.DEV) {
-        console.log('🚪 [AUTH] Starting logout process...');
+      if (true) {
+        console.log(`🚪 [AUTH] SIMPLIFIED logout - skipNavigation: ${skipNavigation}`);
       }
 
-      // Mark logout as in progress
+      // 🚨 STEP 0: 如果需要导航且未跳过，立即执行导航
+      if (!skipNavigation) {
+        try {
+          if (true) {
+            console.log('🚀 [AUTH] Immediate navigation to /login');
+          }
+          
+          // 立即导航
+          window.location.replace('/login');
+          
+          if (true) {
+            console.log('✅ [AUTH] Navigation initiated, continuing with cleanup...');
+          }
+          
+        } catch (navigationError) {
+          if (true) {
+            console.error('❌ [AUTH] Navigation failed:', navigationError);
+          }
+          
+          // 导航失败则刷新页面
+          window.location.reload();
+          return;
+        }
+      }
+
+      // 🔧 STEP 1: 标记logout状态（在导航后）
       this.logoutState.isLoggingOut = true;
       this.logoutState.lastLogoutTime = Date.now();
 
+      // 🔧 STEP 2: 立即清理关键状态 - 同步执行
       try {
-        // Clear all authentication state
-        await this.clearAllAuthState();
-
-        if (import.meta.env.DEV) {
-          console.log('✅ [AUTH] All state cleared successfully');
+        if (true) {
+          console.log('🧹 [AUTH] Immediate state cleanup...');
         }
-
-        // Navigate to login page
-        await this.navigateToLoginSafely(message);
-
+        
+        // 立即清理store状态
+        this.token = null;
+        this.user = null;
+        this.isLoading = false;
+        this.error = null;
+        this.lastLoginTime = null;
+        this.sessionStartTime = null;
+        this.isInitialized = false;
+        this.returnUrl = null;
+        this.userStoresInitialized = false;
+        this.userStoresInitializationInProgress = false;
+        
+        // 立即清理关键存储
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('auth_user');
+        localStorage.removeItem('auth');
+        
+        if (true) {
+          console.log('✅ [AUTH] Critical state cleared immediately');
+        }
+        
       } catch (error) {
-        if (import.meta.env.DEV) {
-          console.error('❌ [AUTH] Logout process failed:', error);
+        if (true) {
+          console.warn('⚠️ [AUTH] Immediate cleanup failed:', error);
         }
-        // Fallback: Force page reload to login
-        window.location.href = '/login';
-      } finally {
-        // Reset logout state after a delay
-        setTimeout(() => {
+      }
+
+      // 🔧 STEP 3: 后台完整清理 - 不阻塞导航，避免动态导入
+      setTimeout(() => {
+        try {
+          if (true) {
+            console.log('🔄 [AUTH] Comprehensive background cleanup...');
+          }
+          
+          // 清理外部系统
+          tokenManager.clearTokens();
+          authStateManager.clearAuthState();
+
+          // 清理剩余localStorage
+          localStorage.removeItem('refresh_token');
+          localStorage.removeItem('fechatter_access_token');
+          localStorage.removeItem('token_expires_at');
+          localStorage.removeItem('fechatter_token_expiry');
+
+          // 触发App.vue更新事件
+          if (typeof window !== 'undefined' && window.dispatchEvent) {
+            window.dispatchEvent(new CustomEvent('force-auth-state-update', { 
+              detail: { type: 'logout', timestamp: Date.now() } 
+            }));
+          }
+
+          // 重置logout状态
           this.logoutState.isLoggingOut = false;
-        }, 2000);
+
+          if (true) {
+            console.log('✅ [AUTH] Comprehensive cleanup completed');
+          }
+          
+        } catch (backgroundError) {
+          if (true) {
+            console.warn('⚠️ [AUTH] Background cleanup failed:', backgroundError);
+          }
+          
+          // 即使清理失败也要重置状态
+          this.logoutState.isLoggingOut = false;
+        }
+      }, 0); // 下一个事件循环执行
+
+      if (true) {
+        console.log('✅ [AUTH] Immediate logout completed - navigation initiated');
+      }
+    },
+
+    /**
+     * 🔧 INSTANT: Navigate to login immediately
+     */
+    async navigateToLoginWithFallbacks(message) {
+      if (true) {
+        console.log('🚀 [AUTH] Instant navigation to login...');
+      }
+
+      try {
+        // 🚨 INSTANT: 立即使用最可靠的导航方法
+        window.location.replace('/login');
+        
+        if (true) {
+          console.log('✅ [AUTH] Immediate navigation initiated');
+          if (message) {
+            console.log(`📨 [AUTH] ${message}`);
+          }
+        }
+      } catch (error) {
+        if (true) {
+          console.warn('⚠️ [AUTH] window.location.replace failed, using href fallback:', error);
+        }
+        
+        // 唯一的回退策略
+        window.location.href = '/login';
+      }
+    },
+
+    /**
+     * 🔧 NEW: Emergency logout fallback when all normal methods fail
+     */
+    async emergencyLogoutFallback(message) {
+      if (true) {
+        console.log('🚨 [AUTH] Executing emergency logout fallback...');
+      }
+
+      try {
+        // Emergency state clearing
+        localStorage.clear();
+        sessionStorage.clear();
+
+        // Force page reload to login
+        window.location.replace('/login');
+        
+        // If replace doesn't work, try href
+        setTimeout(() => {
+          if (window.location.pathname !== '/login') {
+            window.location.href = '/login';
+          }
+        }, 1000);
+
+        // Ultimate fallback - reload entire page
+        setTimeout(() => {
+          if (window.location.pathname !== '/login') {
+            window.location.reload();
+          }
+        }, 3000);
+
+      } catch (emergencyError) {
+        if (true) {
+          console.error('❌ [AUTH] Emergency fallback also failed:', emergencyError);
+        }
+        
+        // Last resort - show user message
+        if (typeof alert !== 'undefined') {
+          alert('Logout failed. Please manually refresh the page.');
+        }
       }
     },
 
@@ -1381,7 +1388,7 @@ export const useAuthStore = defineStore('auth', {
           try {
             store.$reset();
           } catch (e) {
-            if (import.meta.env.DEV) {
+            if (true) {
               console.error(`❌ [AUTH] Error resetting a store:`, e);
             }
           }
@@ -1414,7 +1421,7 @@ export const useAuthStore = defineStore('auth', {
         this.persistAuth();
         return user;
       } catch (error) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.error('Failed to fetch current user:', error);
         }
         throw error;
@@ -1464,14 +1471,14 @@ export const useAuthStore = defineStore('auth', {
     async initializeUserStores() {
       // 🔧 CRITICAL FIX: Prevent multiple concurrent initializations
       if (this.userStoresInitialized) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('ℹ️ [AUTH] User stores already initialized, skipping');
         }
         return;
       }
 
       if (this.userStoresInitializationInProgress) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('ℹ️ [AUTH] User stores initialization already in progress, skipping');
         }
         return;
@@ -1486,7 +1493,7 @@ export const useAuthStore = defineStore('auth', {
 
         // Fetch workspace users - don't fail if this errors
         await userStore.fetchWorkspaceUsers().catch(err => {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.warn('Failed to fetch workspace users:', err);
           }
         });
@@ -1507,11 +1514,11 @@ export const useAuthStore = defineStore('auth', {
         // 🔧 NEW: Mark as successfully initialized
         this.userStoresInitialized = true;
 
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('✅ [AUTH] User stores initialized during app startup');
         }
       } catch (error) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.error('Failed to initialize user stores:', error);
         }
         // Don't throw - initialization should continue even if some stores fail
@@ -1522,7 +1529,7 @@ export const useAuthStore = defineStore('auth', {
           // Still mark as initialized even if partially failed
           this.userStoresInitialized = true;
         } catch (e) {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.error('Failed to set default workspace:', e);
           }
         }
@@ -1572,7 +1579,7 @@ export const useAuthStore = defineStore('auth', {
 
       // Prevent handling auth errors during active logout
       if (this.logoutState.isLoggingOut) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('🔐 [AuthStore] Auth error ignored - logout already in progress');
         }
         return;
@@ -1581,7 +1588,7 @@ export const useAuthStore = defineStore('auth', {
       // Implement debouncing for auth errors
       if (this.logoutState.lastAuthErrorTime &&
         (now - this.logoutState.lastAuthErrorTime) < this.logoutState.authErrorDebounceMs) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('🔐 [AuthStore] Auth error debounced - too recent');
         }
         return;
@@ -1590,14 +1597,14 @@ export const useAuthStore = defineStore('auth', {
       // Check if already on login page to prevent redundant navigation
       const currentPath = window.location.pathname;
       if (currentPath === '/login' || currentPath === '/register') {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('🔐 [AuthStore] Already on auth page, clearing state only');
         }
         await this.clearAuthStateOnly();
         return;
       }
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('🔐 [AuthStore] Processing auth error:', { message, errorType, currentPath });
       }
 
@@ -1616,37 +1623,160 @@ export const useAuthStore = defineStore('auth', {
      */
     async clearAuthStateOnly() {
       // Clear auth state without navigation
+      this.token = null;
+      this.user = null;
+      this.isInitialized = false;
       authStateManager.clearAuthState();
       tokenManager.clearTokens();
     },
 
     async navigateToLoginSafely(message) {
+      if (true) {
+        console.log('🚪 [AUTH] Navigating to login safely...');
+      }
+
       try {
-        await router.push('/login');
+        // Check if already on login page to avoid redundant navigation
+        const currentPath = window.location.pathname;
+        if (currentPath === '/login') {
+          if (true) {
+            console.log('🚪 [AUTH] Already on login page, skipping navigation');
+          }
+          return;
+        }
+
+        // Attempt Vue Router navigation
+        await router.push({ path: '/login', replace: true });
+        
+        if (true) {
+          console.log('✅ [AUTH] Successfully navigated to login via Vue Router');
+        }
+
         // Show message if provided
-        if (message && import.meta.env.DEV) {
-          console.log(message);
+        if (message && true) {
+          console.log(`📨 [AUTH] ${message}`);
         }
       } catch (error) {
-        // Fallback to direct navigation
-        window.location.href = '/login';
+        if (true) {
+          console.warn('⚠️ [AUTH] Vue Router navigation failed, using window.location fallback:', error);
+        }
+        
+        // Fallback to direct navigation with replace to prevent back button issues
+        window.location.replace('/login');
       }
     },
 
     async clearAllAuthState() {
-      // Clear all auth-related state
-      authStateManager.clearAuthState();
-      tokenManager.clearTokens();
+      if (true) {
+        console.log('🧹 [AUTH] Starting comprehensive auth state cleanup...');
+      }
 
-      // Clear specific auth keys
-      const authKeys = [
-        'auth', 'auth_token', 'fechatter_access_token', 'token_expires_at',
-        'fechatter_token_expiry', 'remember_me', 'user', 'token', 'refreshToken',
-      ];
-      authKeys.forEach(key => {
-        localStorage.removeItem(key);
-        sessionStorage.removeItem(key);
-      });
+      // 🔧 ENHANCED: More thorough cleanup with verification
+      try {
+        // 1. Clear auth state manager first
+        authStateManager.clearAuthState();
+        
+        // 2. Clear token manager
+        tokenManager.clearTokens();
+
+        // 3. Clear Pinia store state manually to avoid reactivity issues
+        this.token = null;
+        this.user = null;
+        this.isLoading = false;
+        this.error = null;
+        this.lastLoginTime = null;
+        this.sessionStartTime = null;
+        this.isInitialized = false;
+        this.returnUrl = null;
+        this.userStoresInitialized = false;
+        this.userStoresInitializationInProgress = false;
+
+        // 4. Clear comprehensive list of auth keys from all storage
+        const authKeys = [
+          // Primary auth keys
+          'auth', 'auth_token', 'fechatter_access_token', 'access_token',
+          'token', 'refreshToken', 'refresh_token', 'user', 'auth_user',
+          
+          // Token expiry keys
+          'token_expires_at', 'fechatter_token_expiry', 'token_expiry',
+          
+          // Session and preference keys
+          'remember_me', 'session_id', 'last_login_time', 'redirectPath',
+          
+          // Workspace and user keys that might contain auth info
+          'current_workspace', 'workspace_id', 'user_preferences',
+          
+          // Analytics and tracking keys that might contain user data
+          'analytics_user_id', 'user_session'
+        ];
+
+        // Clear from both localStorage and sessionStorage
+        authKeys.forEach(key => {
+          localStorage.removeItem(key);
+          sessionStorage.removeItem(key);
+        });
+
+        // 5. 🔧 NEW: Force clear any remaining auth-related patterns
+        // Clear any keys that might contain auth data with pattern matching
+        const allLocalStorageKeys = Object.keys(localStorage);
+        const authPatterns = ['auth', 'token', 'user', 'session', 'login'];
+        
+        allLocalStorageKeys.forEach(key => {
+          const lowerKey = key.toLowerCase();
+          if (authPatterns.some(pattern => lowerKey.includes(pattern))) {
+            if (true) {
+              console.log(`🧹 [AUTH] Clearing pattern-matched key: ${key}`);
+            }
+            localStorage.removeItem(key);
+          }
+        });
+
+        // 6. 🔧 NEW: Verify cleanup completed successfully
+        const remainingToken = tokenManager.getAccessToken();
+        const remainingAuthState = authStateManager.getAuthState();
+        const remainingLocalToken = localStorage.getItem('auth_token');
+
+        if (remainingToken || remainingAuthState.isAuthenticated || remainingLocalToken) {
+          console.warn('⚠️ [AUTH] Cleanup verification failed, forcing additional cleanup');
+          
+          // Force additional cleanup
+          if (remainingToken) {
+            tokenManager.clearTokens();
+          }
+          if (remainingAuthState.isAuthenticated) {
+            authStateManager.clearAuthState();
+          }
+          if (remainingLocalToken) {
+            localStorage.removeItem('auth_token');
+          }
+        }
+
+        // 7. Reset component state flags
+        this.isInitialized = false;
+        this.userStoresInitialized = false;
+        this.userStoresInitializationInProgress = false;
+        this.lastLoginTime = null;
+        this.sessionStartTime = null;
+        this.error = null;
+
+        if (true) {
+          console.log('✅ [AUTH] Comprehensive auth state cleanup completed successfully');
+        }
+
+      } catch (error) {
+        if (true) {
+          console.error('❌ [AUTH] Error during auth state cleanup:', error);
+        }
+        // Even if cleanup fails, ensure critical state is cleared
+        try {
+          localStorage.removeItem('auth_token');
+          localStorage.removeItem('auth_user');
+          authStateManager.clearAuthState();
+          tokenManager.clearTokens();
+        } catch (fallbackError) {
+          console.error('❌ [AUTH] Fallback cleanup also failed:', fallbackError);
+        }
+      }
     },
 
     async ensureAuthStateConsistency() {

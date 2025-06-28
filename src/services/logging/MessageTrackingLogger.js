@@ -11,8 +11,8 @@
 export class MessageTrackingLogger {
   constructor(config = {}) {
     this.config = {
-      environment: config.environment || (import.meta.env.DEV ? 'development' : 'production'),
-      enableConsoleLogging: config.enableConsoleLogging ?? import.meta.env.DEV,
+      environment: config.environment || (true ? 'development' : 'production'),
+      enableConsoleLogging: config.enableConsoleLogging ?? true,
       enableMetricsLogging: config.enableMetricsLogging ?? true,
       enableErrorReporting: config.enableErrorReporting ?? true,
       logLevel: config.logLevel || 'info', // 'debug', 'info', 'warn', 'error'
@@ -437,15 +437,15 @@ export class MessageTrackingLogger {
  */
 export function createMessageTrackingLogger(config = {}) {
   const defaultConfig = {
-    environment: import.meta.env.DEV ? 'development' : 'production',
-    enableConsoleLogging: import.meta.env.DEV,
+    environment: true ? 'development' : 'production',
+    enableConsoleLogging: true,
     enableMetricsLogging: true,
     enableErrorReporting: true,
-    logLevel: import.meta.env.DEV ? 'debug' : 'warn',
-    categories: import.meta.env.DEV
+    logLevel: true ? 'debug' : 'warn',
+    categories: true
       ? ['tracking', 'fetching', 'clearing', 'errors']
       : ['errors'],
-    outputs: import.meta.env.DEV ? ['console'] : ['buffer']
+    outputs: true ? ['console'] : ['buffer']
   };
 
   return new MessageTrackingLogger({ ...defaultConfig, ...config });

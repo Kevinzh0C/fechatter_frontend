@@ -1,0 +1,116 @@
+/* 🔢 Numbers Harmonization - 数字协调系统
+ * 轻量级数字和符号字体协调
+ * 确保数字与文字完美融合，不干扰现有组件
+ */
+
+:root {
+  --harmonized-font-stack: 
+    -apple-system, BlinkMacSystemFont, 
+    'Segoe UI', 'SF Pro Text', 'SF Pro Display',
+    'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei',
+    'Hiragino Kaku Gothic ProN', 'Yu Gothic Medium',
+    'Apple SD Gothic Neo', 'Malgun Gothic',
+    'Helvetica Neue', Arial, sans-serif;
+}
+
+/* �� 修复emoji-2x误处理数字和符号 - 高优先级 */
+.emoji-2x[data-not-emoji],
+.emoji-2x[data-contains-digits],
+.emoji-2x[data-math],
+.emoji-2x[data-currency],
+.emoji-2x[data-punctuation],
+.emoji-2x[data-cjk] {
+  font-family: var(--harmonized-font-stack) !important;
+  font-size: inherit !important;
+  line-height: inherit !important;
+  letter-spacing: normal !important;
+  margin: 0 !important;
+  display: inline !important;
+  vertical-align: baseline !important;
+  font-weight: inherit !important;
+}
+
+/* 🎯 真正的emoji保护 - 最高优先级放大 */
+.emoji-2x[data-is-emoji="true"],
+.emoji-2x.actual-emoji-verified,
+.emoji-2x[data-real-emoji="true"] {
+  font-size: 1.25em !important;
+  line-height: 1.25 !important;
+  vertical-align: middle !important;
+  display: inline-block !important;
+  margin: 0 0.1em !important;
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif !important;
+}
+
+/* 🔧 覆盖unified-font-size-fix中的1.2em设置 */
+.emoji-2x:not([data-not-emoji]):not([data-contains-digits]):not([data-math]):not([data-currency]):not([data-punctuation]):not([data-cjk]) {
+  font-size: 1.25em !important;
+  line-height: 1.25 !important;
+  vertical-align: middle !important;
+  display: inline-block !important;
+  margin: 0 0.1em !important;
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif !important;
+}
+
+/* 🔢 数字字体特性优化 */
+body {
+  font-variant-numeric: lining-nums;
+  font-feature-settings: "lnum" 1;
+}
+
+/* ⏰ 时间和数字显示优化 */
+time, 
+.timestamp, 
+.time-display,
+.count, 
+.badge, 
+.notification-count {
+  font-variant-numeric: lining-nums tabular-nums;
+  font-feature-settings: "lnum" 1, "tnum" 1;
+}
+
+/* 🌏 CJK字符保护 - 强制恢复正常大小 */
+.emoji-2x:lang(zh), 
+.emoji-2x:lang(ja), 
+.emoji-2x:lang(ko),
+.emoji-2x[lang="zh"], 
+.emoji-2x[lang="ja"], 
+.emoji-2x[lang="ko"],
+.emoji-2x[data-cjk="true"] {
+  font-size: inherit !important;
+  line-height: inherit !important;
+  margin: 0 !important;
+  display: inline !important;
+  vertical-align: baseline !important;
+  font-family: var(--harmonized-font-stack) !important;
+}
+
+/* 🚫 代码块保护 */
+code .emoji-2x, 
+pre .emoji-2x, 
+.hljs .emoji-2x,
+.code-block .emoji-2x, 
+.monospace .emoji-2x {
+  font-family: inherit !important;
+  font-size: inherit !important;
+  line-height: inherit !important;
+  margin: 0 !important;
+  display: inline !important;
+  vertical-align: baseline !important;
+}
+
+/* 🔧 强制覆盖任何其他emoji大小设置 */
+.emoji-2x[data-not-emoji="true"],
+.emoji-2x[data-contains-digits="true"],
+.emoji-2x[data-math="true"],
+.emoji-2x[data-currency="true"],
+.emoji-2x[data-punctuation="true"] {
+  font-family: var(--harmonized-font-stack) !important;
+  font-size: inherit !important;
+  line-height: inherit !important;
+  margin: 0 !important;
+  display: inline !important;
+  vertical-align: baseline !important;
+  font-weight: inherit !important;
+  letter-spacing: inherit !important;
+} 

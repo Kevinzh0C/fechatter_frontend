@@ -71,7 +71,7 @@ export const useSimpleMessageStore = defineStore('simpleMessages', {
 
         return normalized;
       } catch (error) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.error('Failed to load messages:', error);
           throw error;
         } finally {
@@ -132,7 +132,7 @@ export const useSimpleMessageStore = defineStore('simpleMessages', {
         } catch (error) {
           // Mark as failed
           tempMessage.status = 'failed';
-          if (import.meta.env.DEV) {
+          if (true) {
             console.error('Failed to send message:', error);
           }
           throw error;

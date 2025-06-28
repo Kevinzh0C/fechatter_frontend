@@ -54,7 +54,7 @@ export class MessageSessionGrouper {
       enableDebounce: true    // 启用防抖
     };
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('📅 [MessageSessionGrouper] 消息时间分组器已初始化');
     }
   }
@@ -76,10 +76,27 @@ export class MessageSessionGrouper {
       }
     }
 
-    // 按时间排序消息 (确保正确顺序)
-    const sortedMessages = [...messages].sort((a, b) =>
-      new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-    );
+    // 🔧 DISPLAY ORDER FIX: 保持正确的显示顺序 (oldest at top, newest at bottom)
+    // 对于消息显示，我们需要的是：[最老消息(top), ..., 最新消息(bottom)]
+    // UnifiedMessageService提供的就是这个顺序，保持不变
+    console.log('📅 [MessageSessionGrouper] Preserving oldest-first display order for natural reading');
+    
+    // 检查消息是否已经是正确的顺序（oldest first）
+    const isOldestFirst = messages.length > 1 && 
+      new Date(messages[0].created_at).getTime() <= new Date(messages[1].created_at).getTime();
+    
+    let sortedMessages;
+    if (isOldestFirst) {
+      // 已经是正确的显示顺序，直接使用
+      sortedMessages = [...messages];
+    } else {
+      // 需要排序为oldest-first显示顺序
+      sortedMessages = [...messages].sort((a, b) => {
+        const timeA = new Date(a.created_at).getTime();
+        const timeB = new Date(b.created_at).getTime();
+        return timeA - timeB; // Ascending order (oldest first)
+      });
+    }
 
     // 执行分组分析
     const result = this.performGroupingAnalysis(sortedMessages, chatId);
@@ -187,7 +204,7 @@ export class MessageSessionGrouper {
       this.finalizeSession(currentSession);
     }
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`📅 [MessageSessionGrouper] 分组完成:`, {
         chatId,
         messagesCount: messages.length,
@@ -385,7 +402,7 @@ export class MessageSessionGrouper {
       session.type = 'conversation';
     }
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`📅 [MessageSessionGrouper] 会话完成:`, {
         sessionId: session.id,
         type: session.type,
@@ -689,7 +706,7 @@ export class MessageSessionGrouper {
     this.dividerCache.clear();
     this.analysisCache.clear();
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🧹 [MessageSessionGrouper] 资源已清理');
     }
   }
@@ -722,14 +739,14 @@ export class MessageSessionGrouper {
 
           verifiedMessages.push(subDateDivider);
 
-          if (import.meta.env.DEV) {
+          if (true) {
             console.warn(`🔧 [MessageSessionGrouper] 自动插入副日期分割线 after main divider:`, currentItem.displayText);
           }
         }
       }
     }
 
-    if (import.meta.env.DEV) {
+    if (true) {
       const mainDividers = verifiedMessages.filter(m => m.type === 'date-divider').length;
       const subDividers = verifiedMessages.filter(m => m.type === 'sub-date-divider').length;
       console.log(`📊 [MessageSessionGrouper] 验证完成: ${mainDividers} 个主日期分割线, ${subDividers} 个副日期分割线`);
@@ -743,7 +760,7 @@ export class MessageSessionGrouper {
 export const messageSessionGrouper = new MessageSessionGrouper();
 
 // 开发环境下全局可用
-if (import.meta.env.DEV) {
+if (true) {
   window.messageSessionGrouper = messageSessionGrouper;
   console.log('📅 MessageSessionGrouper 全局可用');
 } 

@@ -1,0 +1,470 @@
+/**
+ * Scroll Stability CSS Optimizations
+ * Enhances performance and stability during historical message loading
+ * Works in conjunction with ViewportAnchorManager
+ */
+
+/* Core container optimizations for stable scrolling */
+.discord-message-list,
+.simple-message-list {
+  /* GPU acceleration for smooth scrolling */
+  transform: translateZ(0);
+  will-change: scroll-position;
+  
+  /* Optimize scroll behavior */
+  scroll-behavior: auto; /* Disable smooth scroll during load operations */
+  
+  /* Prevent layout thrashing */
+  contain: layout style paint;
+  
+  /* Optimize repaints during scroll */
+  backface-visibility: hidden;
+  
+  /* Stable scrollbar to prevent width changes */
+  scrollbar-gutter: stable;
+  overflow-anchor: none; /* Disable browser's automatic scroll anchoring */
+}
+
+/* 🔧 STRICT SCROLL LOCK: Complete scroll prevention during history loading */
+.scroll-strict-locked {
+  /* Prevent all scroll interactions */
+  overflow: hidden !important;
+  
+  /* Disable pointer events that could cause scrolling */
+  pointer-events: none !important;
+  
+  /* Prevent keyboard scrolling */
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  
+  /* Disable touch scrolling */
+  -webkit-overflow-scrolling: auto !important;
+  touch-action: none !important;
+  
+  /* Lock scroll behavior */
+  scroll-behavior: auto !important;
+  
+  /* Prevent any smooth animations */
+  transition: none !important;
+  animation: none !important;
+  
+  /* GPU optimization during lock */
+  will-change: auto !important;
+  
+  /* Maximum containment during lock */
+  contain: strict !important;
+  
+  /* Prevent scroll restoration during lock */
+  scroll-restoration: manual !important;
+}
+
+/* Re-enable scroll interactions for child elements that need them */
+.scroll-strict-locked .message-wrapper,
+.scroll-strict-locked .discord-message-wrapper {
+  /* Allow message interactions while parent is locked */
+  pointer-events: auto !important;
+  user-select: text !important;
+  -webkit-user-select: text !important;
+  
+  /* But prevent any scrolling within children */
+  overflow: visible !important;
+  touch-action: manipulation !important;
+}
+
+/* Ensure loading indicators are visible during lock */
+.scroll-strict-locked .load-more-indicator {
+  pointer-events: none !important;
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+}
+
+/* Enhanced scroll lock visual feedback */
+.scroll-strict-locked::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.01); /* Nearly invisible overlay */
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Lock maintenance for different container types */
+.scroll-strict-locked.discord-message-list,
+.scroll-strict-locked.simple-message-list,
+.scroll-strict-locked.message-list {
+  /* Force scroll position to remain fixed */
+  scroll-snap-type: none !important;
+  overscroll-behavior: none !important;
+  
+  /* Prevent any momentum scrolling */
+  -webkit-overflow-scrolling: auto !important;
+  
+  /* Lock all scroll-related properties */
+  scroll-padding: 0 !important;
+  scroll-margin: 0 !important;
+}
+
+/* Message items optimizations for stable loading */
+.message-wrapper,
+.discord-message-wrapper,
+.message-loading-context {
+  /* Prevent layout shifts during load */
+  contain: layout style;
+  
+  /* GPU layer promotion for smooth transitions */
+  transform: translateZ(0);
+  
+  /* Optimize rendering during batch loads */
+  will-change: auto;
+}
+
+/* Loading state optimizations */
+.discord-message-list[data-loading="true"] {
+  /* Enhanced stability during load operations */
+  scroll-snap-type: none; /* Disable snap during loading */
+}
+
+.discord-message-list[data-loading="true"] .message-wrapper {
+  /* Prevent individual message animations during load BUT preserve status indicators */
+  animation-play-state: paused;
+  transition: none;
+}
+
+/* CRITICAL FIX: Preserve message status indicator animations during loading */
+.discord-message-list[data-loading="true"] .message-wrapper .animate-pulse,
+.discord-message-list[data-loading="true"] .message-wrapper [class*="animate-"],
+.discord-message-list[data-loading="true"] .message-wrapper .message-status-delivered,
+.discord-message-list[data-loading="true"] .message-wrapper .message-status-pending,
+.discord-message-list[data-loading="true"] .message-wrapper .message-status-failed {
+  animation-play-state: running !important;
+  transition: all 0.2s ease !important;
+}
+
+/* Ensure status indicators remain visible and animated */
+.message-wrapper .text-green-500,
+.message-wrapper .text-blue-400,
+.message-wrapper .text-red-500,
+.message-wrapper .animate-pulse {
+  /* Force status indicators to remain interactive */
+  pointer-events: auto !important;
+  animation-play-state: running !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* CRITICAL: Ensure Tailwind animate-pulse works in all scenarios */
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite !important;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: .5;
+  }
+}
+
+/* Enhanced status indicator protection */
+.h-4.w-4.text-green-500,
+.h-4.w-4.text-blue-400,
+.h-4.w-4.text-red-500 {
+  /* Guarantee status indicators always work */
+  display: inline-block !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+/* Force blue clock animation to work during any state */
+.h-4.w-4.text-blue-400.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite !important;
+  animation-play-state: running !important;
+}
+
+/* Message status container stability */
+.message-status-container {
+  /* Ensure status container always renders properly */
+  display: flex !important;
+  align-items: center !important;
+  min-height: 20px;
+  z-index: 10;
+}
+
+/* Individual status indicator protection */
+.message-status-delivered,
+.message-status-pending,
+.message-status-failed {
+  /* Force visibility and interactivity */
+  display: inline-block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
+
+/* Specifically protect the pulse animation */
+.message-status-pending.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite !important;
+  animation-play-state: running !important;
+  animation-fill-mode: both !important;
+}
+
+/* Viewport anchor indicators (development only) */
+.message-wrapper[data-viewport-anchor="true"] {
+  /* Subtle visual indicator for debugging */
+  box-shadow: -3px 0 0 rgba(33, 150, 243, 0.3);
+  position: relative;
+}
+
+.message-wrapper[data-viewport-anchor="true"]::before {
+  content: "📍";
+  position: absolute;
+  left: -20px;
+  top: 0;
+  font-size: 12px;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Smooth restoration animations */
+@keyframes viewport-restore {
+  from {
+    transform: translateY(-2px);
+    opacity: 0.95;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.message-wrapper[data-restored="true"] {
+  animation: viewport-restore 0.3s ease-out;
+}
+
+/* Load more indicator stability */
+.load-more-indicator {
+  /* Prevent layout shifts */
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  
+  /* Smooth entrance/exit */
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  
+  /* GPU acceleration */
+  transform: translateZ(0);
+}
+
+.load-more-indicator.entering {
+  opacity: 0;
+  transform: translateY(-20px) translateZ(0);
+}
+
+.load-more-indicator.active {
+  opacity: 1;
+  transform: translateY(0) translateZ(0);
+}
+
+.load-more-indicator.exiting {
+  opacity: 0;
+  transform: translateY(-10px) translateZ(0);
+}
+
+/* Scroll position preservation during dynamic content */
+.scroll-position-preserved {
+  /* Temporarily disable scroll behavior changes */
+  scroll-behavior: auto !important;
+  
+  /* Lock scroll position during DOM manipulations */
+  overflow: hidden;
+}
+
+.scroll-position-preserved.restoring {
+  /* Re-enable scrolling with smooth transition */
+  overflow: auto;
+  transition: scroll-behavior 0.1s ease;
+}
+
+/* Performance optimizations for message batches */
+.message-batch-container {
+  /* Optimize large batch rendering */
+  contain: layout style paint;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 100px;
+}
+
+/* Historical message insertion optimization */
+.historical-message-batch {
+  /* Minimize reflow during batch insertion */
+  opacity: 0;
+  transform: translateY(-10px) translateZ(0);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.historical-message-batch.inserted {
+  opacity: 1;
+  transform: translateY(0) translateZ(0);
+}
+
+/* Intersection observer optimization */
+.message-wrapper[data-observed="true"] {
+  /* Enable efficient visibility tracking */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 80px;
+}
+
+/* High DPI and mobile optimizations */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .discord-message-list,
+  .simple-message-list {
+    /* Enhanced GPU acceleration for high DPI */
+    transform: translate3d(0, 0, 0);
+    -webkit-transform: translate3d(0, 0, 0);
+  }
+}
+
+/* Mobile touch scrolling optimization */
+@media (hover: none) and (pointer: coarse) {
+  .discord-message-list,
+  .simple-message-list {
+    /* iOS momentum scrolling */
+    -webkit-overflow-scrolling: touch;
+    
+    /* Prevent scroll chaining */
+    overscroll-behavior: contain;
+    
+    /* Optimize touch interactions */
+    touch-action: pan-y;
+  }
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .message-wrapper[data-restored="true"] {
+    animation: none;
+  }
+  
+  .historical-message-batch {
+    transition: none;
+  }
+  
+  .load-more-indicator {
+    transition: opacity 0.1s ease;
+  }
+}
+
+/* Dark mode optimizations */
+@media (prefers-color-scheme: dark) {
+  .message-wrapper[data-viewport-anchor="true"] {
+    box-shadow: -3px 0 0 rgba(100, 181, 246, 0.4);
+  }
+}
+
+/* Container query optimization (future-proofing) */
+@container (min-height: 400px) {
+  .message-batch-container {
+    contain-intrinsic-size: auto 120px;
+  }
+}
+
+/* Debug mode styles (development only) */
+.scroll-debug-mode .message-wrapper {
+  border-left: 2px solid transparent;
+  transition: border-color 0.2s ease;
+}
+
+.scroll-debug-mode .message-wrapper[data-viewport-anchor="true"] {
+  border-left-color: #2196f3;
+  background: rgba(33, 150, 243, 0.05);
+}
+
+.scroll-debug-mode .message-wrapper[data-recently-loaded="true"] {
+  border-left-color: #4caf50;
+  background: rgba(76, 175, 80, 0.05);
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: no-preference) {
+  .discord-message-list:focus-within {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Print styles */
+@media print {
+  .discord-message-list,
+  .simple-message-list {
+    /* Disable GPU acceleration for print */
+    transform: none;
+    will-change: auto;
+    overflow: visible;
+  }
+  
+  .load-more-indicator {
+    display: none;
+  }
+}
+
+/* 🚨 System-wide history loading state */
+body.history-loading-in-progress {
+  /* Prevent any global scroll effects */
+  overscroll-behavior: none;
+}
+
+body.history-loading-in-progress * {
+  /* Disable smooth scrolling globally during history loading */
+  scroll-behavior: auto !important;
+}
+
+/* 🚨 Additional protection for common scroll triggers */
+.scroll-strict-locked::-webkit-scrollbar-thumb,
+.scroll-strict-locked::-webkit-scrollbar-track {
+  pointer-events: none !important;
+}
+
+/* 🚨 Prevent any visual indicators during lock */
+.scroll-strict-locked .scroll-to-bottom-btn-fixed,
+.scroll-strict-locked .load-more-indicator,
+.scroll-strict-locked .scroll-position-indicator {
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* 🚨 Lock position absolutely during history loading */
+body[data-history-loading] .discord-message-list {
+  position: fixed !important;
+  overflow: hidden !important;
+  pointer-events: none !important;
+  touch-action: none !important;
+}
+
+/* 🚨 Emergency scroll prevention */
+.scroll-strict-locked,
+.scroll-strict-locked * {
+  scroll-snap-type: none !important;
+  scroll-snap-align: none !important;
+}
+
+/* 🔧 Ensure content remains stable during lock */
+.scroll-strict-locked {
+  contain: layout style paint !important;
+  transform: translateZ(0) !important;
+}
+
+/* 🔧 Visual feedback that system is locked */
+.history-loading-in-progress .discord-message-list::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(88, 101, 242, 0.02);
+  z-index: 9999;
+  pointer-events: none;
+  backdrop-filter: blur(0.5px);
+} 

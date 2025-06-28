@@ -57,7 +57,7 @@ class ChannelPreloaderService {
       const result = await this.preloadPromise;
       return result;
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('❌ [PRELOADER] Preloading failed:', error);
         throw error;
       } finally {
@@ -109,7 +109,7 @@ class ChannelPreloaderService {
       return this.preloadedData;
 
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('📦 [PRELOADER] Preload failed:', error);
       }
 
@@ -134,7 +134,7 @@ class ChannelPreloaderService {
       const startTime = performance.now();
 
       // Preload channels
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('📦 [PRELOADER] Fetching channels...');
         const workspaceStore = useWorkspaceStore();
 
@@ -180,7 +180,7 @@ class ChannelPreloaderService {
               }, {});
             }
           } catch (error) {
-            if (import.meta.env.DEV) {
+            if (true) {
               console.warn('📋 [PRELOADER] Failed to load unread counts:', error);
             }
             // 继续使用默认值0
@@ -199,14 +199,14 @@ class ChannelPreloaderService {
           }));
 
         } catch (error) {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.error('📋 [PRELOADER] Failed to preload channels:', error);
             return [];
           }
         }
 
       } catch (error) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.error('📋 [PRELOADER] Failed to preload channels:', error);
           return [];
         }
@@ -225,7 +225,7 @@ class ChannelPreloaderService {
           currentPath.includes('/register') ||
           currentPath === '/';
 
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('🔍 [PRELOADER] SSE connection check:');
           console.log('  - currentPath:', currentPath);
           console.log('  - isOnChatPage:', isOnChatPage);
@@ -234,7 +234,7 @@ class ChannelPreloaderService {
 
         // 🚀 只在聊天页面才建立SSE连接
         if (!isOnChatPage || isOnAuthPage) {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log('⚠️ [PRELOADER] SKIPPING SSE connection - not on chat page');
           }
           return false;
@@ -242,7 +242,7 @@ class ChannelPreloaderService {
 
         // 确保有有效 token
         if (!token || token.length < 50) {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.warn('⚠️ [PRELOADER] SKIPPING SSE - invalid token');
           }
           return false;
@@ -258,14 +258,14 @@ class ChannelPreloaderService {
 
         await Promise.race([connectPromise, timeoutPromise]);
 
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('✅ [PRELOADER] SSE connection established on chat page');
         }
 
         return true;
 
       } catch (error) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.warn('🔌 [PRELOADER] SSE connection failed:', error);
         }
 
@@ -273,7 +273,7 @@ class ChannelPreloaderService {
         const currentPath = window.location.pathname;
         if (currentPath.startsWith('/chat/') && !currentPath.includes('/login')) {
           setTimeout(() => {
-            if (import.meta.env.DEV) {
+            if (true) {
               console.log('🔄 [PRELOADER] Retrying SSE connection on chat page...');
             }
             minimalSSE.connect(token).catch(console.warn);
@@ -320,7 +320,7 @@ class ChannelPreloaderService {
       this.backgroundRefreshTimer = setInterval(() => {
         if (!this.isCacheValid() && !this.isPreloading) {
           this.startPreloading().catch(error => {
-            if (import.meta.env.DEV) {
+            if (true) {
               console.warn('🔄 [PRELOADER] Background refresh failed:', error);
             }
           });
@@ -394,7 +394,7 @@ class ChannelPreloaderService {
           const oldCount = channel.unread_count;
           channel.unread_count = unreadCount;
         } else {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.warn(`📦 [PRELOADER] Channel ${channelId} not found in preloaded data`);
           }
         }
@@ -464,14 +464,14 @@ class ChannelPreloaderService {
       // 检查预加载结果
       if (dataPromise.status === 'fulfilled') {
       } else {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.warn('⚠️ [PRELOADER] Data preloading failed:', dataPromise.reason);
         }
 
         // 检查SSE连接结果
         if (connectPromise.status === 'fulfilled') {
         } else {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.warn('⚠️ [PRELOADER] Real-time connection failed:', connectPromise.reason);
           }
           // SSE连接失败时，仍然可以尝试在后台重连
@@ -496,7 +496,7 @@ class ChannelPreloaderService {
         // 清除缓存
         this.clearCache();
 
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('🧹 [PRELOADER] Cleanup completed');
         }
       }

@@ -1,33 +1,131 @@
 <template>
   <div class="discord-message-wrapper">
-    <div class="discord-message-list" ref="scrollContainer" @scroll="handleScroll">
-      <!-- 🎯 Scroll Position Indicator -->
-      <div class="scroll-position-indicator" :class="{ active: loadingMore }"></div>
-
-      <!-- Enhanced Load More Indicator -->
-      <div v-if="loadingMore" class="load-more-indicator loading">
-        <div class="loading-spinner"></div>
-        <span>Loading earlier messages</span>
+    <div class="discord-message-list" ref="scrollContainer"
+         :data-loading="loadingMore" 
+         :data-chat-id="chatId"
+         :class="{ 
+           'scroll-debug-mode': debugMode,
+           'history-loading-active': loadingMore,
+           'smooth-loading-mode': true
+         }">
+      
+      <!-- 🧠 COGNITIVE: Enhanced Loading State for Reading Flow -->
+      <div class="loading-state-container" :class="{ 'loading-active': loadingMore }">
+        <!-- 🧠 Reserved space prevents cognitive disruption -->
+        <div class="loading-space-reservation" :style="{ height: loadingMore ? '80px' : '0px' }">
+          <Transition name="gentle-fade" mode="out-in">
+            <div v-if="loadingMore" class="cognitive-load-indicator">
+              <div class="reading-context-preservation">
+                <!-- 🧠 Visual continuity bridge -->
+                <div class="context-bridge">
+                  <div class="bridge-line"></div>
+                  <div class="bridge-text">Loading earlier messages...</div>
+                  <div class="bridge-line"></div>
+                </div>
+                
+                <!-- 🧠 Reading rhythm progress -->
+                <div class="reading-rhythm-progress">
+                  <div class="progress-dots">
+                    <span class="dot" :class="{ active: loadingPhase >= 1 }"></span>
+                    <span class="dot" :class="{ active: loadingPhase >= 2 }"></span>
+                    <span class="dot" :class="{ active: loadingPhase >= 3 }"></span>
+                  </div>
+                  <div class="progress-text">{{ getLoadingPhaseText() }}</div>
+                </div>
+              </div>
+            </div>
+          </Transition>
+        </div>
       </div>
 
-      <!-- Messages Container with MessageSessionGrouper Integration -->
-      <div class="messages-container" ref="messagesContainer">
-        <!-- 🔧 NEW: Enhanced Message Items with Session Grouper and Date Separators -->
-        <template v-for="(item, index) in groupedMessages"
-          :key="item.id || item.temp_id || `divider_${item.type}_${index}`">
+      <!-- 🧠 COGNITIVE: Messages Container with Reading Flow -->
+      <div class="messages-container" ref="messagesContainer" 
+           :class="{ 
+             'content-loading': loadingMore,
+             'reading-flow-mode': true,
+             'smooth-rendering': isRenderingMessages 
+           }"
+           :style="{ 
+             opacity: loadingOpacity,
+             transition: 'opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+           }">
+        
+        <!-- 🧠 COGNITIVE: Content preview with timeline -->
+        <Transition name="content-preview" mode="out-in">
+          <div v-if="loadingMore" class="content-preview-container">
+            <div class="preview-messages">
+              <div v-for="i in 3" :key="`preview-${i}`" class="preview-message">
+                <div class="preview-timeline">
+                  <div class="timeline-dot"></div>
+                  <div class="timeline-line"></div>
+                </div>
+                <div class="preview-content">
+                  <div class="preview-header">
+                    <div class="preview-avatar"></div>
+                    <div class="preview-meta">
+                      <div class="preview-name"></div>
+                      <div class="preview-time"></div>
+                    </div>
+                  </div>
+                  <div class="preview-text">
+                    <div class="preview-line"></div>
+                    <div class="preview-line short"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </Transition>
+        
+        <!-- 🧠 COGNITIVE: Reading position anchor -->
+        <div v-if="readingAnchor" class="reading-anchor" :style="{ top: readingAnchor.position + 'px' }">
+          <div class="anchor-indicator">
+            <div class="anchor-icon">📖</div>
+            <div class="anchor-text">Your reading position</div>
+          </div>
+        </div>
 
-          <!-- 🎯 TimeSessionDivider for all divider types (date-divider, sub-date-divider, session-divider) -->
+        <!-- 🔧 NEW: History Loading Placeholder (appears above existing messages) -->
+        <div v-if="loadingMore" class="history-loading-placeholder">
+          <div class="placeholder-messages">
+            <div v-for="i in 3" :key="`placeholder-${i}`" class="message-placeholder">
+              <div class="placeholder-avatar"></div>
+              <div class="placeholder-content">
+                <div class="placeholder-header"></div>
+                <div class="placeholder-text"></div>
+                <div class="placeholder-text short"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 🔧 Enhanced Message Items with Loading States -->
+        <template v-for="(item, index) in groupedMessages"
+          :key="item.id ? `msg_${item.id}` : (item.temp_id ? `temp_${item.temp_id}` : `divider_${item.type}_${item.timestamp || index}`)">
+
+          <!-- 🎯 TimeSessionDivider for all divider types -->
           <TimeSessionDivider
             v-if="item.type === 'date-divider' || item.type === 'sub-date-divider' || item.type === 'session-divider'"
             :divider="item" :compact="item.subType === 'short-break'" />
 
-          <!-- 🔧 ENHANCED: Message Item with Loading Context -->
-          <div v-else class="message-loading-context" :data-loading-batch="loadingMore ? 'current' : 'loaded'">
-            <DiscordMessageItem :message="item" :current-user-id="currentUserId" :chat-id="chatId"
-              :is-grouped="shouldGroupMessage(item, index)" @user-profile-opened="$emit('user-profile-opened', $event)"
-              @dm-created="$emit('dm-created', $event)" @reply-to="handleReplyTo" @edit-message="handleEditMessage"
-              @delete-message="handleDeleteMessage" @scroll-to-message="handleScrollToMessage" />
-          </div>
+          <!-- 🎯 OPTIMIZED: Simple but effective message animation -->
+          <Transition name="message-fade" appear>
+            <div v-if="!item.type" 
+                 class="message-container-optimized" 
+                 :data-message-id="item.id">
+              <DiscordMessageItem 
+                :message="item" 
+                :current-user-id="currentUserId" 
+                :chat-id="chatId"
+                :is-grouped="shouldGroupMessage(item, index)" 
+                @user-profile-opened="$emit('user-profile-opened', $event)"
+                @dm-created="$emit('dm-created', $event)" 
+                @reply-to="handleReplyTo" 
+                @edit-message="handleEditMessage"
+                @delete-message="handleDeleteMessage" 
+                @scroll-to-message="handleScrollToMessage" />
+            </div>
+          </Transition>
         </template>
 
         <!-- Typing Indicators -->
@@ -47,7 +145,7 @@
       <div v-if="searchHighlight" class="search-highlight-overlay"></div>
     </div>
 
-    <!-- 🎯 FIXED: Enhanced Scroll to Bottom Button - 固定在视口位置 -->
+    <!-- 🎯 FIXED: Enhanced Scroll to Bottom Button -->
     <Transition name="fade">
       <button v-if="showScrollToBottom" class="scroll-to-bottom-btn-fixed" @click="scrollToBottom(true)"
         :title="`Jump to latest${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`">
@@ -67,6 +165,8 @@ import TimeSessionDivider from '@/components/chat/TimeSessionDivider.vue'
 import Icon from '@/components/ui/Icon.vue'
 import { debounce, throttle } from '@/utils/performance'
 import { messageSessionGrouper } from '@/services/MessageSessionGrouper.js'
+// 🏆 UNIFIED SCROLL MANAGER INTEGRATION
+import { unifiedScrollManager } from '@/utils/UnifiedScrollManager.js'
 
 // Props
 const props = defineProps({
@@ -105,7 +205,8 @@ const emit = defineEmits([
   'edit-message',
   'delete-message',
   'scroll-position-changed',
-  'reading-position-updated'
+  'reading-position-updated',
+  'history-loading-completed'
 ])
 
 // Stores
@@ -118,6 +219,8 @@ const messagesContainer = ref(null)
 
 // Reactive state
 const loadingMore = ref(false)
+const isRenderingMessages = ref(false)
+const loadingOpacity = ref(1)
 const showScrollToBottom = ref(false)
 const searchHighlight = ref(null)
 const lastScrollTop = ref(0)
@@ -125,6 +228,22 @@ const autoScrollEnabled = ref(true)
 const readingPosition = ref(null)
 const lastLoadTime = ref(0)
 const isLoading = ref(false)
+const debugMode = ref(import.meta.env.DEV) // Enable debug mode in development
+
+// 🎯 NEW: User scroll detection to prevent bouncing
+const isUserScrolling = ref(false)
+const userScrollStartTime = ref(0)
+const userScrollEndTime = ref(0)
+const scrollVelocity = ref(0)
+const lastUserScrollDirection = ref('none') // 'up', 'down', 'none'
+
+// 🧠 COGNITIVE: Enhanced loading state for reading flow
+const newlyLoadedMessageIds = ref(new Set())
+const currentLoadingBatch = ref(0)
+const loadingStartTime = ref(0)
+const previousMessageCount = ref(0)
+const loadingPhase = ref(0)
+const readingAnchor = ref(null)
 
 // Computed
 const unreadCount = computed(() => {
@@ -142,7 +261,7 @@ const groupedMessages = computed(() => {
     // Use MessageSessionGrouper to analyze and group messages with date/session dividers
     const result = messageSessionGrouper.analyzeAndGroupMessages(props.messages, props.chatId)
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`📅 [DiscordMessageList] Grouped messages for chat ${props.chatId}:`, {
         originalCount: props.messages.length,
         groupedCount: result.groupedMessages.length,
@@ -154,7 +273,7 @@ const groupedMessages = computed(() => {
 
     return result.groupedMessages
   } catch (error) {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.error('❌ [DiscordMessageList] MessageSessionGrouper failed:', error)
     }
     // Fallback to original messages if grouper fails
@@ -212,87 +331,271 @@ const formatTypingText = (users) => {
   }
 }
 
-// 🎯 OPTIMIZED: 完美历史消息加载体验 - 简单可靠的固定阅读位置
-const loadMoreMessages = async () => {
-  if (
-    loadingMore.value ||
-    !props.hasMoreMessages ||
-    isLoading.value ||
-    Date.now() - lastLoadTime.value < 500
-  ) {
-    return
-  }
+// 🚀 NEW: Enhanced loading state methods for smooth transitions
+const isNewlyLoadedMessage = (message) => {
+  return newlyLoadedMessageIds.value.has(message.id)
+}
 
+const getLoadingBatch = (message) => {
+  if (loadingMore.value) return 'current'
+  if (isNewlyLoadedMessage(message)) return currentLoadingBatch.value
+  return 'loaded'
+}
+
+// 🧠 COGNITIVE: Reading-friendly helper functions
+const getLoadingPhaseText = () => {
+  switch (loadingPhase.value) {
+    case 1: return 'Fetching messages...'
+    case 2: return 'Processing content...'
+    case 3: return 'Preparing display...'
+    default: return 'Starting...'
+  }
+}
+
+const captureReadingPosition = () => {
+  if (!scrollContainer.value) return
+  
+  const container = scrollContainer.value
+  const viewportHeight = container.clientHeight
+  const readingLine = container.scrollTop + viewportHeight * 0.4 // Golden ratio reading position
+  
+  // 🧠 Find the message closest to optimal reading position
+  const messageElements = container.querySelectorAll('[data-message-id]')
+  let closestElement = null
+  let minDistance = Infinity
+  
+  messageElements.forEach(element => {
+    const rect = element.getBoundingClientRect()
+    const containerRect = container.getBoundingClientRect()
+    const elementCenter = rect.top - containerRect.top + container.scrollTop + rect.height / 2
+    const distance = Math.abs(elementCenter - readingLine)
+    
+    if (distance < minDistance) {
+      minDistance = distance
+      closestElement = element
+    }
+  })
+  
+  if (closestElement) {
+    const messageId = closestElement.getAttribute('data-message-id')
+    const rect = closestElement.getBoundingClientRect()
+    const containerRect = container.getBoundingClientRect()
+    
+    readingAnchor.value = {
+      messageId: parseInt(messageId),
+      position: rect.top - containerRect.top + container.scrollTop,
+      timestamp: Date.now()
+    }
+    
+    console.log(`🧠 [READING ANCHOR] Captured position for message ${messageId}`)
+  }
+}
+
+const restoreReadingPosition = async () => {
+  if (!readingAnchor.value || !scrollContainer.value) return
+  
+  await nextTick()
+  await new Promise(resolve => requestAnimationFrame(resolve))
+  
+  const targetElement = scrollContainer.value.querySelector(`[data-message-id="${readingAnchor.value.messageId}"]`)
+  if (!targetElement) return
+  
+  const container = scrollContainer.value
+  const containerRect = container.getBoundingClientRect()
+  const targetRect = targetElement.getBoundingClientRect()
+  
+  // 🧠 Calculate position to maintain reading flow
+  const currentOffset = targetRect.top - containerRect.top
+  const desiredOffset = container.clientHeight * 0.4 // Maintain golden ratio position
+  const scrollAdjustment = currentOffset - desiredOffset
+  const targetScrollTop = Math.max(0, container.scrollTop + scrollAdjustment)
+  
+  // 🧠 Smooth scroll with reading-friendly easing
+  container.scrollTo({
+    top: targetScrollTop,
+    behavior: 'smooth'
+  })
+  
+  console.log(`🧠 [READING ANCHOR] Restored position for message ${readingAnchor.value.messageId}`)
+}
+
+// 🧠 COGNITIVE: Reading-friendly loading state
+const startLoadingState = () => {
   loadingMore.value = true
-  isLoading.value = true
-  lastLoadTime.value = Date.now()
+  isRenderingMessages.value = true
+  loadingOpacity.value = 0.9 // Minimal opacity change for reading continuity
+  loadingStartTime.value = Date.now()
+  currentLoadingBatch.value++
+  loadingPhase.value = 0
+  
+  // 🧠 Capture reading position before loading
+  captureReadingPosition()
+  
+  // 🧠 Progressive loading phases for cognitive comfort
+  setTimeout(() => { loadingPhase.value = 1 }, 100)
+  setTimeout(() => { loadingPhase.value = 2 }, 300)
+  setTimeout(() => { loadingPhase.value = 3 }, 600)
+  
+  // Add reading-flow class
+  document.body.classList.add('reading-flow-loading')
+  
+  console.log(`🧠 [COGNITIVE LOADING] Started batch ${currentLoadingBatch.value} with reading flow`)
+}
 
-  // 🚀 KEY FIX: 暂时禁用自动滚动，防止watch干扰
-  const wasAutoScrollEnabled = autoScrollEnabled.value
-  autoScrollEnabled.value = false
-
-  try {
-    const container = scrollContainer.value
-    if (!container) return
-
-    // 🔧 STEP 1: 保存当前精确状态 - 只记录关键数据
-    const beforeScrollTop = container.scrollTop
-    const beforeScrollHeight = container.scrollHeight
-
-    if (import.meta.env.DEV) {
-      console.log('📊 [Load More] 保存状态:', {
-        beforeScrollTop,
-        beforeScrollHeight,
-        autoScrollDisabled: true
-      })
-    }
-
-    // 🔧 STEP 2: 触发历史消息加载
-    await emit('load-more-messages')
-
-    // 🔧 STEP 3: 等待DOM完全更新
-    await nextTick()
-    await new Promise(resolve => requestAnimationFrame(resolve))
-
-    // 🔧 STEP 4: 简单可靠的位置恢复 - 高度差补偿法
-    const afterScrollHeight = container.scrollHeight
-    const heightDifference = afterScrollHeight - beforeScrollHeight
-
-    if (heightDifference > 0) {
-      // 🚀 立即调整滚动位置保持阅读位置不变
-      const newScrollTop = beforeScrollTop + heightDifference
-      container.scrollTop = newScrollTop
-
-      if (import.meta.env.DEV) {
-        console.log('✅ [Load More] 位置固定成功:', {
-          heightAdded: heightDifference,
-          beforeScrollTop,
-          newScrollTop,
-          验证: container.scrollTop === newScrollTop
-        })
-      }
-    }
-
-  } catch (error) {
-    console.error('❌ [Load More] 加载失败:', error)
-  } finally {
-    // 🔧 STEP 5: 状态清理 - 恢复自动滚动设置
+const completeLoadingState = () => {
+  const loadingDuration = Date.now() - loadingStartTime.value
+  const newMessageCount = props.messages.length - previousMessageCount.value
+  
+  // 🧠 COGNITIVE: Gentle completion with reading position restoration
+  loadingOpacity.value = 1
+  loadingPhase.value = 3
+  
+  // 🧠 Restore reading position with smooth animation
+  setTimeout(() => {
+    restoreReadingPosition()
+  }, 100)
+  
+  // 🧠 Complete loading with cognitive-friendly timing
+  setTimeout(() => {
+    loadingMore.value = false
+    isRenderingMessages.value = false
+    loadingPhase.value = 0
+    document.body.classList.remove('reading-flow-loading')
+    
+    // 🧠 Clear reading anchor after restoration
     setTimeout(() => {
-      loadingMore.value = false
-      isLoading.value = false
-      // 🔧 恢复原始自动滚动状态
-      autoScrollEnabled.value = wasAutoScrollEnabled
-
-      if (import.meta.env.DEV) {
-        console.log('🔄 [Load More] 状态清理完成，自动滚动状态恢复:', wasAutoScrollEnabled)
-      }
-    }, 150) // 增加一点延迟确保DOM稳定
+      readingAnchor.value = null
+    }, 2000)
+  }, 200) // Longer delay for reading comfort
+  
+  if (import.meta.env.DEV) {
+    console.log(`🧠 [COGNITIVE LOADING] Completed in ${loadingDuration}ms, loaded ${newMessageCount} new messages`)
   }
+  
+  return { loadingDuration, newMessageCount, shouldStop: false }
+}
+
+const stopHistoryLoading = (reasons) => {
+  console.log(`🛑 [LOADING STOP] Stopping history loading:`, reasons)
+  
+  // 🔥 IMMEDIATE: Stop ALL loading indicators and UI states
+  loadingMore.value = false
+  document.body.classList.remove('history-loading-in-progress')
+  
+  // Stop further loading attempts
+  if (scrollInstance && scrollInstance.pauseLoadMore) {
+    scrollInstance.pauseLoadMore('History loading completed or conditions met')
+    console.log(`🛑 [LOADING STOP] LoadMore paused for chat ${props.chatId}`)
+  }
+  
+  // Emit completion event to parent
+  emit('history-loading-completed', {
+    chatId: props.chatId,
+    totalMessages: props.messages.length,
+    newMessagesLoaded: props.messages.length - previousMessageCount.value,
+    hasMoreMessages: props.hasMoreMessages,
+    reasons: reasons,
+    reason: reasons[0] || 'Auto-detected completion'
+  })
+  
+  // Show completion indicator
+  showHistoryCompletionIndicator(reasons[0] || 'History loading completed')
+}
+
+const showHistoryCompletionIndicator = (message) => {
+  if (!scrollContainer.value) return
+  
+  setTimeout(() => {
+    const completionIndicator = document.createElement('div')
+    completionIndicator.className = 'history-completion-indicator'
+    completionIndicator.innerHTML = `
+      <div class="completion-content">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="20,6 9,17 4,12"></polyline>
+        </svg>
+        <span>${message}</span>
+      </div>
+    `
+    completionIndicator.style.cssText = `
+      position: absolute;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-20px);
+      background: linear-gradient(135deg, rgba(34, 197, 94, 0.95), rgba(16, 185, 129, 0.95));
+      color: white;
+      padding: 10px 20px;
+      border-radius: 24px;
+      font-size: 12px;
+      font-weight: 500;
+      box-shadow: 0 4px 20px rgba(34, 197, 94, 0.3);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      opacity: 0;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      max-width: 300px;
+      text-align: center;
+    `
+    
+    scrollContainer.value.appendChild(completionIndicator)
+    
+    // Fade in
+    requestAnimationFrame(() => {
+      completionIndicator.style.opacity = '1'
+      completionIndicator.style.transform = 'translateX(-50%) translateY(0)'
+    })
+    
+    // Auto remove after 4 seconds
+    setTimeout(() => {
+      completionIndicator.style.opacity = '0'
+      completionIndicator.style.transform = 'translateX(-50%) translateY(-20px)'
+      setTimeout(() => {
+        if (completionIndicator.parentNode) {
+          completionIndicator.parentNode.removeChild(completionIndicator)
+        }
+      }, 400)
+    }, 4000)
+  }, 500)
 }
 
 // 🔧 ENHANCED: 更流畅智能的滚动处理
 const handleScroll = throttle((event) => {
   const { scrollTop, scrollHeight, clientHeight } = event.target
+  
+  // 🎯 NEW: Detect user scrolling to prevent conflicts
+  const currentTime = Date.now()
+  const scrollDelta = scrollTop - lastScrollTop.value
+  const timeDelta = currentTime - (userScrollStartTime.value || currentTime)
+  
+  // Calculate scroll velocity (pixels per millisecond)
+  scrollVelocity.value = timeDelta > 0 ? Math.abs(scrollDelta) / timeDelta : 0
+  
+  // Detect scroll direction
+  if (scrollDelta > 0) {
+    lastUserScrollDirection.value = 'down'
+  } else if (scrollDelta < 0) {
+    lastUserScrollDirection.value = 'up'
+  }
+  
+  // Mark as user scrolling if velocity is significant
+  const isSignificantScroll = scrollVelocity.value > 0.5 // 0.5px per ms threshold
+  if (isSignificantScroll) {
+    isUserScrolling.value = true
+    userScrollStartTime.value = currentTime
+    
+    // Update global user scroll tracking
+    window.lastUserScrollTime = currentTime
+    
+    // Clear user scrolling flag after inactivity
+    setTimeout(() => {
+      if (Date.now() - userScrollStartTime.value > 1000) { // 1 second of inactivity
+        isUserScrolling.value = false
+        userScrollEndTime.value = Date.now()
+      }
+    }, 1000)
+  }
 
   // 🚀 IMPROVED: 更准确的滚动到底部按钮显示逻辑
   const isNearBottom = scrollTop + clientHeight >= scrollHeight - 50
@@ -301,39 +604,6 @@ const handleScroll = throttle((event) => {
 
   showScrollToBottom.value = shouldShowButton
 
-  if (import.meta.env.DEV && shouldShowButton !== showScrollToBottom.value) {
-    console.log('🔽 [Scroll Button] 显示状态更新:', {
-      isNearBottom,
-      hasScrollableContent,
-      shouldShowButton,
-      scrollTop: Math.round(scrollTop),
-      scrollHeight,
-      clientHeight,
-      messagesCount: props.messages.length
-    })
-  }
-
-  // 🎯 优化的历史消息加载触发条件 - 更流畅的体验
-  const scrollDirection = scrollTop < lastScrollTop.value ? 'up' : 'down'
-
-  const shouldLoadMore = (
-    scrollTop < 100 &&                // 降低触发距离提供更及时的响应
-    scrollDirection === 'up' &&       // 只在向上滚动时触发
-    props.hasMoreMessages &&
-    !loadingMore.value &&
-    !isLoading.value &&
-    props.messages.length > 0 &&
-    Date.now() - lastLoadTime.value > 400 // 降低延迟提高响应性
-  )
-
-  if (shouldLoadMore) {
-    // 🚀 立即触发加载，无需延迟
-    loadMoreMessages()
-  }
-
-  // Save reading position with improved debouncing
-  saveReadingPosition()
-
   // Send scroll position change event
   emit('scroll-position-changed', {
     scrollTop,
@@ -341,7 +611,9 @@ const handleScroll = throttle((event) => {
     clientHeight,
     isAtBottom: isAtBottom.value,
     isNearTop: isNearTop.value,
-    scrollDirection
+    isUserScrolling: isUserScrolling.value,
+    scrollVelocity: scrollVelocity.value,
+    scrollDirection: lastUserScrollDirection.value
   })
 
   lastScrollTop.value = scrollTop
@@ -391,7 +663,7 @@ const saveReadingPosition = debounce(() => {
 
     emit('reading-position-updated', readingPosition.value)
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('📖 [Reading Position] Saved:', {
         messageId,
         offset: readingPosition.value.offset,
@@ -401,57 +673,7 @@ const saveReadingPosition = debounce(() => {
   }
 }, 800) // Reduced debounce for better responsiveness
 
-// 🆕 ENHANCED: 精确的阅读位置恢复
-const restoreReadingPosition = async (position) => {
-  if (!position || !scrollContainer.value) return
-
-  await nextTick()
-  await new Promise(resolve => requestAnimationFrame(resolve))
-
-  const targetElement = document.querySelector(`[data-message-id="${position.messageId}"]`)
-
-  if (targetElement) {
-    const container = scrollContainer.value
-    const containerRect = container.getBoundingClientRect()
-    const targetRect = targetElement.getBoundingClientRect()
-
-    // 计算目标滚动位置以恢复相同的视觉位置
-    const currentOffset = targetRect.top - containerRect.top
-    const scrollAdjustment = currentOffset - position.offset
-    const targetScrollTop = container.scrollTop + scrollAdjustment
-
-    // 平滑滚动到目标位置
-    container.scrollTo({
-      top: targetScrollTop,
-      behavior: 'smooth'
-    })
-
-    if (import.meta.env.DEV) {
-      console.log('📖 [Reading Position] Restored:', {
-        messageId: position.messageId,
-        targetScrollTop,
-        adjustment: scrollAdjustment
-      })
-    }
-
-    // 短暂高亮目标消息以提供视觉反馈
-    targetElement.classList.add('message-loading-context')
-    setTimeout(() => {
-      targetElement.classList.remove('message-loading-context')
-    }, 2000)
-
-    return true
-  } else {
-    // 如果找不到目标消息，使用备用滚动位置
-    if (position.scrollTop) {
-      scrollContainer.value.scrollTop = position.scrollTop
-      if (import.meta.env.DEV) {
-        console.log('📖 [Reading Position] Fallback to scrollTop:', position.scrollTop)
-      }
-    }
-    return false
-  }
-}
+// 🧠 COGNITIVE: Enhanced reading position restoration (moved to helper functions above)
 
 // 🆕 智能的平滑滚动到底部
 const scrollToBottom = (smooth = false) => {
@@ -500,11 +722,11 @@ const scrollToBottom = (smooth = false) => {
 }
 
 const scrollToMessage = async (messageId, options = {}) => {
-  await nextTick()
+  if (!scrollContainer.value || !messageId) return false
 
-  const messageElement = document.querySelector(`[data-message-id="${messageId}"]`)
+  const messageElement = scrollContainer.value.querySelector(`[data-message-id="${messageId}"]`)
   if (!messageElement) {
-    console.warn(`Message ${messageId} not found in DOM`)
+    console.warn(`🔍 [DiscordMessageList] Message ${messageId} not found for scrolling`)
     return false
   }
 
@@ -515,8 +737,9 @@ const scrollToMessage = async (messageId, options = {}) => {
     duration = 3000
   } = options
 
-  // Scroll to message
-  messageElement.scrollIntoView({ behavior, block })
+  // 🔴 DISABLED: Scroll to message to prevent jumping during history loading
+  // messageElement.scrollIntoView({ behavior, block })
+  console.log(`🔴 [DiscordMessageList] scrollIntoView disabled for message ${messageId} to prevent jumping`)
 
   // Highlight message if requested
   if (highlight) {
@@ -548,13 +771,15 @@ const handleScrollToMessage = (messageId) => {
 
 // Perfect Search integration
 const highlightSearchResult = (messageId, query, options = {}) => {
-  scrollToMessage(messageId, {
-    ...options,
-    highlight: true,
-    duration: 5000
-  })
+  // 🔴 DISABLED: scrollToMessage to prevent jumping during history loading
+  // scrollToMessage(messageId, {
+  //   ...options,
+  //   highlight: true,
+  //   duration: 5000
+  // })
+  console.log(`🔴 [DiscordMessageList] highlightSearchResult disabled for message ${messageId} to prevent jumping`)
 
-  // Additional highlighting for search terms
+  // Additional highlighting for search terms only (no scrolling)
   if (query) {
     setTimeout(() => {
       const messageElement = document.querySelector(`[data-message-id="${messageId}"]`)
@@ -582,175 +807,347 @@ const highlightSearchTerms = (element, query) => {
   })
 }
 
-// Watchers
-watch(() => props.messages.length, async (newLength, oldLength) => {
-  if (newLength > oldLength) {
-    // New messages received
-    await nextTick()
+let scrollInstance = null
 
-    // 🛡️ ENHANCED FALLBACK REGISTRATION: 立即+延迟双重保障
-    const performFallbackRegistration = async (attempt = 1) => {
-      if (!window.messageDisplayGuarantee || !props.chatId) return
-
-      await nextTick()
-      await new Promise(resolve => requestAnimationFrame(resolve))
-
-      const messageElements = document.querySelectorAll(`[data-message-id]`)
-      let registered = 0
-      let total = 0
-
-      messageElements.forEach(el => {
-        const messageId = el.getAttribute('data-message-id')
-        if (messageId && el.offsetParent !== null) {
-          total++
-          try {
-            // 重新注册确保tracking（重复注册会被优雅处理）
-            window.messageDisplayGuarantee.markMessageDisplayed(
-              parseInt(messageId),
-              el,
-              props.chatId
-            )
-            registered++
-          } catch (error) {
-            if (import.meta.env.DEV) {
-              console.warn(`⚠️ [DiscordMessageList] Fallback attempt ${attempt} failed for message ${messageId}:`, error.message)
+// Initialize unified scroll management
+const initializeUnifiedScroll = () => {
+  if (scrollContainer.value && props.chatId) {
+    // Unregister previous instance if exists
+    if (scrollInstance) {
+      unifiedScrollManager.unregisterChat(props.chatId)
+    }
+    
+    // 🎯 SIMPLIFIED: Basic scroll monitoring without complex debugging
+    scrollContainer.value.addEventListener('scroll', (event) => {
+      lastScrollTop.value = event.target.scrollTop;
+    }, { passive: true });
+    
+    // Register with unified manager
+    scrollInstance = unifiedScrollManager.registerChat(props.chatId, scrollContainer.value, {
+      onLoadMore: async () => {
+        // 🎯 SIMPLIFIED: Direct emit without complex lifecycle detection
+        emit('load-more-messages')
+        
+        // Simple promise that resolves when messages are loaded
+        return new Promise((resolve) => {
+          const unwatch = watch(() => props.messages.length, (newLength, oldLength) => {
+            if (newLength > oldLength) {
+              unwatch()
+              resolve(props.messages.slice(0, newLength - oldLength))
             }
+          })
+          
+          // Timeout after 5 seconds
+          setTimeout(() => {
+            unwatch()
+            resolve([])
+          }, 5000)
+        })
+      },
+      nearBottomThreshold: 150,
+      historyLoadThreshold: 200
+    })
+    
+    console.log('🎯 [DiscordMessageList] Simplified scroll management initialized')
+    
+    // 🔥 IRON LAW: ALWAYS scroll to bottom on chat entry (with history browsing protection + pause awareness)
+    // 🔧 ENHANCED: Multiple enforcement strategies with conflict detection
+    const enforceScrollToBottom = async () => {
+      // 🚨 NEW: Check if Iron Law is paused
+      if (ironLawPaused) {
+        console.log(`⚡ [IRON LAW] SKIPPED - paused for ${ironLawPauseReason}`);
+        return;
+      }
+      
+      // 🚨 NEW: Check if system is in history loading state
+      if (document.body.classList.contains('history-loading-in-progress')) {
+        console.log(`⚡ [IRON LAW] SKIPPED - system in history loading state`);
+        return;
+      }
+      
+      // 🎯 NEW: Respect user scrolling to prevent bouncing
+      if (isUserScrolling.value) {
+        console.log(`⚡ [IRON LAW] SKIPPED - user is actively scrolling (velocity: ${scrollVelocity.value.toFixed(2)}px/ms)`);
+        return;
+      }
+      
+      // 🎯 NEW: Check recent user scroll activity
+      const timeSinceUserScroll = Date.now() - (userScrollEndTime.value || 0)
+      if (timeSinceUserScroll < 2000) { // 2 seconds grace period
+        console.log(`⚡ [IRON LAW] SKIPPED - recent user scroll activity (${timeSinceUserScroll}ms ago)`);
+        return;
+      }
+      
+      console.log('⚡ [IRON LAW] Enforcing scroll to bottom on chat entry - Start')
+      
+      if (!scrollContainer.value) return
+      
+      const container = scrollContainer.value
+      const scrollPercentage = container.scrollTop / (container.scrollHeight - container.clientHeight)
+      const isUserBrowsingHistory = scrollPercentage < 0.85 && container.scrollTop > 300
+      
+      if (isUserBrowsingHistory) {
+        console.log('⚡ [IRON LAW] Skipping enforcement - user browsing history (scroll: ' + (scrollPercentage * 100).toFixed(1) + '%)')
+        return
+      }
+
+      try {
+        // Strategy 1: Use UnifiedScrollManager
+        if (scrollInstance) {
+          await scrollInstance.scrollToBottom(false)
+          console.log('⚡ [IRON LAW] Strategy 1: Unified scroll manager executed')
+        }
+
+        // Strategy 2: Direct container scroll
+        if (scrollContainer.value) {
+          scrollContainer.value.scrollTop = scrollContainer.value.scrollHeight
+          console.log('⚡ [IRON LAW] Strategy 2: Direct container scroll executed')
+        }
+
+        // Strategy 3: Verification and additional enforcement
+        await new Promise(resolve => setTimeout(resolve, 100))
+        
+        const isAtBottom = container.scrollTop >= container.scrollHeight - container.clientHeight - 10
+        
+        if (!isAtBottom) {
+          const scrollPercentage = container.scrollTop / (container.scrollHeight - container.clientHeight)
+          const isStillBrowsingHistory = scrollPercentage < 0.85 && container.scrollTop > 300
+          
+          if (!isStillBrowsingHistory && !isUserScrolling.value) {
+            console.log('⚡ [IRON LAW] Strategy 3: Additional enforcement needed')
+            await scrollInstance.scrollToBottom(false)
+            container.scrollTop = container.scrollHeight
+          } else {
+            console.log('⚡ [IRON LAW] Strategy 3: Skipped - user still browsing history or scrolling')
           }
         }
-      })
-
-      if (import.meta.env.DEV) {
-        console.log(`✅ [DiscordMessageList] Fallback attempt ${attempt}: ${registered}/${total} messages registered`)
+        
+        console.log('⚡ [IRON LAW] Scroll to bottom enforcement complete')
+      } catch (error) {
+        console.warn('⚡ [IRON LAW] Enforcement failed:', error)
       }
+    }
+    
+    // Execute immediately (with protection)
+    nextTick(() => {
+      if (props.messages && props.messages.length > 0) {
+        enforceScrollToBottom()
+      }
+    })
+    
+    // Backup enforcement after a small delay (with protection)
+    setTimeout(() => {
+      if (props.messages && props.messages.length > 0) {
+        enforceScrollToBottom()
+      }
+    }, 100)
+  }
+}
 
-      // 如果注册率低于90%，进行额外尝试
-      if (total > 0 && (registered / total) < 0.9 && attempt < 3) {
-        setTimeout(() => performFallbackRegistration(attempt + 1), 150 * attempt)
+// Watch for new messages - UNIFIED APPROACH WITH API LIFECYCLE DETECTION ONLY
+watch(() => props.messages.length, async (newLength, oldLength) => {
+  if (newLength > oldLength) {
+    // 🎯 REVOLUTIONARY: 设置previousMessageCount仅用于UI状态管理，不用于检测
+    if (previousMessageCount.value === 0) {
+      previousMessageCount.value = oldLength || 0
+      console.log(`🎯 [LIFECYCLE] Set previousMessageCount for UI: ${previousMessageCount.value}`)
+    }
+    
+    const isInitialLoad = (oldLength || 0) === 0 && newLength > 0
+    const isHistoryLoad = oldLength > 0 && newLength > oldLength + 5 // More than 5 messages suggests history load
+    
+    if (isInitialLoad) {
+      console.log('🎯 [DiscordMessageList] Initial load detected - enforcing iron law')
+      await nextTick()
+      
+      // 🔥 IRON LAW: Enhanced initial load scroll enforcement
+      const enforceInitialScroll = async () => {
+        console.log('⚡ [IRON LAW] Initial message load - enforcing scroll to bottom')
+        
+        // Multiple scroll attempts to guarantee bottom positioning
+        if (scrollInstance) {
+          await scrollInstance.scrollToBottom(false)
+        }
+        
+        // Direct backup scroll
+        if (scrollContainer.value) {
+          scrollContainer.value.scrollTop = scrollContainer.value.scrollHeight
+        }
+        
+        // Final verification and correction
+        await new Promise(resolve => setTimeout(resolve, 50))
+        if (scrollContainer.value) {
+          const container = scrollContainer.value
+          const targetScroll = container.scrollHeight - container.clientHeight
+          if (container.scrollTop < targetScroll - 20) {
+            container.scrollTop = container.scrollHeight
+            console.log('⚡ [IRON LAW] Final correction applied')
+          }
+        }
+      }
+      
+      await enforceInitialScroll()
+      
+      // Additional enforcement after DOM updates
+      setTimeout(enforceInitialScroll, 200)
+      
+    } else if (isHistoryLoad) {
+      // 🎯 REVOLUTIONARY: 历史加载完全依赖API生命周期检测器
+      console.log('🎯 [LIFECYCLE] History load detected - using API lifecycle detector only')
+      
+      // 🔒 STEP 1: 仅处理滚动位置保护，不进行任何检测
+      const container = scrollContainer.value
+      if (!container) return
+      
+      const capturedScrollTop = container.scrollTop
+      const capturedScrollHeight = container.scrollHeight
+      console.log(`🔒 [SCROLL PROTECTION] Captured position: ${capturedScrollTop}px`)
+      
+      // 🔒 STEP 2: Wait for DOM updates
+      await nextTick()
+      await new Promise(resolve => requestAnimationFrame(resolve))
+      
+      // 🔒 STEP 3: Restore scroll position
+      const newScrollHeight = container.scrollHeight
+      const heightDifference = newScrollHeight - capturedScrollHeight
+      const adjustedScrollTop = capturedScrollTop + heightDifference
+      
+      container.scrollTop = adjustedScrollTop
+      
+      console.log(`✅ [SCROLL PROTECTION] Position restored: ${adjustedScrollTop}px (+${heightDifference}px adjustment)`)
+    } else if (scrollInstance) {
+      // Regular new messages - use unified scroll manager with history protection
+      const container = scrollContainer.value
+      if (container) {
+        const scrollPercentage = container.scrollTop / (container.scrollHeight - container.clientHeight)
+        const isUserBrowsingHistory = scrollPercentage < 0.8 && container.scrollTop > 200
+        
+        // 🎯 NEW: Respect user scrolling activity
+        const isUserActivelyScrolling = isUserScrolling.value || 
+                                       (Date.now() - (userScrollEndTime.value || 0) < 1500)
+        
+        if (!isUserBrowsingHistory && !isUserActivelyScrolling) {
+          scrollInstance.handleNewMessage()
+          console.log('📨 [DiscordMessageList] New message handled with auto-scroll')
+        } else {
+          const reason = isUserActivelyScrolling ? 'user scrolling' : 'browsing history'
+          console.log(`📨 [DiscordMessageList] New message - user ${reason}, skip auto-scroll`)
+        }
+      } else {
+        // Only auto-scroll if user is not actively scrolling
+        if (!isUserScrolling.value) {
+          scrollInstance.handleNewMessage()
+        }
       }
     }
 
-    // 立即尝试后备注册
-    performFallbackRegistration(1)
-
-    // 延迟后备注册
-    setTimeout(() => performFallbackRegistration(2), 200)
-
-    if (autoScrollEnabled.value && isAtBottom.value) {
-      scrollToBottom(true)
-    }
+    // 🔧 REMOVED: MessageDisplayGuarantee registration for performance
+    // Vue 3 reactive system provides sufficient reliability without DOM queries
+    console.log(`🔧 [PERFORMANCE] MessageDisplayGuarantee disabled for ${isInitialLoad ? 'initial' : (isHistoryLoad ? 'history' : 'new')} load - using Vue 3 reactive system`)
   }
 })
 
-watch(() => props.chatId, () => {
+watch(() => props.chatId, async () => {
+  console.log('🔄 [DiscordMessageList] Chat changed - conditional iron law enforcement for new chat')
+  
   // Reset state when changing chats
   showScrollToBottom.value = false
   autoScrollEnabled.value = true
   readingPosition.value = null
 
-  // Scroll to bottom after a short delay
-  nextTick(() => {
-    setTimeout(() => {
-      scrollToBottom(false)
-    }, 100)
-  })
-})
-
-// Lifecycle
-onMounted(() => {
-  // Initial scroll to bottom
-  nextTick(() => {
-    scrollToBottom(false)
-
-    // 🔽 ENHANCED: 初始化滚动按钮状态检查
+  // Initialize unified scroll for new chat
+  initializeUnifiedScroll()
+  
+  // 🔥 IRON LAW: Enhanced chat switch scroll enforcement with user intent detection
+  const enforceChatSwitchScroll = async () => {
+    console.log('⚡ [IRON LAW] Chat switch - checking enforcement conditions')
+    
+    await nextTick()
+    
+    // 🔧 CRITICAL: Check if this is a navigation-triggered switch (user browsing history)
+    const container = scrollContainer.value
+    if (container) {
+      // If container has meaningful scroll position, user might be navigating to specific content
+      const hasScrollPosition = container.scrollTop > 100
+      const isNearTop = container.scrollTop < container.scrollHeight * 0.1
+      
+      if (hasScrollPosition && !isNearTop) {
+        console.log('⚡ [IRON LAW] Chat switch - user appears to be navigating to specific content, skipping auto-scroll')
+        return
+      }
+    }
+    
+    console.log('⚡ [IRON LAW] Chat switch - proceeding with scroll to bottom enforcement')
+    
+    // Multiple enforcement strategies
+    if (scrollInstance) {
+      await scrollInstance.scrollToBottom(false)
+    }
+    
+    if (scrollContainer.value) {
+      scrollContainer.value.scrollTop = scrollContainer.value.scrollHeight
+    }
+    
+    // Verify and correct after brief delay
     setTimeout(() => {
       if (scrollContainer.value) {
         const container = scrollContainer.value
-        const { scrollTop, scrollHeight, clientHeight } = container
-        const isNearBottom = scrollTop + clientHeight >= scrollHeight - 50
-        const hasScrollableContent = scrollHeight > clientHeight + 20
-        const shouldShowButton = hasScrollableContent && !isNearBottom && props.messages.length > 3
-
-        showScrollToBottom.value = shouldShowButton
-
-        if (import.meta.env.DEV) {
-          console.log('🔽 [Scroll Button] 初始状态设置:', {
-            isNearBottom,
-            hasScrollableContent,
-            shouldShowButton,
-            scrollTop: Math.round(scrollTop),
-            scrollHeight,
-            clientHeight,
-            messagesCount: props.messages.length
-          })
+        if (container.scrollTop < container.scrollHeight - container.clientHeight - 10) {
+          container.scrollTop = container.scrollHeight
+          console.log('⚡ [IRON LAW] Chat switch final correction applied')
         }
       }
-
-      // 🧪 测试：强制显示按钮3秒用于验证样式
-      if (import.meta.env.DEV) {
-        console.log('🧪 [Test] 强制显示滚动按钮3秒用于测试...')
-        showScrollToBottom.value = true
-        setTimeout(() => {
-          // 3秒后恢复正常逻辑
-          if (scrollContainer.value) {
-            const container = scrollContainer.value
-            const { scrollTop, scrollHeight, clientHeight } = container
-            const isNearBottom = scrollTop + clientHeight >= scrollHeight - 50
-            const hasScrollableContent = scrollHeight > clientHeight + 20
-            showScrollToBottom.value = hasScrollableContent && !isNearBottom && props.messages.length > 3
-          }
-          console.log('🧪 [Test] 测试结束，恢复正常按钮显示逻辑')
-        }, 3000)
-      }
-    }, 200)
-
-    // 🛡️ ENHANCED INITIAL REGISTRATION: 多阶段注册策略
-    const performInitialRegistration = async (phase = 1) => {
-      if (!window.messageDisplayGuarantee || !props.chatId || props.messages.length === 0) {
-        return
-      }
-
-      await nextTick()
-      await new Promise(resolve => requestAnimationFrame(resolve))
-
-      const messageElements = document.querySelectorAll(`[data-message-id]`)
-      let registered = 0
-      let failed = 0
-
-      messageElements.forEach(el => {
-        const messageId = el.getAttribute('data-message-id')
-        if (messageId && el.offsetParent !== null) {
-          try {
-            window.messageDisplayGuarantee.markMessageDisplayed(
-              parseInt(messageId),
-              el,
-              props.chatId
-            )
-            registered++
-          } catch (error) {
-            failed++
-            if (import.meta.env.DEV) {
-              console.warn(`⚠️ [DiscordMessageList] Phase ${phase} registration failed for message ${messageId}:`, error.message)
-            }
-          }
-        }
-      })
-
-      if (import.meta.env.DEV) {
-        console.log(`✅ [DiscordMessageList] Phase ${phase} registration: ${registered}/${props.messages.length} messages (${failed} failed)`)
-      }
-
-      // 如果还有失败的消息，启动下一阶段
-      if (failed > 0 && phase < 3) {
-        setTimeout(() => performInitialRegistration(phase + 1), 200 * phase) // 递增延迟
+    }, 100)
+  }
+  
+  await enforceChatSwitchScroll()
+  
+  // Additional enforcement for robustness (with same conditions)
+  setTimeout(async () => {
+    const container = scrollContainer.value
+    if (container) {
+      const hasScrollPosition = container.scrollTop > 100
+      const isNearTop = container.scrollTop < container.scrollHeight * 0.1
+      
+      if (!hasScrollPosition || isNearTop) {
+        await enforceChatSwitchScroll()
+      } else {
+        console.log('⚡ [IRON LAW] Chat switch delayed enforcement - user appears to be navigating, skipping')
       }
     }
+  }, 300)
+})
 
-    // 启动多阶段注册
-    setTimeout(() => performInitialRegistration(1), 100)   // 100ms后第一阶段
-    setTimeout(() => performInitialRegistration(2), 500)   // 500ms后第二阶段  
-    setTimeout(() => performInitialRegistration(3), 1200)  // 1.2s后第三阶段
-  })
+// 🚨 NEW: Iron Law Pause/Resume System
+let ironLawPaused = false;
+let ironLawPauseReason = '';
+let ironLawPausedForChat = null;
 
+// Global pause/resume functions for UnifiedScrollManager
+window.pauseIronLaw = (chatId, reason) => {
+  ironLawPaused = true;
+  ironLawPauseReason = reason;
+  ironLawPausedForChat = chatId;
+  console.log(`⚡ [IRON LAW] PAUSED for chat ${chatId} - reason: ${reason}`);
+};
+
+window.resumeIronLaw = (chatId) => {
+  if (ironLawPausedForChat === chatId) {
+    ironLawPaused = false;
+    ironLawPauseReason = '';
+    ironLawPausedForChat = null;
+    console.log(`⚡ [IRON LAW] RESUMED for chat ${chatId}`);
+  }
+};
+
+// Lifecycle
+onMounted(() => {
+  // Initialize unified scroll management
+  initializeUnifiedScroll()
+  
+  // 🎯 SIMPLIFIED: Minimal debug setup
+  console.log('🎯 [DiscordMessageList] Simplified message list ready');
+  
   // Setup Perfect Search listener
   window.addEventListener('fechatter:navigate-to-message', (event) => {
     const { messageId, query, options } = event.detail
@@ -758,10 +1155,110 @@ onMounted(() => {
       highlightSearchResult(messageId, query, options)
     }
   })
+  
+  // Setup force scroll to bottom listener (for compatibility)
+  window.addEventListener('fechatter:force-scroll-to-bottom', (event) => {
+    const { chatId } = event.detail
+    if (parseInt(props.chatId) === parseInt(chatId)) {
+      console.log('🎯 [DiscordMessageList] Force scroll event received')
+      if (scrollInstance) {
+        scrollInstance.scrollToBottom(false)
+      }
+    }
+  })
+
+  // 🆕 NEW: Setup intelligent scroll suggestion listener
+  window.addEventListener('fechatter:suggest-scroll-to-bottom', (event) => {
+    const { chatId, priority, reason } = event.detail
+    if (parseInt(props.chatId) === parseInt(chatId)) {
+      console.log(`💡 [DiscordMessageList] Scroll suggestion received: ${reason} (priority: ${priority})`)
+      
+      // 🤖 INTELLIGENT DECISION: Should we scroll based on user context?
+      const shouldAcceptSuggestion = () => {
+        if (!scrollContainer.value) return false
+        
+        const container = scrollContainer.value
+        
+        // 🎯 NEW: Respect active user scrolling
+        if (isUserScrolling.value) {
+          console.log(`💡 [DiscordMessageList] Suggestion DECLINED - user actively scrolling (velocity: ${scrollVelocity.value.toFixed(2)}px/ms)`)
+          return false
+        }
+        
+        // 🎯 NEW: Check recent user scroll activity
+        const timeSinceUserScroll = Date.now() - (userScrollEndTime.value || 0)
+        if (timeSinceUserScroll < 3000) { // 3 seconds grace period for suggestions
+          console.log(`💡 [DiscordMessageList] Suggestion DECLINED - recent user scroll activity (${timeSinceUserScroll}ms ago)`)
+          return false
+        }
+        
+        // 1. Check if user is actively browsing history
+        const scrollPercentage = container.scrollTop / (container.scrollHeight - container.clientHeight)
+        const isUserBrowsingHistory = scrollPercentage < 0.85 && container.scrollTop > 300
+        
+        if (isUserBrowsingHistory) {
+          console.log(`💡 [DiscordMessageList] Suggestion DECLINED - user browsing history (${(scrollPercentage * 100).toFixed(1)}%)`)
+          return false
+        }
+        
+        // 2. Check priority level
+        if (priority === 'low' && isUserBrowsingHistory) {
+          console.log(`💡 [DiscordMessageList] Low priority suggestion DECLINED - user activity detected`)
+          return false
+        }
+        
+        // 3. Check if system is in history loading state
+        if (document.body.classList.contains('history-loading-in-progress')) {
+          console.log(`💡 [DiscordMessageList] Suggestion DECLINED - system in history loading`)
+          return false
+        }
+        
+        // 4. Check if user recently scrolled (within 3 seconds)
+        const timeSinceLastScroll = Date.now() - (window.lastUserScrollTime || 0)
+        if (timeSinceLastScroll < 3000) {
+          console.log(`💡 [DiscordMessageList] Suggestion DECLINED - recent user scroll (${timeSinceLastScroll}ms ago)`)
+          return false
+        }
+        
+        return true
+      }
+      
+      if (shouldAcceptSuggestion()) {
+        console.log(`✅ [DiscordMessageList] Scroll suggestion ACCEPTED: ${reason}`)
+        if (scrollInstance) {
+          scrollInstance.scrollToBottom(false)
+        }
+      } else {
+        console.log(`❌ [DiscordMessageList] Scroll suggestion DECLINED: ${reason}`)
+      }
+    }
+  })
+
+  // 🆕 NEW: Track user scroll activity for intelligent suggestions
+  let userScrollTracker = null
+  if (scrollContainer.value) {
+    userScrollTracker = (event) => {
+      // Update last user scroll time for suggestion system
+      window.lastUserScrollTime = Date.now()
+    }
+    scrollContainer.value.addEventListener('scroll', userScrollTracker, { passive: true })
+  }
+
+  // 🔧 REMOVED: MessageDisplayGuarantee registration to improve performance
+  // The Vue 3 reactive system provides sufficient reliability for message display
+  console.log(`✅ [DiscordMessageList] Mounted for chat ${props.chatId} with ${props.messages.length} messages - MessageDisplayGuarantee disabled for performance`)
 })
 
 onUnmounted(() => {
+  // Cleanup unified scroll management
+  if (scrollInstance && props.chatId) {
+    unifiedScrollManager.unregisterChat(props.chatId)
+  }
+  
+  // Remove event listeners
   window.removeEventListener('fechatter:navigate-to-message', () => { })
+  window.removeEventListener('fechatter:force-scroll-to-bottom', () => { })
+  window.removeEventListener('fechatter:suggest-scroll-to-bottom', () => { })
 })
 
 // Expose methods for parent components
@@ -775,11 +1272,47 @@ defineExpose({
     scrollTop: scrollContainer.value?.scrollTop || 0,
     scrollHeight: scrollContainer.value?.scrollHeight || 0,
     clientHeight: scrollContainer.value?.clientHeight || 0
+  }),
+  // 🎯 NEW: Expose scroll state for debugging
+  getScrollState: () => ({
+    isUserScrolling: isUserScrolling.value,
+    scrollVelocity: scrollVelocity.value,
+    scrollDirection: lastUserScrollDirection.value,
+    userScrollStartTime: userScrollStartTime.value,
+    userScrollEndTime: userScrollEndTime.value,
+    timeSinceUserScroll: Date.now() - (userScrollEndTime.value || 0)
   })
 })
 
 // Console log for verification
 console.log(`✅ [DiscordMessageList] Mounted for chat ${props.chatId} with ${props.messages.length} messages`)
+
+// 🎯 REMOVED: 旧的精准检测器 - 已被API生命周期检测器替代
+
+// 🎯 REMOVED: 旧的绝对精准检测系统 - 已被API生命周期检测器替代
+
+// 🎯 REMOVED: 旧的延迟检测和事件检测系统 - 已被API生命周期检测器替代
+
+// 🎯 REMOVED: Complex API lifecycle detector that causes DOM queries and performance issues
+
+// 🎯 NEW: Debounced DOM operations to reduce forced reflows
+const debouncedDOMOperations = debounce(() => {
+  // Batch DOM operations to minimize reflows
+  requestAnimationFrame(() => {
+    // Perform any necessary DOM updates here
+    if (scrollContainer.value) {
+      // Use transform instead of direct scroll changes when possible
+      const container = scrollContainer.value
+      if (container.style.transform) {
+        container.style.transform = ''
+      }
+    }
+  })
+}, 16) // 60fps timing
+
+  // 🔧 REMOVED: MessageDisplayGuarantee fallback registration for performance
+  // Vue 3 reactive system handles message display reliability without DOM queries
+  console.log(`🔧 [PERFORMANCE] MessageDisplayGuarantee system disabled - using Vue 3 reactive system for reliability`)
 </script>
 
 <style scoped>
@@ -813,6 +1346,9 @@ console.log(`✅ [DiscordMessageList] Mounted for chat ${props.chatId} with ${pr
   /* 🎯 NEW: 优化滚动时的渲染性能 */
   overscroll-behavior: contain;
   /* 防止过度滚动 */
+  /* 🎯 PERFORMANCE: Optimize rendering during loading */
+  backface-visibility: hidden;
+  perspective: 1000px;
 }
 
 .discord-message-list::-webkit-scrollbar {
@@ -1322,4 +1858,1388 @@ console.log(`✅ [DiscordMessageList] Mounted for chat ${props.chatId} with ${pr
     box-shadow: 0 6.18px 24.72px rgba(0, 0, 0, 0.15);
   }
 }
+
+/* 🚀 NEW: Enhanced Smooth Loading Styles */
+
+/* Loading state container with reserved space */
+.loading-state-container {
+  position: relative;
+  width: 100%;
+  z-index: 15;
+}
+
+.loading-space-reservation {
+  width: 100%;
+  transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+/* Enhanced loading indicator */
+.enhanced-load-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg,
+      rgba(88, 101, 242, 0.08) 0%,
+      rgba(88, 101, 242, 0.05) 50%,
+      rgba(88, 101, 242, 0.02) 100%);
+  backdrop-filter: blur(8px);
+  border-radius: 8px;
+  margin: 8px 16px;
+  border: 1px solid rgba(88, 101, 242, 0.15);
+  box-shadow: 0 4px 16px rgba(88, 101, 242, 0.1);
+}
+
+.loading-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 2;
+  position: relative;
+}
+
+/* Enhanced spinner */
+.loading-spinner-enhanced {
+  width: 20px;
+  height: 20px;
+  position: relative;
+}
+
+.spinner-icon {
+  width: 100%;
+  height: 100%;
+  animation: smoothSpin 2s linear infinite;
+}
+
+.spinner-circle {
+  stroke: var(--accent-primary, #5865f2);
+  animation: circleProgress 1.5s ease-in-out infinite;
+}
+
+.loading-text-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.loading-primary-text {
+  color: var(--text-primary, #dcddde);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.loading-sub-text {
+  color: var(--text-muted, #72767d);
+  font-size: 11px;
+  font-weight: 400;
+}
+
+/* Subtle wave effect */
+.loading-wave-effect {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  overflow: hidden;
+}
+
+.wave {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(88, 101, 242, 0.6) 50%,
+      transparent 100%);
+  border-radius: 1px;
+}
+
+.wave-1 {
+  width: 30%;
+  animation: waveMove 2s ease-in-out infinite;
+}
+
+.wave-2 {
+  width: 20%;
+  animation: waveMove 2s ease-in-out infinite 0.4s;
+}
+
+.wave-3 {
+  width: 25%;
+  animation: waveMove 2s ease-in-out infinite 0.8s;
+}
+
+/* History loading placeholder */
+.history-loading-placeholder {
+  padding: 16px;
+  opacity: 0.6;
+}
+
+.placeholder-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.message-placeholder {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 8px 0;
+}
+
+.placeholder-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(45deg, 
+      rgba(114, 118, 125, 0.3) 0%, 
+      rgba(114, 118, 125, 0.1) 50%, 
+      rgba(114, 118, 125, 0.3) 100%);
+  background-size: 200% 200%;
+  animation: placeholderPulse 2s ease-in-out infinite;
+}
+
+.placeholder-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.placeholder-header {
+  width: 120px;
+  height: 12px;
+  background: linear-gradient(45deg, 
+      rgba(114, 118, 125, 0.3) 0%, 
+      rgba(114, 118, 125, 0.1) 50%, 
+      rgba(114, 118, 125, 0.3) 100%);
+  background-size: 200% 200%;
+  border-radius: 6px;
+  animation: placeholderPulse 2s ease-in-out infinite 0.2s;
+}
+
+.placeholder-text {
+  height: 10px;
+  background: linear-gradient(45deg, 
+      rgba(114, 118, 125, 0.2) 0%, 
+      rgba(114, 118, 125, 0.05) 50%, 
+      rgba(114, 118, 125, 0.2) 100%);
+  background-size: 200% 200%;
+  border-radius: 5px;
+  animation: placeholderPulse 2s ease-in-out infinite 0.4s;
+}
+
+.placeholder-text:first-of-type {
+  width: 80%;
+}
+
+.placeholder-text.short {
+  width: 60%;
+}
+
+/* Message container enhancements */
+.message-container-enhanced {
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.message-container-enhanced.newly-loaded {
+  animation: messageSlideIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.message-container-enhanced.loading-context {
+  opacity: 0.8;
+}
+
+.message-container-enhanced.stable-position {
+  opacity: 1;
+}
+
+/* Enhanced loading states */
+.discord-message-list.history-loading-active {
+  position: relative;
+}
+
+.discord-message-list.history-loading-active::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg,
+      var(--accent-primary, #5865f2) 0%,
+      rgba(88, 101, 242, 0.6) 50%,
+      var(--accent-primary, #5865f2) 100%);
+  background-size: 200% 100%;
+  animation: loadingProgress 2s ease-in-out infinite;
+  z-index: 20;
+}
+
+.messages-container.content-loading {
+  position: relative;
+}
+
+/* Smooth loading transitions */
+.loading-fade-enter-active {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.loading-fade-leave-active {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.loading-fade-enter-from {
+  opacity: 0;
+  transform: translateY(-10px) scale(0.95);
+}
+
+.loading-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-5px) scale(0.98);
+}
+
+.message-appear-enter-active {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.message-appear-enter-from {
+  opacity: 0;
+  transform: translateY(-8px) scale(0.98);
+}
+
+/* Enhanced animations */
+@keyframes smoothSpin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes circleProgress {
+  0% {
+    stroke-dashoffset: 60;
+  }
+  50% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: -60;
+  }
+}
+
+@keyframes waveMove {
+  0% {
+    left: -30%;
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    left: 100%;
+    opacity: 0;
+  }
+}
+
+@keyframes placeholderPulse {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes messageSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-12px) scale(0.97);
+  }
+  60% {
+    opacity: 0.8;
+    transform: translateY(-2px) scale(0.99);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes loadingProgress {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Responsive enhancements for smooth loading */
+@media (max-width: 768px) {
+  .enhanced-load-indicator {
+    height: 50px;
+    margin: 6px 12px;
+  }
+  
+  .loading-space-reservation {
+    height: 50px !important;
+  }
+  
+  .loading-primary-text {
+    font-size: 12px;
+  }
+  
+  .loading-sub-text {
+    font-size: 10px;
+  }
+  
+  .placeholder-messages {
+    gap: 8px;
+  }
+  
+  .message-placeholder {
+    padding: 6px 0;
+  }
+}
+
+/* Reduced motion support for smooth loading */
+@media (prefers-reduced-motion: reduce) {
+  .enhanced-load-indicator,
+  .message-container-enhanced,
+  .loading-space-reservation {
+    transition: none;
+  }
+  
+  .spinner-icon,
+  .spinner-circle,
+  .wave,
+  .placeholder-avatar,
+  .placeholder-header,
+  .placeholder-text {
+    animation: none;
+  }
+  
+  .discord-message-list.history-loading-active::before {
+    animation: none;
+    background: var(--accent-primary, #5865f2);
+  }
+}
+
+/* 🚀 NEW: Enhanced Smooth Loading Styles */
+
+/* Loading state container with reserved space */
+.loading-state-container {
+  position: relative;
+  width: 100%;
+  z-index: 15;
+}
+
+.loading-space-reservation {
+  width: 100%;
+  transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+/* Enhanced loading indicator */
+.enhanced-load-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg,
+      rgba(88, 101, 242, 0.08) 0%,
+      rgba(88, 101, 242, 0.05) 50%,
+      rgba(88, 101, 242, 0.02) 100%);
+  backdrop-filter: blur(8px);
+  border-radius: 8px;
+  margin: 8px 16px;
+  border: 1px solid rgba(88, 101, 242, 0.15);
+  box-shadow: 0 4px 16px rgba(88, 101, 242, 0.1);
+}
+
+.loading-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 2;
+  position: relative;
+}
+
+/* Enhanced spinner */
+.loading-spinner-enhanced {
+  width: 20px;
+  height: 20px;
+  position: relative;
+}
+
+.spinner-icon {
+  width: 100%;
+  height: 100%;
+  animation: smoothSpin 2s linear infinite;
+}
+
+.spinner-circle {
+  stroke: var(--accent-primary, #5865f2);
+  animation: circleProgress 1.5s ease-in-out infinite;
+}
+
+.loading-text-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.loading-primary-text {
+  color: var(--text-primary, #dcddde);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.loading-sub-text {
+  color: var(--text-muted, #72767d);
+  font-size: 11px;
+  font-weight: 400;
+}
+
+/* Subtle wave effect */
+.loading-wave-effect {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  overflow: hidden;
+}
+
+.wave {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(88, 101, 242, 0.6) 50%,
+      transparent 100%);
+  border-radius: 1px;
+}
+
+.wave-1 {
+  width: 30%;
+  animation: waveMove 2s ease-in-out infinite;
+}
+
+.wave-2 {
+  width: 20%;
+  animation: waveMove 2s ease-in-out infinite 0.4s;
+}
+
+.wave-3 {
+  width: 25%;
+  animation: waveMove 2s ease-in-out infinite 0.8s;
+}
+
+/* History loading placeholder */
+.history-loading-placeholder {
+  padding: 16px;
+  opacity: 0.6;
+}
+
+.placeholder-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.message-placeholder {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 8px 0;
+}
+
+.placeholder-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(45deg, 
+      rgba(114, 118, 125, 0.3) 0%, 
+      rgba(114, 118, 125, 0.1) 50%, 
+      rgba(114, 118, 125, 0.3) 100%);
+  background-size: 200% 200%;
+  animation: placeholderPulse 2s ease-in-out infinite;
+}
+
+.placeholder-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.placeholder-header {
+  width: 120px;
+  height: 12px;
+  background: linear-gradient(45deg, 
+      rgba(114, 118, 125, 0.3) 0%, 
+      rgba(114, 118, 125, 0.1) 50%, 
+      rgba(114, 118, 125, 0.3) 100%);
+  background-size: 200% 200%;
+  border-radius: 6px;
+  animation: placeholderPulse 2s ease-in-out infinite 0.2s;
+}
+
+.placeholder-text {
+  height: 10px;
+  background: linear-gradient(45deg, 
+      rgba(114, 118, 125, 0.2) 0%, 
+      rgba(114, 118, 125, 0.05) 50%, 
+      rgba(114, 118, 125, 0.2) 100%);
+  background-size: 200% 200%;
+  border-radius: 5px;
+  animation: placeholderPulse 2s ease-in-out infinite 0.4s;
+}
+
+.placeholder-text:first-of-type {
+  width: 80%;
+}
+
+.placeholder-text.short {
+  width: 60%;
+}
+
+/* Message container enhancements */
+.message-container-enhanced {
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.message-container-enhanced.newly-loaded {
+  animation: messageSlideIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.message-container-enhanced.loading-context {
+  opacity: 0.8;
+}
+
+.message-container-enhanced.stable-position {
+  opacity: 1;
+}
+
+/* Enhanced loading states */
+.discord-message-list.history-loading-active {
+  position: relative;
+}
+
+.discord-message-list.history-loading-active::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg,
+      var(--accent-primary, #5865f2) 0%,
+      rgba(88, 101, 242, 0.6) 50%,
+      var(--accent-primary, #5865f2) 100%);
+  background-size: 200% 100%;
+  animation: loadingProgress 2s ease-in-out infinite;
+  z-index: 20;
+}
+
+.messages-container.content-loading {
+  position: relative;
+}
+
+/* Smooth loading transitions */
+.loading-fade-enter-active {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.loading-fade-leave-active {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.loading-fade-enter-from {
+  opacity: 0;
+  transform: translateY(-10px) scale(0.95);
+}
+
+.loading-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-5px) scale(0.98);
+}
+
+.message-appear-enter-active {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.message-appear-enter-from {
+  opacity: 0;
+  transform: translateY(-8px) scale(0.98);
+}
+
+/* Enhanced animations */
+@keyframes smoothSpin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes circleProgress {
+  0% {
+    stroke-dashoffset: 60;
+  }
+  50% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: -60;
+  }
+}
+
+@keyframes waveMove {
+  0% {
+    left: -30%;
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    left: 100%;
+    opacity: 0;
+  }
+}
+
+@keyframes placeholderPulse {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes messageSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-12px) scale(0.97);
+  }
+  60% {
+    opacity: 0.8;
+    transform: translateY(-2px) scale(0.99);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes loadingProgress {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Responsive enhancements for smooth loading */
+@media (max-width: 768px) {
+  .enhanced-load-indicator {
+    height: 50px;
+    margin: 6px 12px;
+  }
+  
+  .loading-space-reservation {
+    height: 50px !important;
+  }
+  
+  .loading-primary-text {
+    font-size: 12px;
+  }
+  
+  .loading-sub-text {
+    font-size: 10px;
+  }
+  
+  .placeholder-messages {
+    gap: 8px;
+  }
+  
+  .message-placeholder {
+    padding: 6px 0;
+  }
+}
+
+/* Reduced motion support for smooth loading */
+@media (prefers-reduced-motion: reduce) {
+  .enhanced-load-indicator,
+  .message-container-enhanced,
+  .loading-space-reservation {
+    transition: none;
+  }
+  
+  .spinner-icon,
+  .spinner-circle,
+  .wave,
+  .placeholder-avatar,
+  .placeholder-header,
+  .placeholder-text {
+    animation: none;
+  }
+  
+  .discord-message-list.history-loading-active::before {
+    animation: none;
+    background: var(--accent-primary, #5865f2);
+  }
+}
+
+/* 🎯 OPTIMIZED: Lightweight message animations */
+.message-container-optimized {
+  position: relative;
+  contain: layout style;
+}
+
+/* 🎯 Simple fade animation for new messages */
+.message-fade-enter-active {
+  transition: all 0.3s ease-out;
+}
+
+.message-fade-enter-from {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+.message-fade-enter-to {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* 🎯 Loading pulse for message placeholders */
+@keyframes messagePulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 0.9; }
+}
+
+.message-loading-placeholder {
+  animation: messagePulse 1.5s ease-in-out infinite;
+  background: linear-gradient(90deg, 
+    rgba(0,0,0,0.05) 25%, 
+    rgba(0,0,0,0.1) 50%, 
+    rgba(0,0,0,0.05) 75%);
+  background-size: 200% 100%;
+  animation: messageShimmer 2s infinite;
+}
+
+@keyframes messageShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* 🎯 Smooth history loading indicator */
+.history-loading-smooth {
+  position: sticky;
+  top: 0;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  border-radius: 8px;
+  margin: 8px 16px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+}
+
+.loading-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-primary, #5865f2);
+  animation: loadingDots 1.4s ease-in-out infinite both;
+}
+
+.loading-dot:nth-child(1) { animation-delay: -0.32s; }
+.loading-dot:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes loadingDots {
+  0%, 80%, 100% {
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* 🎯 Performance optimizations */
+@media (prefers-reduced-motion: reduce) {
+  .message-fade-enter-active {
+    transition: opacity 0.1s ease;
+  }
+  
+  .message-fade-enter-from {
+    transform: none;
+  }
+  
+  .message-loading-placeholder,
+  .loading-dot {
+    animation: none;
+  }
+}
+
+/* 🎯 Smooth loading transitions */
+.smooth-fade-enter-active {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.smooth-fade-leave-active {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.smooth-fade-enter-from {
+  opacity: 0;
+  transform: translateY(-10px) scale(0.95);
+}
+
+.smooth-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-5px) scale(0.98);
+}
+
+/* 🎯 Smooth loading placeholder */
+.smooth-loading-placeholder {
+  padding: 16px;
+  opacity: 0.6;
+}
+
+/* 🎯 Shimmer effect for smooth loading */
+.loading-shimmer-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.shimmer-message {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 8px 0;
+}
+
+.shimmer-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(45deg, 
+      rgba(114, 118, 125, 0.3) 0%, 
+      rgba(114, 118, 125, 0.1) 50%, 
+      rgba(114, 118, 125, 0.3) 100%);
+  background-size: 200% 200%;
+  animation: shimmerPulse 2s infinite;
+}
+
+.shimmer-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.shimmer-line {
+  height: 10px;
+  background: linear-gradient(90deg, 
+      rgba(255, 255, 255, 0.2) 0%, 
+      rgba(255, 255, 255, 0.1) 50%, 
+      rgba(255, 255, 255, 0.2) 100%);
+  background-size: 200% 100%;
+  border-radius: 5px;
+  animation: shimmerMove 2s infinite;
+}
+
+.shimmer-line.shimmer-header {
+  width: 80%;
+}
+
+.shimmer-line.shimmer-text {
+  width: 100%;
+}
+
+.shimmer-line.shimmer-text.short {
+  width: 60%;
+}
+
+@keyframes shimmerPulse {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes shimmerMove {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* 🎯 Enhanced message container for smooth rendering */
+.messages-container.smooth-rendering {
+  will-change: opacity;
+  transform: translateZ(0); /* Hardware acceleration */
+  /* 🎯 PERFORMANCE: Reduce layout thrashing during loading */
+  contain: layout style;
+  backface-visibility: hidden;
+}
+
+.messages-container.content-loading {
+  /* 🎯 PERFORMANCE: Optimize rendering during content loading */
+  transform: translate3d(0, 0, 0);
+  will-change: transform, opacity;
+}
+
+/* 🎯 Global smooth loading state */
+:global(.smooth-history-loading) {
+  .discord-message-list {
+    transition: all 0.2s ease-out;
+    /* 🎯 PERFORMANCE: Prevent unnecessary repaints */
+    contain: strict;
+  }
+  
+  /* 🎯 PERFORMANCE: Optimize message rendering during loading */
+  .message-container-optimized {
+    will-change: transform;
+    backface-visibility: hidden;
+  }
+}
+
+/* 🎯 Optimize message fade transitions */
+.message-fade-enter-active {
+  transition: all 0.3s ease-out;
+  /* 🎯 PERFORMANCE: Use transform instead of position changes */
+  will-change: transform, opacity;
+}
+
+.message-fade-enter-from {
+  opacity: 0;
+  transform: translateY(-8px) translateZ(0);
+}
+
+.message-fade-enter-to {
+  opacity: 1;
+  transform: translateY(0) translateZ(0);
+}
+
+/* 🎯 Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .smooth-fade-enter-active,
+  .smooth-fade-leave-active,
+  .shimmer-avatar,
+  .shimmer-line,
+  .message-fade-enter-active {
+    animation: none;
+    transition: none;
+  }
+  
+  .messages-container {
+    transition: none !important;
+  }
+  
+  .discord-message-list {
+    scroll-behavior: auto !important;
+  }
+}
+
+/* 🎯 PERFORMANCE: Optimize scroll container during loading */
+.discord-message-list[data-loading="true"] {
+  /* Reduce rendering complexity during loading */
+  will-change: scroll-position, contents;
+  contain: layout style;
+}
+
+/* 🎯 PERFORMANCE: Optimize individual message containers */
+.message-container-optimized {
+  /* 🎯 Simple but effective message animation */
+  position: relative;
+  contain: layout style;
+  /* 🎯 PERFORMANCE: Reduce paint complexity */
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* 🎯 PERFORMANCE: Optimize loading indicators */
+.enhanced-load-indicator,
+.smooth-loading-placeholder {
+  /* Ensure loading indicators don't cause layout shifts */
+  contain: layout style paint;
+  will-change: opacity;
+  transform: translateZ(0);
+}
+
+/* 🧠 COGNITIVE: Reading-Friendly Loading Styles */
+
+/* 🧠 Cognitive load indicator with reading context */
+.cognitive-load-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg,
+      rgba(99, 102, 241, 0.08) 0%,
+      rgba(139, 92, 246, 0.05) 50%,
+      rgba(168, 85, 247, 0.03) 100%);
+  backdrop-filter: blur(12px);
+  border-radius: 12px;
+  margin: 8px 16px;
+  border: 1px solid rgba(99, 102, 241, 0.12);
+  box-shadow: 0 8px 32px rgba(99, 102, 241, 0.08);
+}
+
+/* 🧠 Visual continuity bridge */
+.context-bridge {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  width: 100%;
+  justify-content: center;
+}
+
+.bridge-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(99, 102, 241, 0.3) 50%,
+      transparent 100%);
+  max-width: 80px;
+}
+
+.bridge-text {
+  color: var(--text-primary, #374151);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.025em;
+}
+
+/* 🧠 Reading rhythm progress */
+.reading-rhythm-progress {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.progress-dots {
+  display: flex;
+  gap: 8px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(99, 102, 241, 0.3);
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.dot.active {
+  background: rgb(99, 102, 241);
+  transform: scale(1.2);
+  box-shadow: 0 0 12px rgba(99, 102, 241, 0.4);
+}
+
+.progress-text {
+  color: var(--text-muted, #6b7280);
+  font-size: 11px;
+  font-weight: 400;
+}
+
+/* 🧠 Content preview with timeline */
+.content-preview-container {
+  padding: 16px;
+  opacity: 0.7;
+}
+
+.preview-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.preview-message {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.preview-timeline {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.timeline-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, 
+      rgba(99, 102, 241, 0.6) 0%, 
+      rgba(139, 92, 246, 0.4) 100%);
+  margin-bottom: 4px;
+  animation: timelinePulse 2s ease-in-out infinite;
+}
+
+.timeline-line {
+  width: 2px;
+  height: 32px;
+  background: linear-gradient(180deg,
+      rgba(99, 102, 241, 0.3) 0%,
+      rgba(99, 102, 241, 0.1) 100%);
+}
+
+.preview-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.preview-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.preview-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, 
+      rgba(99, 102, 241, 0.3) 0%, 
+      rgba(139, 92, 246, 0.2) 100%);
+  animation: avatarShimmer 2s ease-in-out infinite;
+}
+
+.preview-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.preview-name {
+  width: 80px;
+  height: 12px;
+  background: linear-gradient(90deg, 
+      rgba(99, 102, 241, 0.2) 0%, 
+      rgba(99, 102, 241, 0.1) 50%, 
+      rgba(99, 102, 241, 0.2) 100%);
+  background-size: 200% 100%;
+  border-radius: 6px;
+  animation: contentShimmer 2s ease-in-out infinite;
+}
+
+.preview-time {
+  width: 60px;
+  height: 10px;
+  background: linear-gradient(90deg, 
+      rgba(99, 102, 241, 0.15) 0%, 
+      rgba(99, 102, 241, 0.08) 50%, 
+      rgba(99, 102, 241, 0.15) 100%);
+  background-size: 200% 100%;
+  border-radius: 5px;
+  animation: contentShimmer 2s ease-in-out infinite 0.3s;
+}
+
+.preview-text {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.preview-line {
+  height: 10px;
+  background: linear-gradient(90deg, 
+      rgba(99, 102, 241, 0.12) 0%, 
+      rgba(99, 102, 241, 0.06) 50%, 
+      rgba(99, 102, 241, 0.12) 100%);
+  background-size: 200% 100%;
+  border-radius: 5px;
+  animation: contentShimmer 2s ease-in-out infinite 0.6s;
+}
+
+.preview-line:first-child {
+  width: 85%;
+}
+
+.preview-line.short {
+  width: 60%;
+}
+
+/* 🧠 Reading position anchor */
+.reading-anchor {
+  position: absolute;
+  left: -40px;
+  z-index: 20;
+  pointer-events: none;
+}
+
+.anchor-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(99, 102, 241, 0.95);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3);
+  backdrop-filter: blur(8px);
+  animation: anchorFloat 3s ease-in-out infinite;
+}
+
+.anchor-icon {
+  font-size: 14px;
+}
+
+/* 🧠 Reading flow optimizations */
+.messages-container.reading-flow-mode {
+  /* Optimize for reading comfort */
+  line-height: 1.6;
+  letter-spacing: 0.01em;
+}
+
+/* 🧠 Gentle transitions */
+.gentle-fade-enter-active {
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.gentle-fade-leave-active {
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.gentle-fade-enter-from {
+  opacity: 0;
+  transform: translateY(-12px) scale(0.98);
+}
+
+.gentle-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-8px) scale(0.99);
+}
+
+.content-preview-enter-active {
+  transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.content-preview-leave-active {
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.content-preview-enter-from {
+  opacity: 0;
+  transform: translateY(-16px) scale(0.96);
+}
+
+.content-preview-leave-to {
+  opacity: 0;
+  transform: translateY(-12px) scale(0.98);
+}
+
+/* 🧠 Cognitive-friendly animations */
+@keyframes timelinePulse {
+  0%, 100% { 
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% { 
+    opacity: 1;
+    transform: scale(1.1);
+  }
+}
+
+@keyframes avatarShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes contentShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes anchorFloat {
+  0%, 100% { 
+    transform: translateY(0px);
+  }
+  50% { 
+    transform: translateY(-4px);
+  }
+}
+
+/* 🧠 Global reading flow state */
+:global(.reading-flow-loading) {
+  .discord-message-list {
+    /* Optimize scrolling during loading */
+    scroll-behavior: auto;
+    overscroll-behavior: contain;
+  }
+  
+  .message-container-optimized {
+    /* Reduce visual noise during loading */
+    transition: opacity 0.2s ease-out;
+  }
+}
+
+/* 🧠 Accessibility and reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .gentle-fade-enter-active,
+  .gentle-fade-leave-active,
+  .content-preview-enter-active,
+  .content-preview-leave-active,
+  .timeline-dot,
+  .preview-avatar,
+  .preview-name,
+  .preview-time,
+  .preview-line,
+  .anchor-indicator {
+    animation: none;
+    transition: none;
+  }
+  
+  .dot {
+    transition: none;
+  }
+}
 </style>
+

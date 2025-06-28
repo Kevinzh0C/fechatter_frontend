@@ -118,7 +118,7 @@ export function useChatSearch(chatId) {
 
       // 检查响应时间
       if (responseTime > 200) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.warn(`[ChatSearch] Slow search response: ${responseTime.toFixed(0)}ms`);
         }
       }
@@ -129,7 +129,7 @@ export function useChatSearch(chatId) {
         return;
       }
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('[ChatSearch] Search error:', error);
       }
       searchError.value = error.message || 'Search failed';

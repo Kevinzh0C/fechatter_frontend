@@ -33,22 +33,22 @@ class ChannelSwitchRootCauseFix {
       results.forEach((result, index) => {
         const fixName = ['setCurrentChat', 'route-component sync', 'cache management', 'message array state', 'preventive measures'][index];
         if (result.status === 'fulfilled') {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log(`✅ ${fixName} fix applied`);
           }
         } else {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.error(`❌ ${fixName} fix failed:`, result.reason);
           }
       });
 
       this.isActive = true;
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('🎉 Comprehensive fix applied successfully');
       }
 
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('❌ Failed to apply comprehensive fix:', error);
       }
 
@@ -69,7 +69,7 @@ class ChannelSwitchRootCauseFix {
 
     // Apply fixed version
     chatStore.setCurrentChat = async function (chatId) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`🔧 [FIXED] setCurrentChat called with: ${chatId}, current: ${this.currentChatId}`);
       }
 
@@ -82,7 +82,7 @@ class ChannelSwitchRootCauseFix {
 
       try {
         // CRITICAL FIX 1.2: Aggressively clear all old message state
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('🧹 [FIXED] Clearing all old message state');
         }
 
@@ -97,7 +97,7 @@ class ChannelSwitchRootCauseFix {
         if (this.messageCache[chatId]) {
           delete this.messageCache[chatId];
           sessionStorage.setItem('messageCache', JSON.stringify(this.messageCache));
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log('🗑️ [FIXED] Cleared cache for chat', chatId);
           }
 
@@ -105,7 +105,7 @@ class ChannelSwitchRootCauseFix {
         const chat = this.chats.find(c => c.id === chatId);
 
         if (!chat) {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log('📍 [FIXED] Chat not found, fetching from API');
           const response = await api.get(`/chat/${chatId}`);
           const chatData = response.data?.data || response.data;
@@ -117,10 +117,10 @@ class ChannelSwitchRootCauseFix {
             }
 
         // CRITICAL FIX: Always fetch fresh messages
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('📍 [FIXED] Fetching fresh messages for chat:', chatId);
         await this.fetchMessages(chatId);
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('📍 [FIXED] Fresh messages loaded:', this.messages.length);
         }
 
@@ -130,7 +130,7 @@ class ChannelSwitchRootCauseFix {
         }
 
       } catch (error) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.error('📍 [FIXED] Error in setCurrentChat:', error);
         }
         // Restore previous state on error
@@ -141,7 +141,7 @@ class ChannelSwitchRootCauseFix {
       }
     };
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('✅ Fixed setCurrentChat logic');
     }
 
@@ -159,7 +159,7 @@ class ChannelSwitchRootCauseFix {
         // Skip if same ID
         if (newId === oldId) return;
 
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log(`🔧 [FIXED] Route change: ${oldId} → ${newId}`);
         }
 
@@ -169,7 +169,7 @@ class ChannelSwitchRootCauseFix {
 
         // CRITICAL: Clear old state immediately
         if (oldId && newId !== oldId) {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log('🧹 [FIXED] Clearing old route state');
           chatStore.messages.splice(0, chatStore.messages.length);
           chatStore.currentChatId = null;
@@ -177,15 +177,15 @@ class ChannelSwitchRootCauseFix {
 
         routeChangeTimer = setTimeout(async () => {
           if (newId) {
-            if (import.meta.env.DEV) {
+            if (true) {
               console.log('🔄 [FIXED] Loading chat data:', newId);
             try {
               await loadChatData(newId);
-              if (import.meta.env.DEV) {
+              if (true) {
                 console.log('✅ [FIXED] Chat data loaded successfully');
               }
             } catch (error) {
-              if (import.meta.env.DEV) {
+              if (true) {
                 console.error('❌ [FIXED] Failed to load chat data:', error);
               }
         }, 25); // Reduced debounce for faster response
@@ -195,7 +195,7 @@ class ChannelSwitchRootCauseFix {
     // Store the fixed watcher function for components to use
     window.fixedRouteWatcher = fixedRouteWatcher;
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('✅ Fixed route-component synchronization');
     }
 
@@ -219,7 +219,7 @@ class ChannelSwitchRootCauseFix {
           throw new Error(`Invalid chat ID: ${chatId}`);
         }
 
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log(`📥 [FIXED] Fetching messages for chat ${validChatId}`);
         }
 
@@ -232,12 +232,12 @@ class ChannelSwitchRootCauseFix {
             }
           });
           sessionStorage.setItem('messageCache', JSON.stringify(this.messageCache));
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log('🧹 [FIXED] Cleared cross-channel cache pollution');
           }
 
         // CRITICAL FIX 3.2: Always clear current messages first
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('🧹 [FIXED] Clearing current messages array');
         this.messages.splice(0, this.messages.length);
 
@@ -248,13 +248,13 @@ class ChannelSwitchRootCauseFix {
         const workspaceStore = useWorkspaceStore();
 
         if (userStore.workspaceUsers.length === 0) {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log('📥 [FIXED] Loading workspace users...');
           await workspaceStore.fetchWorkspaceUsers();
         }
 
         // Skip cache entirely for now to ensure fresh data
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('📡 [FIXED] Fetching fresh data from API');
         const response = await api.get(`/chat/${validChatId}/messages`, {
           params: { limit }
@@ -270,7 +270,7 @@ class ChannelSwitchRootCauseFix {
 
           // CRITICAL FIX 3.3: Strict chat ID validation
           if (parseInt(normalized.chat_id, 10) !== validChatId) {
-            if (import.meta.env.DEV) {
+            if (true) {
               console.error(`❌ [FIXED] Message ${normalized.id} belongs to chat ${normalized.chat_id}, not ${validChatId}`);
             return null; // Filter out wrong messages
           }
@@ -300,7 +300,7 @@ class ChannelSwitchRootCauseFix {
           this.messages.push(msg);
         });
 
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log(`✅ [FIXED] Loaded ${this.messages.length} validated messages for chat ${validChatId}`);
         }
 
@@ -316,13 +316,13 @@ class ChannelSwitchRootCauseFix {
         return this.messages;
 
       } catch (error) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.error('❌ [FIXED] fetchMessages failed:', error);
         throw error;
       }
     };
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('✅ Fixed message cache management');
     }
 
@@ -340,7 +340,7 @@ class ChannelSwitchRootCauseFix {
 
     // Apply fixed version
     chatStore.handleIncomingMessage = function (chat, message) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`📨 [FIXED] Handling incoming message for chat ${message.chat_id}`);
       }
 
@@ -352,7 +352,7 @@ class ChannelSwitchRootCauseFix {
       const currentChatId = parseInt(this.currentChatId, 10);
 
       if (messageChatId !== currentChatId) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log(`🚫 [FIXED] Message for chat ${messageChatId} ignored (current: ${currentChatId})`);
         }
 
@@ -376,7 +376,7 @@ class ChannelSwitchRootCauseFix {
           window.strictChannelMessageValidator.validateMessage(normalizedMessage, currentChatId);
         }
       } catch (error) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.error('❌ [FIXED] Message validation failed:', error.message);
         return; // Don't add invalid messages
       }
@@ -394,12 +394,12 @@ class ChannelSwitchRootCauseFix {
       // Sort messages
       this.messages.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('✅ [FIXED] Message added to current chat');
       }
     };
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('✅ Fixed message array state corruption');
     }
 
@@ -420,13 +420,13 @@ class ChannelSwitchRootCauseFix {
         const messageCount = chatStore.messages.length;
 
         console.group('🔍 Channel Switch State Validation');
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('Route Chat ID:', routeChatId);
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('Store Chat ID:', storeChatId);
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('Messages Count:', messageCount);
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('State Consistent:', routeChatId === storeChatId);
         }
 
@@ -434,16 +434,16 @@ class ChannelSwitchRootCauseFix {
           const wrongMessages = chatStore.messages.filter(msg =>
             parseInt(msg.chat_id, 10) !== storeChatId
           );
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log('Wrong Messages:', wrongMessages.length);
           }
 
           if (wrongMessages.length > 0) {
-            if (import.meta.env.DEV) {
+            if (true) {
               console.error('❌ Found messages from wrong chat:', wrongMessages);
             }
           } else {
-            if (import.meta.env.DEV) {
+            if (true) {
               console.log('✅ All messages belong to correct chat');
             }
 
@@ -468,12 +468,12 @@ class ChannelSwitchRootCauseFix {
         const routeChatId = route.params.id ? parseInt(route.params.id, 10) : null;
 
         if (!routeChatId) {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.error('❌ No route chat ID found');
           return;
         }
 
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('🔧 Forcing correct state for chat:', routeChatId);
         }
 
@@ -487,23 +487,23 @@ class ChannelSwitchRootCauseFix {
         // Reload
         await chatStore.setCurrentChat(routeChatId);
 
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('✅ State corrected');
         }
     };
 
     // Add interval validation in development
-    if (import.meta.env.DEV) {
+    if (true) {
       setInterval(() => {
         const state = window.debugChannelSwitch.validateCurrentState();
         if (!state.isConsistent || state.wrongMessageCount > 0) {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.warn('⚠️ Channel switch state inconsistency detected!', state);
           }
       }, 10000); // Check every 10 seconds
     }
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('✅ Added preventive measures');
     }
 
@@ -516,13 +516,13 @@ class ChannelSwitchRootCauseFix {
 
     this.originalMethods.forEach((originalMethod, methodName) => {
       chatStore[methodName] = originalMethod;
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`🔄 Restored original ${methodName}`);
       }
     });
 
     this.isActive = false;
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('✅ All original methods restored');
     }
 
@@ -551,11 +551,11 @@ if (typeof window !== 'undefined') {
   window.restoreChannelSwitch = () => channelSwitchRootCauseFix.restoreOriginalMethods();
   window.validateChannelState = () => window.debugChannelSwitch?.validateCurrentState();
 
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('🔧 Channel Switch Root Cause Fix loaded');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('💡 Use window.fixChannelSwitch() to apply comprehensive fix');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('💡 Use window.validateChannelState() to check current state');
   }
 

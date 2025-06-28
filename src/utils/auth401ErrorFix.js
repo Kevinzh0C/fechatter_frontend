@@ -32,22 +32,22 @@ class Auth401ErrorFix {
       results.forEach((result, index) => {
         const fixName = ['token manager', 'auth store', 'SSE connection', 'API error handling', 'graceful logout'][index];
         if (result.status === 'fulfilled') {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log(`✅ ${fixName} fix applied`);
           this.fixCount++;
         } else {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.error(`❌ ${fixName} fix failed:`, result.reason);
           }
       });
 
       this.isActive = true;
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`🎉 Comprehensive 401 fix applied (${this.fixCount} fixes active)`);
       }
 
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('❌ Failed to apply comprehensive fix:', error);
       }
 
@@ -63,12 +63,12 @@ class Auth401ErrorFix {
 
       // Check current token status
       const status = tokenManager.getStatus();
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('🔐 Current token status:', status);
       }
 
       if (status.isExpired || status.refreshTokenExpired) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('🧹 Clearing expired tokens...');
         await tokenManager.clearTokens();
 
@@ -79,32 +79,32 @@ class Auth401ErrorFix {
           sessionStorage.removeItem(key);
         });
 
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('✅ Expired tokens cleared');
         return true;
       }
 
       // If token should refresh, attempt it
       if (status.shouldRefresh && !status.isRefreshing) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('🔄 Attempting token refresh...');
         try {
           await tokenManager.refreshToken();
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log('✅ Token refreshed successfully');
           return true;
         } catch (error) {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.warn('⚠️ Token refresh failed, clearing tokens:', error.message);
           await tokenManager.clearTokens();
           return true;
         }
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('✅ Token manager state is valid');
       return true;
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('❌ Token manager fix failed:', error);
       return false;
     }
@@ -122,12 +122,12 @@ class Auth401ErrorFix {
       const hasUser = !!authStore.user;
       const hasToken = !!authStore.getAccessToken();
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('🔐 Auth store state:', { isAuthenticated, hasUser, hasToken });
 
       // Fix inconsistent states
       if (isAuthenticated && (!hasUser || !hasToken)) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('🧹 Fixing inconsistent auth state...');
         }
 
@@ -137,42 +137,42 @@ class Auth401ErrorFix {
           try {
             const authData = JSON.parse(storedAuth);
             if (authData.user && authData.tokens?.accessToken) {
-              if (import.meta.env.DEV) {
+              if (true) {
                 console.log('🔄 Restoring auth state from localStorage...');
               await authStore.validateAndSyncAuthState();
-              if (import.meta.env.DEV) {
+              if (true) {
                 console.log('✅ Auth state restored');
               return true;
             }
           } catch (parseError) {
-            if (import.meta.env.DEV) {
+            if (true) {
               console.warn('⚠️ Failed to parse stored auth data:', parseError);
             }
 
         // If restoration failed, clear everything
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('🧹 Clearing corrupted auth state...');
         authStore.clearAuth();
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('✅ Auth state cleared');
         return true;
       }
 
       // If not authenticated but has user/token, clear them
       if (!isAuthenticated && (hasUser || hasToken)) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('🧹 Clearing leftover auth data...');
         authStore.clearAuth();
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('✅ Leftover auth data cleared');
         return true;
       }
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('✅ Auth store state is consistent');
       return true;
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('❌ Auth store fix failed:', error);
       return false;
     }
@@ -187,13 +187,13 @@ class Auth401ErrorFix {
         const sseManager = window.sseConnectionManager;
 
         // Check connection status
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('🔌 Checking SSE connection...');
         }
 
         // Close existing connection if it's failing
         if (sseManager.eventSource && sseManager.eventSource.readyState === EventSource.CLOSED) {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log('🧹 Cleaning up failed SSE connection...');
           sseManager.disconnect();
         }
@@ -203,22 +203,22 @@ class Auth401ErrorFix {
         const authStore = useAuthStore();
 
         if (!authStore.isAuthenticated) {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log('✅ SSE disconnected (not authenticated)');
           sseManager.disconnect();
           return true;
         }
 
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('✅ SSE connection state checked');
         return true;
       }
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('✅ No SSE connection manager found');
       return true;
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('❌ SSE connection fix failed:', error);
       return false;
     }
@@ -241,7 +241,7 @@ class Auth401ErrorFix {
             response => response,
             async error => {
               if (error.response?.status === 401) {
-                if (import.meta.env.DEV) {
+                if (true) {
                   console.log('🔐 Intercepted 401 error:', error.config?.url);
                 }
 
@@ -249,14 +249,14 @@ class Auth401ErrorFix {
                 const responseData = error.response?.data;
                 if (responseData?.error?.includes('Not Found') ||
                   responseData?.message?.includes('not found')) {
-                  if (import.meta.env.DEV) {
+                  if (true) {
                     console.warn('🔐 401 due to missing API endpoint, ignoring');
                   return Promise.reject(error);
                 }
 
                 // Check if already on auth page
                 if (window.location.pathname === '/login' || window.location.pathname === '/register') {
-                  if (import.meta.env.DEV) {
+                  if (true) {
                     console.log('🔐 Already on auth page, clearing tokens only');
                   const { default: tokenManager } = await import('@/services/tokenManager');
                   await tokenManager.clearTokens();
@@ -277,22 +277,22 @@ class Auth401ErrorFix {
             window.axios.interceptors.response.handlers[interceptorId]._auth401Fix = true;
           }
 
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log('✅ API 401 error interceptor added');
           }
         } else {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log('✅ API 401 error interceptor already exists');
           }
 
         return true;
       }
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('✅ No axios instance found');
       return true;
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('❌ API error handling fix failed:', error);
       return false;
     }
@@ -304,7 +304,7 @@ class Auth401ErrorFix {
     try {
       // Add graceful logout method to window for global access
       window.gracefulLogout = async (message = 'Session expired. Please login again.') => {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('🚪 Performing graceful logout...');
         }
 
@@ -325,11 +325,11 @@ class Auth401ErrorFix {
             window.location.href = '/login';
           }
 
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log('✅ Graceful logout completed');
           }
         } catch (error) {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.error('❌ Graceful logout failed:', error);
           }
           // Fallback: hard redirect
@@ -337,11 +337,11 @@ class Auth401ErrorFix {
         }
       };
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('✅ Graceful logout implemented');
       return true;
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('❌ Graceful logout implementation failed:', error);
       return false;
     }
@@ -354,7 +354,7 @@ class Auth401ErrorFix {
       await window.gracefulLogout();
     } else {
       // Fallback implementation
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('🚪 Fallback logout...');
       }
 
@@ -362,7 +362,7 @@ class Auth401ErrorFix {
         const { default: tokenManager } = await import('@/services/tokenManager');
         await tokenManager.clearTokens();
       } catch (error) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.error('Failed to clear tokens:', error);
         }
 
@@ -380,13 +380,13 @@ class Auth401ErrorFix {
       const { useAuthStore } = await import('@/stores/auth');
       const authStore = useAuthStore();
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('1️⃣ Auth Store State:');
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('  - Is Authenticated:', authStore.isAuthenticated);
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('  - Has User:', !!authStore.user);
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('  - Has Token:', !!authStore.getAccessToken());
       }
 
@@ -394,68 +394,68 @@ class Auth401ErrorFix {
       const { default: tokenManager } = await import('@/services/tokenManager');
       const tokenStatus = tokenManager.getStatus();
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('2️⃣ Token Manager State:');
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('  - Has Token:', tokenStatus.hasToken);
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('  - Is Expired:', tokenStatus.isExpired);
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('  - Should Refresh:', tokenStatus.shouldRefresh);
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('  - Is Refreshing:', tokenStatus.isRefreshing);
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('  - Refresh Token Expired:', tokenStatus.refreshTokenExpired);
       }
 
       // Check storage
       const storedAuth = localStorage.getItem('auth');
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('3️⃣ Storage State:');
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('  - Has Stored Auth:', !!storedAuth);
       }
 
       if (storedAuth) {
         try {
           const authData = JSON.parse(storedAuth);
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log('  - Stored User:', !!authData.user);
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log('  - Stored Tokens:', !!authData.tokens);
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log('  - Token Expires At:', authData.tokens?.expiresAt ? new Date(authData.tokens.expiresAt).toISOString() : 'N/A');
           }
         } catch (error) {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log('  - Storage Parse Error:', error.message);
           }
 
       // Check network requests
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('4️⃣ Recent 401 Errors:');
       const recentErrors = this.getRecent401Errors();
       recentErrors.forEach((error, index) => {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log(`  ${index + 1}. ${error.url} - ${error.timestamp}`);
         }
       });
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('5️⃣ Recommendations:');
       if (tokenStatus.isExpired) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('  ⚠️ Token is expired - clear auth state');
       if (authStore.isAuthenticated && !tokenStatus.hasToken) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('  ⚠️ Auth state inconsistent - sync or clear');
       if (tokenStatus.refreshTokenExpired) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('  ⚠️ Refresh token expired - require login');
         }
 
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('❌ Diagnosis failed:', error);
       }
 
@@ -499,13 +499,13 @@ if (typeof window !== 'undefined') {
   window.diagnose401 = () => auth401ErrorFix.diagnose401Errors();
   window.gracefulLogout = async (message) => auth401ErrorFix.performGracefulLogout(message);
 
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('🔧 Auth 401 Error Fix loaded');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('💡 Use window.fix401Errors() to apply comprehensive fix');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('💡 Use window.diagnose401() to diagnose current state');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('💡 Use window.gracefulLogout() for clean logout');
   }
 

@@ -124,7 +124,7 @@ export const SSESimplificationGuide = {
     subscription: `
       // Subscribe to events
       const unsubscribe = minimalSSE.on('message', (data) => {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('New message:', data);
         }
       });
@@ -133,7 +133,7 @@ export const SSESimplificationGuide = {
     status: `
       // Check status
       const status = minimalSSE.getStatus();
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('Connected:', status.connected);
       }
     `

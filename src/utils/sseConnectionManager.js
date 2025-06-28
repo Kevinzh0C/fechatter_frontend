@@ -96,13 +96,13 @@ class SSEConnectionManager {
           // console.log('🔌 [SSE Manager] Connecting with token:', token.substring(0, 20) + '...');
           window.realtimeCommunicationService.connect(token);
         } else {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.warn('🔌 [SSE Manager] No token available for SSE connection');
           }
         }
       }
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('Failed to connect SSE:', error);
       }
     }
@@ -117,7 +117,7 @@ class SSEConnectionManager {
         window.realtimeCommunicationService.disconnect();
       }
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('Failed to disconnect SSE:', error);
       }
     }

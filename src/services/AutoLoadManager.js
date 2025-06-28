@@ -56,7 +56,7 @@ export class AutoLoadManager {
     // 事件系统
     this.eventListeners = new Map();
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🔄 [AutoLoadManager] 初始化完成');
     }
   }
@@ -79,7 +79,7 @@ export class AutoLoadManager {
   }) {
     // 防止重复启动
     if (this.isActive && this.chatId === chatId) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.warn('🔄 [AutoLoadManager] 会话已激活，忽略重复启动');
       }
       return false;
@@ -105,7 +105,7 @@ export class AutoLoadManager {
     if (onComplete) this.on('complete', onComplete);
     if (onError) this.on('error', onError);
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`🔄 [AutoLoadManager] 开始自动加载会话 - Chat ${chatId}`);
     }
 
@@ -135,7 +135,7 @@ export class AutoLoadManager {
     this.transitionTo(this.states.DETECTING_NEED);
 
     if (!hasMoreMessages) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('🔄 [AutoLoadManager] 检测到无更多消息，直接完成');
       }
       this.transitionTo(this.states.ALL_LOADED);
@@ -143,7 +143,7 @@ export class AutoLoadManager {
       return;
     }
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🔄 [AutoLoadManager] 检测到有更多消息，开始加载');
     }
     this.transitionTo(this.states.LOADING);
@@ -191,7 +191,7 @@ export class AutoLoadManager {
           throw error;
         }
 
-        if (import.meta.env.DEV) {
+        if (true) {
           console.warn(`⚠️ [AutoLoadManager] 加载失败，重试 ${this.loadingAttempts}/${this.maxRetries}:`, error);
         }
 
@@ -214,7 +214,7 @@ export class AutoLoadManager {
       attempt: this.loadingAttempts + 1
     });
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`📦 [AutoLoadManager] 执行第 ${this.loadingAttempts + 1} 次加载`);
     }
 
@@ -250,7 +250,7 @@ export class AutoLoadManager {
       hasMore
     });
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`🔧 [AutoLoadManager] 处理加载结果: +${messages.length} 消息, 总计: ${this.totalLoadedMessages}, 还有更多: ${hasMore}`);
     }
 
@@ -269,7 +269,7 @@ export class AutoLoadManager {
    */
   async waitForUserScroll() {
     return new Promise((resolve, reject) => {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`⏳ [AutoLoadManager] 等待用户控制 - 已加载 ${this.totalLoadedMessages} 条消息`);
       }
 
@@ -310,7 +310,7 @@ export class AutoLoadManager {
       // 🎯 设置较长的超时时间，给用户更多控制时间
       const scrollTimeout = setTimeout(() => {
         if (this.waitingForScroll) {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log('⏰ [AutoLoadManager] 用户控制超时，自动保存当前进度');
           }
           // 不强制取消，而是保存进度让用户选择
@@ -335,7 +335,7 @@ export class AutoLoadManager {
       return;
     }
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('✅ [AutoLoadManager] 用户滚动检测到，继续加载');
     }
 
@@ -367,7 +367,7 @@ export class AutoLoadManager {
       return;
     }
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`🛑 [AutoLoadManager] 用户控制停止: ${reason}`);
     }
 
@@ -406,7 +406,7 @@ export class AutoLoadManager {
    * 🎯 NEW: 用户主动停止加载 (任意位置停止)
    */
   userStopLoading() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('👤 [AutoLoadManager] 用户主动停止加载');
     }
 
@@ -438,7 +438,7 @@ export class AutoLoadManager {
     if (newBatchSize > 0 && newBatchSize <= 100) {
       this.batchSize = newBatchSize;
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`📊 [AutoLoadManager] 批次大小调整为: ${newBatchSize}`);
       }
 
@@ -458,7 +458,7 @@ export class AutoLoadManager {
    * ✅ 处理全部加载完成
    */
   async handleAllLoaded() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('✅ [AutoLoadManager] 所有消息已加载完成');
     }
 
@@ -504,7 +504,7 @@ export class AutoLoadManager {
       }
     });
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`🎨 [AutoLoadManager] 显示完成通知: ${this.totalLoadedMessages} 条消息`);
     }
   }
@@ -516,7 +516,7 @@ export class AutoLoadManager {
     const oldState = this.currentState;
     this.currentState = newState;
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`🔄 [AutoLoadManager] 状态转换: ${oldState} → ${newState}`);
     }
 
@@ -535,7 +535,7 @@ export class AutoLoadManager {
       return;
     }
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`🛑 [AutoLoadManager] 停止自动加载: ${reason}`);
     }
 
@@ -665,7 +665,7 @@ export class AutoLoadManager {
     this.userDismissed = true;
     this.emit('user-dismissed', { chatId: this.chatId });
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('👤 [AutoLoadManager] 用户关闭了完成提示');
     }
   }
@@ -678,7 +678,7 @@ export class AutoLoadManager {
       return false;
     }
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🔄 [AutoLoadManager] 用户请求重试');
     }
 
@@ -700,7 +700,7 @@ export class AutoLoadManager {
 export const autoLoadManager = new AutoLoadManager();
 
 // 🔧 开发环境调试函数
-if (typeof window !== 'undefined' && import.meta.env.DEV) {
+if (typeof window !== 'undefined' && true) {
   window.autoLoadManager = autoLoadManager;
 
   window.debugAutoLoad = () => {

@@ -86,7 +86,7 @@ class ContentScriptErrorSuppressor {
       this.initialized = true;
       console.debug('[ContentScript] Registered with unified error handler (transparent mode)');
     } else {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.warn('[ContentScript] Unified error handler not found, will initialize when available');
       }
 
@@ -155,16 +155,16 @@ class ContentScriptErrorSuppressor {
     // Show suppressed errors
     window.showSuppressedErrors = () => {
       console.group('🔇 Suppressed Content Script Errors');
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`Total suppressed: ${this.totalSuppressed}`);
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`Unique errors: ${this.uniqueErrors}`);
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('');
       }
 
       this.suppressedMessages.forEach((key) => {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log(`[${this.getErrorSource(errorInfo)}] ${key}...`);
         }
       });
@@ -175,11 +175,11 @@ class ContentScriptErrorSuppressor {
     window.debugContentScriptErrors = () => {
       const stats = this.getStats();
       console.group('🔍 Content Script Error Debug Info');
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('Stats:', stats);
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('Unified handler stats:', window.unifiedErrorHandler?.getStats());
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('Handler initialized:', this.initialized);
       console.groupEnd();
     };
@@ -231,7 +231,7 @@ class ContentScriptErrorSuppressor {
     console.group('🧪 Content Script Error Detection Test');
     testErrors.forEach((error, index) => {
       const isContentScript = this.isContentScriptError(error);
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`${index + 1}. ${isContentScript ? '🔇' : '✅'} ${error.substring(0, 50)}...`);
       }
     });
@@ -248,7 +248,7 @@ if (typeof window !== 'undefined') {
     contentScriptSuppressor.initialize();
     window.contentScriptSuppressor = contentScriptSuppressor;
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('💡 Content script error suppression registered (transparent mode)');
     }
   }, 50);

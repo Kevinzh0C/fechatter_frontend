@@ -113,7 +113,7 @@ const calculateOptimalPosition = () => {
     right: Math.max(optimalRight, FAB_MARGIN)
   };
 
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('🎯 [JumpToLatest] Position calculated:', buttonPosition.value);
   }
 };

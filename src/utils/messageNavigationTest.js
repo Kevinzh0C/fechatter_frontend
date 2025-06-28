@@ -296,7 +296,7 @@ export async function productionCheck() {
 }
 
 // 🎯 自动测试（开发环境）
-if (import.meta.env.DEV) {
+if (true) {
   // 延迟执行测试，确保DOM就绪
   setTimeout(async () => {
     console.log('🧪 [Auto Test] Running MessageNavigation tests...')

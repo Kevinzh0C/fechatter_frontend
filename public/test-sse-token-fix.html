@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SSE Token Expiry Fix Verification</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { border: 1px solid #ddd; padding: 15px; margin: 10px 0; }
+        .success { color: green; }
+        .error { color: red; }
+        .warning { color: orange; }
+        .info { color: blue; }
+        pre { background: #f5f5f5; padding: 10px; border-radius: 4px; }
+        button { padding: 8px 16px; margin: 5px; cursor: pointer; }
+        .test-status { font-weight: bold; padding: 5px; border-radius: 4px; margin: 5px 0; }
+        .test-status.pass { background: #d4edda; color: #155724; }
+        .test-status.fail { background: #f8d7da; color: #721c24; }
+        .test-status.pending { background: #fff3cd; color: #856404; }
+    </style>
+</head>
+<body>
+    <h1>🔧 SSE Token Expiry Fix Verification</h1>
+    <p>This page tests the enhanced SSE service with proper token expiry handling.</p>
+
+    <div class="test-section">
+        <h2>🔑 Step 1: Token Status</h2>
+        <div id="token-status" class="test-status pending">Checking token status...</div>
+        <pre id="token-details"></pre>
+        <button onclick="updateTokenFromLogin()">🔄 Get Fresh Token</button>
+        <button onclick="setValidToken()">✅ Set Valid Token</button>
+        <button onclick="setExpiredToken()">❌ Set Expired Token</button>
+    </div>
+
+    <div class="test-section">
+        <h2>🔌 Step 2: SSE Connection Test</h2>
+        <div id="sse-status" class="test-status pending">Ready to test...</div>
+        <pre id="sse-logs"></pre>
+        <button onclick="testSSEConnection()">🧪 Test SSE Connection</button>
+        <button onclick="disconnectSSE()">🔌 Disconnect SSE</button>
+    </div>
+
+    <div class="test-section">
+        <h2>📊 Step 3: Token Refresh Test</h2>
+        <div id="refresh-status" class="test-status pending">Ready to test...</div>
+        <pre id="refresh-logs"></pre>
+        <button onclick="testTokenRefresh()">🔄 Test Token Refresh</button>
+    </div>
+
+    <div class="test-section">
+        <h2>🚨 Step 4: Expired Token Behavior</h2>
+        <div id="expired-status" class="test-status pending">Ready to test...</div>
+        <pre id="expired-logs"></pre>
+        <button onclick="testExpiredTokenBehavior()">⚠️ Test Expired Token</button>
+    </div>
+
+    <script>
+        // Valid token from login
+        const VALID_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFZERTQSJ9.eyJzdWIiOiIyIiwiZXhwIjoxNzUxMDA3MDg2LCJpYXQiOjE3NTEwMDUyODYsImF1ZCI6ImZlY2hhdHRlci13ZWIiLCJpc3MiOiJmZWNoYXR0ZXItc2VydmVyIiwidXNlciI6eyJpZCI6Miwid29ya3NwYWNlX2lkIjoyLCJmdWxsbmFtZSI6IlN1cGVyIFVzZXIiLCJlbWFpbCI6InN1cGVyQHRlc3QuY29tIiwic3RhdHVzIjoiQWN0aXZlIiwiY3JlYXRlZF9hdCI6IjIwMjUtMDYtMTRUMDg6MDU6MDEuOTA2NDMyWiJ9fQ.kxThabAuRaiC-IoiY9MTCiJ1GStn8tUaYNIpw9xfQtPTgFV9dLd7iaiutCnflpfSNO9a2rQSsFaddu9r6U3yDA";
+        
+        // Expired token from the original issue
+        const EXPIRED_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFZERTQSJ9.eyJzdWIiOiIyIiwiZXhwIjoxNzUwOTkyMjM4LCJpYXQiOjE3NTA5OTA0MzgsImF1ZCI6ImZlY2hhdHRlci13ZWIiLCJpc3MiOiJmZWNoYXR0ZXItc2VydmVyIiwidXNlciI6eyJpZCI6Miwid29ya3NwYWNlX2lkIjoyLCJmdWxsbmFtZSI6IlN1cGVyIFVzZXIiLCJlbWFpbCI6InN1cGVyQHRlc3QuY29tIiwic3RhdHVzIjoiQWN0aXZlIiwiY3JlYXRlZF9hdCI6IjIwMjUtMDYtMTRUMDg6MDU6MDEuOTA2NDMyWiJ9fQ.jmSskVXpb71LSZ998Eaan5iwdK3j-9XmjL3IDB6oTPDuvUUG1nsKw4NkNAgdaieMZ-YvtDlJWO667oXMIxbrDQ";
+
+        let sseService = null;
+
+        // Load SSE service
+        async function loadSSEService() {
+            try {
+                const module = await import('/src/services/sse-minimal.js');
+                sseService = module.sseService;
+                log('SSE service loaded successfully', 'success');
+                return sseService;
+            } catch (error) {
+                log('Failed to load SSE service: ' + error.message, 'error');
+                return null;
+            }
+        }
+
+        // Utility function for logging
+        function log(message, type = 'info', targetId = null) {
+            const timestamp = new Date().toLocaleTimeString();
+            const logMessage = `[${timestamp}] ${message}`;
+            console.log(logMessage);
+            
+            if (targetId) {
+                const element = document.getElementById(targetId);
+                if (element) {
+                    element.textContent += logMessage + '\n';
+                    element.scrollTop = element.scrollHeight;
+                }
+            }
+        }
+
+        // Update status elements
+        function updateStatus(elementId, message, status) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.textContent = message;
+                element.className = `test-status ${status}`;
+            }
+        }
+
+        // Check current token status
+        function checkTokenStatus() {
+            const token = localStorage.getItem('auth_token');
+            
+            if (!token) {
+                updateStatus('token-status', '❌ No token found', 'fail');
+                document.getElementById('token-details').textContent = 'No auth_token in localStorage';
+                return;
+            }
+
+            try {
+                const parts = token.split('.');
+                if (parts.length !== 3) {
+                    updateStatus('token-status', '❌ Invalid token format', 'fail');
+                    document.getElementById('token-details').textContent = 'Token is not a valid JWT';
+                    return;
+                }
+
+                const payload = JSON.parse(atob(parts[1]));
+                const now = Math.floor(Date.now() / 1000);
+                const isExpired = payload.exp <= now;
+                const timeRemaining = payload.exp - now;
+
+                const details = `Token Details:
+User ID: ${payload.sub}
+Email: ${payload.user?.email}
+Expires: ${new Date(payload.exp * 1000).toISOString()}
+Is Expired: ${isExpired}
+Time Remaining: ${timeRemaining} seconds (${Math.floor(timeRemaining / 60)} minutes)
+Token Length: ${token.length} characters`;
+
+                document.getElementById('token-details').textContent = details;
+
+                if (isExpired) {
+                    updateStatus('token-status', '❌ Token is expired', 'fail');
+                } else if (timeRemaining < 300) {
+                    updateStatus('token-status', '⚠️ Token expires soon', 'warning');
+                } else {
+                    updateStatus('token-status', '✅ Token is valid', 'pass');
+                }
+
+            } catch (error) {
+                updateStatus('token-status', '❌ Token parsing failed', 'fail');
+                document.getElementById('token-details').textContent = 'Error: ' + error.message;
+            }
+        }
+
+        // Set valid token
+        function setValidToken() {
+            localStorage.setItem('auth_token', VALID_TOKEN);
+            log('Valid token set', 'success');
+            checkTokenStatus();
+        }
+
+        // Set expired token
+        function setExpiredToken() {
+            localStorage.setItem('auth_token', EXPIRED_TOKEN);
+            log('Expired token set', 'warning');
+            checkTokenStatus();
+        }
+
+        // Get fresh token from login
+        async function updateTokenFromLogin() {
+            updateStatus('token-status', '🔄 Logging in...', 'pending');
+            
+            try {
+                const response = await fetch('/api/signin', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: 'super@test.com',
+                        password: 'password'
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const token = data.data.access_token;
+                    localStorage.setItem('auth_token', token);
+                    updateStatus('token-status', '✅ Fresh token obtained', 'pass');
+                    log('Fresh token obtained from login', 'success');
+                    checkTokenStatus();
+                } else {
+                    updateStatus('token-status', '❌ Login failed', 'fail');
+                    log('Login failed: ' + response.status, 'error');
+                }
+            } catch (error) {
+                updateStatus('token-status', '❌ Login error', 'fail');
+                log('Login error: ' + error.message, 'error');
+            }
+        }
+
+        // Test SSE connection
+        async function testSSEConnection() {
+            if (!sseService) {
+                sseService = await loadSSEService();
+                if (!sseService) return;
+            }
+
+            updateStatus('sse-status', '🔄 Testing SSE connection...', 'pending');
+            document.getElementById('sse-logs').textContent = '';
+            
+            log('Starting SSE connection test...', 'info', 'sse-logs');
+
+            // Add message listener
+            const unsubscribe = sseService.on('new_message', (data) => {
+                log('Received message: ' + JSON.stringify(data), 'success', 'sse-logs');
+            });
+
+            try {
+                await sseService.connect();
+                
+                if (sseService.connected) {
+                    updateStatus('sse-status', '✅ SSE connected successfully', 'pass');
+                    log('SSE connection established', 'success', 'sse-logs');
+                    log('Connection type: ' + (sseService.useFallback ? 'HTTP Polling' : 'EventSource'), 'info', 'sse-logs');
+                } else {
+                    updateStatus('sse-status', '❌ SSE connection failed', 'fail');
+                    log('SSE connection failed', 'error', 'sse-logs');
+                }
+            } catch (error) {
+                updateStatus('sse-status', '❌ SSE connection error', 'fail');
+                log('SSE connection error: ' + error.message, 'error', 'sse-logs');
+            }
+        }
+
+        // Disconnect SSE
+        function disconnectSSE() {
+            if (sseService) {
+                sseService.disconnect();
+                updateStatus('sse-status', '🔌 SSE disconnected', 'pending');
+                log('SSE disconnected', 'info', 'sse-logs');
+            }
+        }
+
+        // Test token refresh
+        async function testTokenRefresh() {
+            if (!sseService) {
+                sseService = await loadSSEService();
+                if (!sseService) return;
+            }
+
+            updateStatus('refresh-status', '🔄 Testing token refresh...', 'pending');
+            document.getElementById('refresh-logs').textContent = '';
+
+            const currentToken = localStorage.getItem('auth_token');
+            log('Current token: ' + (currentToken ? currentToken.substring(0, 30) + '...' : 'None'), 'info', 'refresh-logs');
+
+            try {
+                const refreshedToken = await sseService.refreshTokenIfNeeded(currentToken);
+                
+                if (refreshedToken === currentToken) {
+                    updateStatus('refresh-status', '✅ Token still valid, no refresh needed', 'pass');
+                    log('Token is still valid, no refresh needed', 'success', 'refresh-logs');
+                } else if (refreshedToken && refreshedToken !== currentToken) {
+                    updateStatus('refresh-status', '✅ Token refreshed successfully', 'pass');
+                    log('Token refreshed successfully', 'success', 'refresh-logs');
+                    log('New token: ' + refreshedToken.substring(0, 30) + '...', 'info', 'refresh-logs');
+                } else {
+                    updateStatus('refresh-status', '❌ Token refresh failed', 'fail');
+                    log('Token refresh failed or returned null', 'error', 'refresh-logs');
+                }
+            } catch (error) {
+                updateStatus('refresh-status', '❌ Token refresh error', 'fail');
+                log('Token refresh error: ' + error.message, 'error', 'refresh-logs');
+            }
+        }
+
+        // Test expired token behavior
+        async function testExpiredTokenBehavior() {
+            if (!sseService) {
+                sseService = await loadSSEService();
+                if (!sseService) return;
+            }
+
+            updateStatus('expired-status', '🔄 Testing expired token behavior...', 'pending');
+            document.getElementById('expired-logs').textContent = '';
+
+            // Set expired token
+            localStorage.setItem('auth_token', EXPIRED_TOKEN);
+            log('Set expired token for testing', 'warning', 'expired-logs');
+
+            try {
+                // Test SSE connection with expired token
+                await sseService.connect();
+                
+                setTimeout(() => {
+                    const authTokenAfter = localStorage.getItem('auth_token');
+                    
+                    if (!authTokenAfter || authTokenAfter === EXPIRED_TOKEN) {
+                        updateStatus('expired-status', '✅ Auth state cleared correctly', 'pass');
+                        log('Auth state was cleared as expected', 'success', 'expired-logs');
+                    } else {
+                        updateStatus('expired-status', '✅ Token was refreshed', 'pass');
+                        log('Token was refreshed instead of clearing', 'success', 'expired-logs');
+                    }
+                    
+                    log('Final token state: ' + (authTokenAfter ? 'Present' : 'Cleared'), 'info', 'expired-logs');
+                }, 2000);
+
+            } catch (error) {
+                updateStatus('expired-status', '❌ Expired token test error', 'fail');
+                log('Expired token test error: ' + error.message, 'error', 'expired-logs');
+            }
+        }
+
+        // Initialize on page load
+        window.addEventListener('load', async () => {
+            log('Page loaded, initializing tests...');
+            checkTokenStatus();
+            await loadSSEService();
+        });
+    </script>
+</body>
+</html> 

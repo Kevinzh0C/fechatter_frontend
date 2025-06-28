@@ -13,19 +13,19 @@ class ModalDebugFix {
   init() {
     if (this.initialized) return;
     this.initialized = true;
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🔧 Modal Debug Fix initialized');
     }
 
   // Comprehensive modal state diagnosis
   diagnose() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🔍 Modal Diagnosis Starting...');
     }
 
     const diagnosis = {
       timestamp: new Date().toISOString(),
-      environment: import.meta.env.DEV ? 'development' : 'production',
+      environment: true ? 'development' : 'production',
       checks: []
     };
 
@@ -248,40 +248,40 @@ class ModalDebugFix {
   }
 
   printDiagnosis(diagnosis) {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n📋 Modal Diagnosis Report');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('========================');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`Time: ${diagnosis.timestamp}`);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`Environment: ${diagnosis.environment}`);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('');
     }
 
     diagnosis.checks.forEach((check, index) => {
       const icon = check.status === 'success' ? '✅' : check.status === 'error' ? '❌' : '⏳';
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`${index + 1}. ${icon} ${check.name}`);
       }
 
       if (check.error) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log(`   Error: ${check.error}`);
         }
 
       if (check.details && Object.keys(check.details).length > 0) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('   Details:', check.details);
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('');
       }
     });
 
   // Auto-fix common modal issues
   autoFix() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🔧 Auto-fixing modal issues...');
     }
 
@@ -323,7 +323,7 @@ class ModalDebugFix {
     fixes.push('Simulating Ctrl+Shift+D shortcut');
     this.simulateKeyboardShortcut();
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('Applied fixes:', fixes);
     }
 
@@ -335,14 +335,14 @@ class ModalDebugFix {
 
   // Fix extension blocker interference
   fixBlockerInterference() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🛡️ Fixing extension blocker interference...');
     }
 
     // Temporarily disable DOM monitoring if possible
     if (window.extensionBlocker && typeof window.extensionBlocker.pauseMonitoring === 'function') {
       window.extensionBlocker.pauseMonitoring();
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('Paused extension blocker monitoring');
       }
 
@@ -368,7 +368,7 @@ class ModalDebugFix {
       element.setAttribute('data-modal-element', 'true');
     });
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`Protected ${protectedElements.length} modal elements from blocker`);
     }
 
@@ -419,7 +419,7 @@ class ModalDebugFix {
   }
 
   verifyFixes() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🔍 Verifying fixes...');
     }
 
@@ -434,12 +434,12 @@ class ModalDebugFix {
       localStorageCorrect: localStorage.getItem('dev-accounts-modal-state') === 'true'
     };
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('Verification results:', verification);
     }
 
     const allFixed = Object.values(verification).every(v => v === true);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(allFixed ? '✅ All fixes successful!' : '⚠️ Some issues remain');
     }
 
@@ -452,7 +452,7 @@ class ModalDebugFix {
       window.showDevModal();
       setTimeout(() => this.verifyFixes(), 500);
     } else {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('❌ window.showDevModal not available');
       }
 
@@ -470,7 +470,7 @@ class ModalDebugFix {
 const modalDebugFix = new ModalDebugFix();
 
 // Auto-initialize in development
-if (import.meta.env.DEV) {
+if (true) {
   modalDebugFix.init();
 
   // Make available globally
@@ -480,13 +480,13 @@ if (import.meta.env.DEV) {
   window.fixModal = () => modalDebugFix.autoFix();
   window.diagnoseModal = () => modalDebugFix.diagnose();
 
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('🛠️ Modal Debug Fix loaded');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('   - window.modalDebugFix - Full API');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('   - window.fixModal() - Auto-fix issues');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('   - window.diagnoseModal() - Run diagnosis');
   }
 

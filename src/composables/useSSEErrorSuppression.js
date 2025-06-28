@@ -78,7 +78,7 @@ export function useSSEErrorSuppression(config = {}) {
       errorTracker.errorCounts.set(errorKey, errorData);
 
       // Log suppression notice
-      if (import.meta.env.DEV) {
+      if (true) {
         console.warn(`🚫 [SSE_ERROR_SUPPRESSION] Suppressing further "${errorKey}" errors for ${settings.suppressionDurationMs / 1000}s (${errorData.count} errors in ${Math.round(timeWindow / 1000)}s)`);
       }
 
@@ -114,11 +114,11 @@ export function useSSEErrorSuppression(config = {}) {
     const contextStr = typeof context === 'string' ? context : context?.context || '';
 
     if (errorData?.suppressed && errorData.count > 1) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error(`🔌 [SSE_ERROR] ${contextStr}:`, error, `(${errorData.count - 1} similar errors suppressed)`);
       }
     } else {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error(`🔌 [SSE_ERROR] ${contextStr}:`, error);
       }
 
@@ -191,13 +191,13 @@ export function useSSEErrorSuppression(config = {}) {
     if (errorKey) {
       errorTracker.errorCounts.delete(errorKey);
       errorTracker.lastLogTime.delete(errorKey);
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`🔄 [SSE_ERROR_SUPPRESSION] Reset suppression for: ${errorKey}`);
       }
     } else {
       errorTracker.errorCounts.clear();
       errorTracker.lastLogTime.clear();
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('🔄 [SSE_ERROR_SUPPRESSION] Reset all error suppression');
       }
   };
@@ -211,12 +211,12 @@ export function useSSEErrorSuppression(config = {}) {
 
     setTimeout(() => {
       settings.maxErrorsPerMinute = originalMaxErrors;
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('🔄 [SSE_ERROR_SUPPRESSION] Re-enabled error suppression');
       }
     }, durationMs);
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`🔄 [SSE_ERROR_SUPPRESSION] Temporarily disabled suppression for ${durationMs / 1000}s`);
     }
   };

@@ -180,7 +180,7 @@ const truncatedContent = computed(() => {
   return content.length > 100 ? content.substring(0, 100) + '...' : content
 })
 
-const isDev = computed(() => import.meta.env.DEV)
+const isDev = computed(() => true)
 
 const panelStyle = computed(() => {
   // 🎯 优化定位逻辑：直接使用Chat.vue计算的最优位置
@@ -279,7 +279,7 @@ const handleTranslate = async (targetLang) => {
         content: props.message.content || props.message.text || ''
       }
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('🌐 [TranslationPanel] Stored message for translation:', {
           messageId,
           contentLength: window.currentTranslatingMessage.content.length,
@@ -288,7 +288,7 @@ const handleTranslate = async (targetLang) => {
       }
     }
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🌐 [TranslationPanel] Starting translation...', {
         messageId,
         targetLang,
@@ -298,7 +298,7 @@ const handleTranslate = async (targetLang) => {
 
     const result = await botService.translateMessage(messageId, targetLang)
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🌐 [TranslationPanel] Translation API response:', result)
     }
 
@@ -314,7 +314,7 @@ const handleTranslate = async (targetLang) => {
       confidence: confidence
     }
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🌐 [TranslationPanel] Final translation result:', translationResult.value)
     }
 
@@ -333,7 +333,7 @@ const handleTranslate = async (targetLang) => {
     notifyError(error.message || 'Failed to translate message')
 
     // 🔧 DEBUG: Log detailed error information
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🚨 [TranslationPanel] Error details:', {
         error: error.message,
         response: error.response?.data,
@@ -379,7 +379,7 @@ const handleTranslateAgain = () => {
   selectedLanguage.value = 'en'
   isTranslating.value = false
 
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('🔄 [TranslationPanel] Reset for new translation')
   }
 

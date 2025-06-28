@@ -97,7 +97,7 @@ const recoveryMethod = ref('none');
 const initializationTime = ref(0);
 
 // 🎯 计算属性
-const showDebugInfo = computed(() => import.meta.env.DEV);
+const showDebugInfo = computed(() => true);
 
 // 🔄 智能初始化 (延迟验证)
 const initializeHome = async () => {
@@ -131,7 +131,7 @@ const initializeHome = async () => {
       await loadChats();
     } else {
       // 🚪 恢复失败，重定向到登录
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('🚪 Recovery failed, redirecting to login');
       }
       router.push('/login');

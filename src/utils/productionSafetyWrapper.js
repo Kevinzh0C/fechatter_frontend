@@ -5,8 +5,8 @@
 
 class ProductionSafetyWrapper {
   constructor() {
-    this.isProduction = import.meta.env.PROD;
-    this.isDevelopment = import.meta.env.DEV;
+    this.isProduction = false;
+    this.isDevelopment = true;
 
     // Security policies
     this.policies = {
@@ -35,7 +35,7 @@ class ProductionSafetyWrapper {
     this.setupResourceIdObfuscation();
     this.setupApiParameterLimiting();
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🛡️ Production Safety Wrapper active');
     }
   }
@@ -155,7 +155,7 @@ class ProductionSafetyWrapper {
   deobfuscateId(obfuscatedId) {
     // This is intentionally not implemented for security
     // Real deobfuscation should happen server-side
-    if (import.meta.env.DEV) {
+    if (true) {
       console.warn('🔒 ID deobfuscation not available - use server-side validation');
     }
     return null;
@@ -199,7 +199,7 @@ class ProductionSafetyWrapper {
 
       // Enforce maximum limit
       if (sanitized.limit && sanitized.limit > this.maxApiLimit) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.warn(`🚫 API limit reduced from ${sanitized.limit} to ${this.maxApiLimit}`);
         }
         sanitized.limit = this.maxApiLimit;
@@ -207,7 +207,7 @@ class ProductionSafetyWrapper {
 
       // Enforce maximum page size
       if (sanitized.pageSize && sanitized.pageSize > this.maxApiLimit) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.warn(`🚫 Page size reduced from ${sanitized.pageSize} to ${this.maxApiLimit}`);
         }
         sanitized.pageSize = this.maxApiLimit;

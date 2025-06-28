@@ -8,23 +8,82 @@
       <div class="text-center">
         <div class="animate-spin rounded-full h-32 w-32 border-b-2 border-violet-600 mx-auto mb-4"></div>
         <h2 class="text-xl font-semibold text-gray-700">Loading...</h2>
-        <p class="text-gray-500 mt-2">Initializing your workspace</p>
+        <p class="text-gray-500 mt-2">Preparing your workspace and chat data</p>
       </div>
     </div>
 
-    <!-- Main App -->
+    <!-- Main App Content -->
     <div v-else>
-      <!-- Public Routes -->
-      <template v-if="!authStore.isAuthenticated">
+      <!-- PUBLIC ROUTES (not authenticated) -->
+      <div v-if="!authStore.isAuthenticated">
         <router-view />
-      </template>
+      </div>
 
-      <!-- Protected Routes -->
-      <template v-else>
-        <div class="app-container">
+      <!-- PROTECTED ROUTES WITH SIDEBAR (authenticated + should show sidebar) -->
+      <div v-else-if="shouldShowSidebar" class="app-container">
+        <!-- GLOBAL SIDEBAR - Only visible on protected app pages -->
+        <aside class="global-sidebar">
+          <div class="global-sidebar-content">
+            <!-- Admin Status Bar (only for admins) -->
+            <AdminStatusBar v-if="isCurrentUserAdmin" />
+
+            <!-- Quick Actions -->
+            <div class="sidebar-nav-section">
+              <nav class="sidebar-nav-list">
+                <router-link to="/home" class="sidebar-nav-item" :class="{ active: $route.path === '/home' }">
+                  <span class="sidebar-nav-icon">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
+                    </svg>
+                  </span>
+                  <span class="sidebar-nav-text">Home</span>
+                </router-link>
+              </nav>
+            </div>
+
+            <!-- Unified Channel List - handles both channels and direct messages -->
+            <div class="sidebar-unified-channels">
+              <ChannelList 
+                :channels="channels" 
+                :directMessages="directMessages" 
+                :groupMessages="groupMessages"
+                :isLoading="isLoading" 
+                :currentChatId="currentChatId" 
+                @channel-selected="handleChannelSelected"
+                @create-channel="showCreateChannelModal = true" 
+                @create-dm="showCreateDMModal = true"
+                @refresh="refreshData" 
+              />
+            </div>
+          </div>
+
+          <!-- User Bottom Bar -->
+          <UserBottomBar @logout="handleLogout" />
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="global-main-content">
           <router-view />
-        </div>
-      </template>
+        </main>
+
+        <!-- Global Modals -->
+        <CreateChannelModal 
+          v-if="showCreateChannelModal" 
+          @close="showCreateChannelModal = false"
+          @created="onChannelCreated" 
+        />
+
+        <CreateDMModal 
+          v-if="showCreateDMModal" 
+          @close="showCreateDMModal = false"
+          @created="onDMCreated" 
+        />
+      </div>
+
+      <!-- PROTECTED ROUTES WITHOUT SIDEBAR (login, register, etc.) -->
+      <div v-else>
+        <router-view />
+      </div>
     </div>
 
     <!-- Error Boundary for unknown errors -->
@@ -46,13 +105,21 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import KeyboardShortcutsModal from './components/modals/KeyboardShortcutsModal.vue';
 import ToastContainer from './components/ui/ToastContainer.vue';
 import NotificationContainer from './components/ui/NotificationContainer.vue';
+import ChannelList from './components/layout/ChannelList.vue';
+import AdminStatusBar from './components/layout/AdminStatusBar.vue';
+import UserBottomBar from './components/layout/UserBottomBar.vue';
+import CreateChannelModal from './components/modals/CreateChannelModal.vue';
+import CreateDMModal from './components/modals/CreateDMModal.vue';
 import { useKeyboardShortcuts } from './composables/useKeyboardShortcuts';
 import healthCheck from './utils/healthCheck';
 import { useAuthStore } from './stores/auth';
+import { useChatStore } from './stores/chat';
+import presenceService from './services/presence.js';
 
 // Keyboard shortcuts state
 const showShortcutsModal = ref(false);
@@ -102,6 +169,9 @@ const initializeTheme = () => {
 
 // Store
 const authStore = useAuthStore();
+const chatStore = useChatStore();
+const route = useRoute();
+const router = useRouter();
 
 // State
 const isInitialized = ref(false);
@@ -109,24 +179,204 @@ const hasGlobalError = ref(false);
 const globalError = ref('');
 const isAuthLoading = ref(true);
 
+// Global sidebar state
+const showCreateChannelModal = ref(false);
+const showCreateDMModal = ref(false);
+
+// CRITICAL FIX: Force reactivity trigger for sidebar updates
+const forceUpdateKey = ref(0);
+const forceSidebarUpdate = () => {
+  forceUpdateKey.value += 1;
+  console.log('🔄 [APP] Force sidebar update triggered:', forceUpdateKey.value);
+};
+
+// Computed for sidebar data
+const channels = computed(() => chatStore.chats.filter(c => c.chat_type === 'PublicChannel' || c.chat_type === 'PrivateChannel'));
+const directMessages = computed(() => chatStore.chats.filter(c => c.chat_type === 'Single'));
+const groupMessages = computed(() => chatStore.chats.filter(c => c.chat_type === 'Group'));
+const isLoading = computed(() => chatStore.loading);
+const currentUser = computed(() => authStore.user);
+const isCurrentUserAdmin = computed(() => {
+  return currentUser.value?.role === 'admin' || currentUser.value?.role === 'super_admin'
+});
+const currentChatId = computed(() => {
+  const id = route.params.id;
+  return id ? parseInt(id, 10) : null;
+});
+
+// INDUSTRY STANDARD: Simple binary sidebar logic
+const shouldShowSidebar = computed(() => {
+  // CRITICAL FIX: Include force update key to ensure reactivity
+  const _forceUpdate = forceUpdateKey.value; // This ensures reactivity triggers
+  
+  // STEP 1: Authentication check - most critical factor
+  const isAuthenticated = authStore.isAuthenticated;
+  
+  if (!isAuthenticated) {
+    console.log('🚫 [App.vue] Sidebar hidden - user not authenticated');
+    return false;
+  }
+  
+  // STEP 2: Route-based exclusions - ONLY exclude auth/error pages
+  const currentPath = route.path;
+  
+  // INDUSTRY STANDARD: Minimal exclusion list - only auth and error pages
+  const excludedRoutes = [
+    '/login',
+    '/register',
+    '/error',
+    '/404'
+  ];
+  
+  // Check if current route should be excluded
+  const shouldExclude = excludedRoutes.some(excludedRoute => 
+    currentPath === excludedRoute || currentPath.startsWith(excludedRoute + '/')
+  );
+  
+  if (shouldExclude) {
+    console.log('🚫 [App.vue] Sidebar hidden - auth/error page:', currentPath);
+    return false;
+  }
+  
+  // STEP 3: Default behavior - SHOW sidebar for all authenticated app pages
+  // This includes: /home, /chat/*, /settings, /profile, /workspace, /admin, / (root)
+  const shouldShow = true; // Default to showing sidebar when authenticated and not excluded
+  
+  // ENHANCED: Clear debugging logs with more detail
+  console.log('🔍 [App.vue] Sidebar visibility decision (Industry Standard):', {
+    currentPath,
+    isAuthenticated,
+    shouldExclude,
+    shouldShow,
+    'Decision Logic': 'Authenticated + Not Excluded = Show Sidebar',
+    authDetails: {
+      store_isAuthenticated: authStore.isAuthenticated,
+      has_token: !!authStore.token,
+      has_user: !!authStore.user,
+      token_preview: authStore.token ? authStore.token.substring(0, 20) + '...' : 'null',
+      user_id: authStore.user?.id || 'null'
+    },
+    storeState: {
+      isInitialized: authStore.isInitialized,
+      isLoading: authStore.isLoading,
+      error: authStore.error
+    },
+    forceUpdateKey: forceUpdateKey.value,
+    timestamp: new Date().toISOString()
+  });
+  
+  return shouldShow;
+});
+
 // Methods
 const reloadPage = () => {
   window.location.reload();
 };
 
-// Initialize and validate authentication state on app startup
+// Global sidebar event handlers
+const handleChannelSelected = async (channel) => {
+  try {
+    console.log('🎯 [App.vue] Global channel selected:', channel);
+    const chatId = channel.id || channel;
+    await router.push(`/chat/${chatId}`);
+  } catch (error) {
+    console.error('Navigation error:', error);
+  }
+};
+
+// OPTIMIZED: Debounced refresh to prevent excessive API calls
+let refreshDebounceTimer = null;
+const refreshData = () => {
+  // Clear existing timer
+  if (refreshDebounceTimer) {
+    clearTimeout(refreshDebounceTimer);
+  }
+
+  // Set new timer with 300ms delay  
+  refreshDebounceTimer = setTimeout(() => {
+    console.log('🔄 [App.vue] Debounced refresh triggered');
+    chatStore.fetchChats();
+  }, 300);
+};
+
+const handleLogout = async () => {
+  try {
+    console.log('🚪 [App.vue] Starting logout process...');
+    
+    // Cleanup presence service before logout
+    try {
+      await presenceService.cleanup();
+      console.log('✅ [APP] Presence service cleaned up');
+    } catch (presenceError) {
+      console.warn('⚠️ [APP] Presence cleanup failed:', presenceError);
+    }
+    
+    // 🔧 FIXED: Let authStore handle navigation, don't skip it
+    await authStore.logout('You have been signed out successfully.', false);
+    console.log('✅ [App.vue] Logout completed successfully');
+  } catch (error) {
+    console.error('❌ [App.vue] Logout failed:', error);
+    
+    // Emergency fallback only if authStore logout completely failed
+    try {
+      console.warn('⚠️ [App.vue] Using emergency navigation fallback');
+      await router.push('/login');
+    } catch (routerError) {
+      console.error('❌ [App.vue] Router navigation failed, using window.location');
+      window.location.href = '/login';
+    }
+  }
+};
+
+const onChannelCreated = (channel) => {
+  showCreateChannelModal.value = false;
+  refreshData();
+  if (channel && channel.id) {
+    router.push(`/chat/${channel.id}`);
+  }
+};
+
+const onDMCreated = (dm) => {
+  showCreateDMModal.value = false;
+  refreshData();
+  if (dm && dm.id) {
+    router.push(`/chat/${dm.id}`);
+  }
+};
+
+// Initialize authentication state on app startup
 const initializeAuthState = async () => {
   try {
     isAuthLoading.value = true;
-    // console.log('🔐 [APP] Initializing authentication state...');
+    console.log('🔐 [APP] Starting authentication initialization...');
 
-    // Initialize auth store - let it handle all token validation and refresh logic
     const isInitialized = await authStore.initialize();
 
     if (isInitialized) {
-      // console.log('✅ [APP] Authentication initialized successfully');
+      console.log('✅ [APP] Authentication initialized successfully');
+      
+      // Initialize presence service after successful authentication
+      // Small delay to ensure auth state is fully stable
+      setTimeout(async () => {
+        try {
+          console.log('🟢 [APP] Initializing presence service...');
+          await presenceService.initialize();
+          console.log('✅ [APP] Presence service initialized successfully');
+        } catch (presenceError) {
+          console.warn('⚠️ [APP] Presence service initialization failed:', presenceError);
+        }
+      }, 200); // 200ms delay for auth stability
+      
+      // Trigger immediate ChatBar data loading after auth initialization
+      try {
+        console.log('🔧 [APP] Triggering immediate ChatBar data loading...');
+        await chatStore.fetchChats();
+        console.log('✅ [APP] ChatBar data loaded successfully');
+      } catch (chatError) {
+        console.warn('⚠️ [APP] ChatBar data loading failed:', chatError);
+      }
     } else {
-      // console.log('ℹ️ [APP] No valid authentication found - user will need to login');
+      console.log('ℹ️ [APP] No valid authentication found - user will need to login');
     }
 
   } catch (error) {
@@ -134,15 +384,93 @@ const initializeAuthState = async () => {
     hasGlobalError.value = true;
     globalError.value = error.message || 'Authentication initialization failed';
 
-    // Clear any potentially corrupted auth state as fallback
     try {
       authStore.clearAuth();
-      // console.log('🧹 [APP] Cleared corrupted auth state');
+      console.log('🧹 [APP] Cleared corrupted auth state');
     } catch (clearError) {
       console.error('❌ [APP] Failed to clear auth state:', clearError);
     }
   } finally {
-    isAuthLoading.value = false;
+    // CRITICAL FIX: Force Vue reactivity update cycle before hiding loading
+    await nextTick(); // Ensure all reactive updates are processed
+    
+    setTimeout(() => {
+      isAuthLoading.value = false;
+      
+              // INDUSTRY STANDARD: Force reactive recalculation after auth state stabilizes
+        nextTick(() => {
+          console.log('🔄 [APP] Forcing sidebar reactivity update after auth completion');
+          
+          // CRITICAL FIX: Force sidebar computed property to recalculate
+          forceSidebarUpdate();
+          
+          // Verify final state with enhanced debugging
+          nextTick(() => {
+            const currentSidebarState = shouldShowSidebar.value;
+            const detailedState = {
+              shouldShowSidebar: currentSidebarState,
+              isAuthenticated: authStore.isAuthenticated,
+              hasToken: !!authStore.token,
+              hasUser: !!authStore.user,
+              currentPath: route.path,
+              chatStoreChats: chatStore.chats.length,
+              forceUpdateKey: forceUpdateKey.value
+            };
+            
+            console.log('🎯 [APP] Final post-auth detailed state:', detailedState);
+            
+            // 🔧 FIXED: Only log error if user is authenticated but sidebar not showing
+            // During login flow, it's normal for sidebar to be hidden
+            if (!currentSidebarState && authStore.isAuthenticated && route.path !== '/login') {
+              console.error('❌ [APP] CRITICAL: Sidebar not showing for authenticated user!');
+              console.error('🔍 [APP] Debug info:', detailedState);
+              
+              // Try additional forced updates with delay
+              setTimeout(() => {
+                console.log('🔧 [APP] Attempting recovery - forcing multiple updates...');
+                forceSidebarUpdate();
+                
+                setTimeout(() => {
+                  const recoveryState = shouldShowSidebar.value;
+                  console.log('🩺 [APP] Recovery attempt result:', {
+                    recovered: recoveryState,
+                    authStore_isAuthenticated: authStore.isAuthenticated,
+                    path: route.path
+                  });
+                }, 100);
+              }, 200);
+            } else if (currentSidebarState && authStore.isAuthenticated) {
+              console.log('✅ [APP] SUCCESS: Sidebar properly showing for authenticated user');
+            } else {
+              console.log('ℹ️ [APP] Sidebar correctly hidden - user not authenticated or on login page');
+            }
+          });
+        });
+    }, 100);
+  }
+};
+
+// Handle auth state force updates
+const handleAuthStateUpdate = (event) => {
+  console.log('🔧 [APP] Received force auth state update:', event.detail);
+  
+  if (event.detail.type === 'logout') {
+    console.log('🚪 [APP] Processing logout - forcing sidebar update');
+    forceSidebarUpdate();
+    
+    // Additional step: verify sidebar is now hidden
+    nextTick(() => {
+      const sidebarState = shouldShowSidebar.value;
+      console.log('🔍 [APP] Post-logout sidebar state:', sidebarState);
+      
+      if (sidebarState) {
+        console.error('❌ [APP] CRITICAL: Sidebar still showing after logout!');
+        // Force another update
+        forceSidebarUpdate();
+      } else {
+        console.log('✅ [APP] SUCCESS: Sidebar properly hidden after logout');
+      }
+    });
   }
 };
 
@@ -154,6 +482,9 @@ onMounted(async () => {
   // Setup global keyboard shortcut event listeners
   window.addEventListener('fechatter:show-shortcuts-help', handleGlobalEvents);
   window.addEventListener('fechatter:open-settings', handleGlobalEvents);
+  
+  // Setup auth state force update listener
+  window.addEventListener('force-auth-state-update', handleAuthStateUpdate);
 
   // Initialize authentication state validation
   await initializeAuthState();
@@ -163,299 +494,121 @@ onUnmounted(() => {
   // Cleanup global event listeners
   window.removeEventListener('fechatter:show-shortcuts-help', handleGlobalEvents);
   window.removeEventListener('fechatter:open-settings', handleGlobalEvents);
+  window.removeEventListener('force-auth-state-update', handleAuthStateUpdate);
+  
+  // Clear refresh debounce timer
+  if (refreshDebounceTimer) {
+    clearTimeout(refreshDebounceTimer);
+    refreshDebounceTimer = null;
+  }
 });
 </script>
 
 <style>
-/* 引入Discord主题系统 */
+/* Import Discord theme system */
 @import './styles/theme.css';
-
-/* 引入Channel List设计系统变量 */
 @import './styles/channel-list-variables.css';
-
-/* 引入增强的代码高亮样式 */
 @import './styles/enhanced-code-highlight.css';
-
-/* 引入自定义CSS */
 @import './style.css';
-
-/* 🎨 应用级别样式重置 */
-#app {
-  height: 100vh;              /* ✅ 恢复固定视口高度 */
-  width: 100vw;
-  overflow: hidden;           /* ✅ 控制总体溢出 */
-  position: fixed;            /* ✅ 固定定位，防止滚动问题 */
-  top: 0;
-  left: 0;
-  /* 确保应用使用主题系统 */
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
-  /* 使用Discord字体 */
-  font-family: "gg sans", "Noto Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  font-size: 16px;
-  line-height: 1.375;
-  /* 启用硬件加速 */
-  transform: translateZ(0);
-  backface-visibility: hidden;
-  /* 防止用户选择 */
-  -webkit-touch-callout: none;
-  -webkit-tap-highlight-color: transparent;
-  /* 阻止页面级滚动 */
-  overscroll-behavior: none;
-}
-
-/* 🎯 全局滚动条样式 */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
-}
-
-*::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-*::-webkit-scrollbar-track {
-  background: var(--scrollbar-track);
-}
-
-*::-webkit-scrollbar-thumb {
-  background: var(--scrollbar-thumb);
-  border-radius: 4px;
-  border: 2px solid transparent;
-  background-clip: content-box;
-}
-
-*::-webkit-scrollbar-thumb:hover {
-  background: var(--scrollbar-thumb-hover);
-  background-clip: content-box;
-}
-
-*::-webkit-scrollbar-corner {
-  background: var(--scrollbar-track);
-}
-
-/* 🎯 全局选择样式 */
-::selection {
-  background: rgba(88, 101, 242, 0.2);
-  color: var(--text-primary);
-}
-
-::-moz-selection {
-  background: rgba(88, 101, 242, 0.2);
-  color: var(--text-primary);
-}
-
-/* 🎯 全局焦点样式 */
-*:focus {
-  outline: 2px solid var(--border-focus);
-  outline-offset: 2px;
-}
-
-*:focus:not(:focus-visible) {
-  outline: none;
-}
-
-/* 🎯 图片优化 */
-img {
-  max-width: 100%;
-  height: auto;
-  border-radius: 4px;
-}
-
-/* 🎯 按钮重置 */
-button {
-  font-family: inherit;
-  font-size: inherit;
-  line-height: inherit;
-  letter-spacing: inherit;
-}
-
-/* 🎯 链接样式 */
-a {
-  color: var(--text-link);
-  text-decoration: none;
-}
-
-a:hover {
-  text-decoration: underline;
-}
-
-/* 🎯 表单元素优化 */
-input,
-textarea,
-select {
-  font-family: inherit;
-  font-size: inherit;
-  line-height: inherit;
-  background: var(--bg-input);
-  border: 1px solid var(--border-primary);
-  color: var(--text-primary);
-}
-
-input:focus,
-textarea:focus,
-select:focus {
-  border-color: var(--border-focus);
-  outline: none;
-  box-shadow: 0 0 0 2px rgba(88, 101, 242, 0.2);
-}
-
-/* 🎯 代码元素 */
-code,
-pre {
-  font-family: "Consolas", "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", "Monaco", "Courier New", Courier, monospace;
-}
-
-/* 🎯 移动端优化 */
-@media (max-width: 768px) {
-  #app {
-    font-size: 14px;
-  }
-}
-
-/* 🎯 打印优化 */
-@media print {
-  #app {
-    background: white !important;
-    color: black !important;
-    font-size: 12pt;
-  }
-
-  * {
-    background: transparent !important;
-    color: black !important;
-    box-shadow: none !important;
-    text-shadow: none !important;
-  }
-}
-
-/* 🎯 高对比度模式 */
-@media (prefers-contrast: high) {
-  #app {
-    border: 1px solid var(--border-primary);
-  }
-}
-
-/* 🎯 减少动画模式 */
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-}
-
-/* ✨ Global Styles */
-body, html {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-}
 
 #app {
   height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  position: fixed;
+  top: 0;
+  left: 0;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: "gg sans", "Noto Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.375;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+
+.app-container {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  background-color: #f8f9fa;
+}
+
+.global-sidebar {
+  width: 260px;
+  background: #3f0f40;
+  color: white;
   display: flex;
   flex-direction: column;
+  position: relative;
+  overflow: hidden;
 }
 
-/* ✨ Highlight.js Theme for Code Highlighting */
-.hljs.dark {
-  color: #f0f6fc;
-  background: #0d1117;
+.global-sidebar-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
-.hljs.dark .hljs-comment,
-.hljs.dark .hljs-quote {
-  color: #8b949e;
-  font-style: italic;
+.sidebar-nav-section {
+  padding: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.hljs.dark .hljs-keyword,
-.hljs.dark .hljs-selector-tag,
-.hljs.dark .hljs-literal,
-.hljs.dark .hljs-type {
-  color: #ff7b72;
+.sidebar-nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
-.hljs.dark .hljs-string,
-.hljs.dark .hljs-doctag {
-  color: #a5d6ff;
+.sidebar-nav-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  font-weight: 500;
 }
 
-.hljs.dark .hljs-title,
-.hljs.dark .hljs-section,
-.hljs.dark .hljs-selector-id {
-  color: #7ee787;
+.sidebar-nav-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
 }
 
-.hljs.dark .hljs-variable,
-.hljs.dark .hljs-template-variable,
-.hljs.dark .hljs-class .hljs-title {
-  color: #ffa657;
+.sidebar-nav-item.active {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
 }
 
-.hljs.dark .hljs-number {
-  color: #79c0ff;
+.sidebar-nav-icon {
+  margin-right: 12px;
+  opacity: 0.8;
 }
 
-.hljs.dark .hljs-function {
-  color: #d2a8ff;
+.sidebar-nav-text {
+  flex: 1;
 }
 
-.hljs.dark .hljs-built_in,
-.hljs.dark .hljs-builtin-name {
-  color: #79c0ff;
+.sidebar-unified-channels {
+  flex: 1;
+  overflow: hidden;
+  padding: 0;
 }
 
-/* Light theme */
-.hljs.light {
-  color: #24292f;
-  background: #f6f8fa;
-}
-
-.hljs.light .hljs-comment,
-.hljs.light .hljs-quote {
-  color: #6a737d;
-  font-style: italic;
-}
-
-.hljs.light .hljs-keyword,
-.hljs.light .hljs-selector-tag,
-.hljs.light .hljs-literal,
-.hljs.light .hljs-type {
-  color: #d73a49;
-}
-
-.hljs.light .hljs-string,
-.hljs.light .hljs-doctag {
-  color: #032f62;
-}
-
-.hljs.light .hljs-title,
-.hljs.light .hljs-section,
-.hljs.light .hljs-selector-id {
-  color: #6f42c1;
-}
-
-.hljs.light .hljs-variable,
-.hljs.light .hljs-template-variable,
-.hljs.light .hljs-class .hljs-title {
-  color: #6f42c1;
-}
-
-.hljs.light .hljs-number {
-  color: #005cc5;
-}
-
-.hljs.light .hljs-function {
-  color: #6f42c1;
-}
-
-.hljs.light .hljs-built_in,
-.hljs.light .hljs-builtin-name {
-  color: #005cc5;
+.global-main-content {
+  flex: 1;
+  background: white;
+  overflow: hidden;
+  position: relative;
 }
 </style>

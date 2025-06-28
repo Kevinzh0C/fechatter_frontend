@@ -5,7 +5,7 @@
 
 class LogCleaner {
   constructor() {
-    this.isDev = import.meta.env.DEV;
+    this.isDev = true;
     this.logLevels = {
       ERROR: 0,
       WARN: 1,
@@ -112,14 +112,14 @@ class LogCleaner {
     // 🔧 NEW: Add control methods
     window.enableLogFiltering = () => {
       localStorage.setItem('enable_log_filtering', 'true');
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('🔇 Log filtering enabled');
       }
     };
 
     window.disableLogFiltering = () => {
       localStorage.removeItem('enable_log_filtering');
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('🔊 Log filtering disabled');
       }
     };
@@ -155,13 +155,13 @@ class LogCleaner {
 
   // Utility methods for controlled logging
   error(...args) {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.error(...args);
     }
 
   warn(...args) {
     if (this.currentLevel >= this.logLevels.WARN) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.warn(...args);
       }
 
@@ -181,7 +181,7 @@ class LogCleaner {
     if (window.debugDuplicateChannels) {
       const original = window.debugDuplicateChannels;
       window.debugDuplicateChannels = () => {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('🔇 Debug channels analysis suppressed. Use logCleaner.unsuppressDebugChannels() to restore.');
         }
       };
@@ -192,14 +192,14 @@ class LogCleaner {
     if (this._originalDebugChannels) {
       window.debugDuplicateChannels = this._originalDebugChannels;
       delete this._originalDebugChannels;
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('🔊 Debug channels analysis restored');
       }
 
 const logCleaner = new LogCleaner();
 
 // 🔧 EXPOSE CONTROL: Allow manual control in development
-if (import.meta.env.DEV) {
+if (true) {
   window.logCleaner = logCleaner;
 }
 

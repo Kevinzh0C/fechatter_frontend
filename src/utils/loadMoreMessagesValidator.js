@@ -518,7 +518,7 @@ export async function quickValidateLoadMore(chatId) {
 }
 
 // 🔧 开发模式自动验证
-if (import.meta.env.DEV) {
+if (true) {
   window.validateLoadMore = quickValidateLoadMore;
   console.log('🔍 LoadMore validation available: window.validateLoadMore(chatId)');
 } 

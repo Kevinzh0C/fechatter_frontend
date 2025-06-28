@@ -1,0 +1,259 @@
+/* 🔧 CJK Emoji Fix - CJK字符与Emoji分离修复
+ * 解决日语假名被误识别为emoji而放大的问题
+ * 确保CJK字符保持正常字体大小和显示
+ */
+
+:root {
+  /* 🎯 CJK字符正常化参数 */
+  --cjk-normal-font-size: inherit;
+  --cjk-normal-line-height: inherit;
+  --cjk-normal-margin: 0;
+}
+
+/* 🚨 CRITICAL FIX: 强制移除CJK字符的emoji样式 */
+
+/* 日语字符反emoji污染 */
+span.emoji-2x:lang(ja),
+span.emoji-2x[lang="ja"],
+.emoji-2x:lang(ja),
+.emoji-2x[lang="ja"],
+*[class*="emoji"]:lang(ja),
+*[class*="emoji"][lang="ja"] {
+  font-size: var(--unified-font-size-base, 15px) !important;
+  line-height: var(--unified-line-height-base, 1.5) !important;
+  margin: 0 !important;
+  display: inline !important;
+  vertical-align: baseline !important;
+  font-family: var(--japanese-channel-font-family, 'Hiragino Kaku Gothic ProN', 'Yu Gothic Medium') !important;
+  letter-spacing: var(--japanese-letter-spacing-channel, 0.025em) !important;
+}
+
+/* 中文字符反emoji污染 */
+span.emoji-2x:lang(zh),
+span.emoji-2x[lang="zh"],
+span.emoji-2x[lang="zh-CN"],
+span.emoji-2x[lang="zh-Hans"],
+.emoji-2x:lang(zh),
+.emoji-2x[lang="zh"],
+.emoji-2x[lang="zh-CN"],
+.emoji-2x[lang="zh-Hans"],
+*[class*="emoji"]:lang(zh),
+*[class*="emoji"][lang="zh"],
+*[class*="emoji"][lang="zh-CN"],
+*[class*="emoji"][lang="zh-Hans"] {
+  font-size: var(--unified-font-size-base, 15px) !important;
+  line-height: var(--unified-line-height-base, 1.5) !important;
+  margin: 0 !important;
+  display: inline !important;
+  vertical-align: baseline !important;
+  font-family: var(--font-family-chinese-simplified, 'PingFang SC', 'Microsoft YaHei') !important;
+  letter-spacing: 0.01em !important;
+}
+
+/* 韩语字符反emoji污染 */
+span.emoji-2x:lang(ko),
+span.emoji-2x[lang="ko"],
+.emoji-2x:lang(ko),
+.emoji-2x[lang="ko"],
+*[class*="emoji"]:lang(ko),
+*[class*="emoji"][lang="ko"] {
+  font-size: var(--unified-font-size-base, 15px) !important;
+  line-height: var(--unified-line-height-base, 1.5) !important;
+  margin: 0 !important;
+  display: inline !important;
+  vertical-align: baseline !important;
+  font-family: var(--font-family-korean, 'Apple SD Gothic Neo', 'Malgun Gothic') !important;
+  letter-spacing: 0.015em !important;
+}
+
+/* 🔧 基于Unicode范围的精确修复 */
+
+/* 平假名范围修复 (U+3040-U+309F) */
+.emoji-2x[data-hiragana],
+.emoji-2x:contains('あ'),
+.emoji-2x:contains('い'),
+.emoji-2x:contains('う'),
+.emoji-2x:contains('え'),
+.emoji-2x:contains('お'),
+.emoji-2x:contains('か'),
+.emoji-2x:contains('き'),
+.emoji-2x:contains('く'),
+.emoji-2x:contains('け'),
+.emoji-2x:contains('こ'),
+.emoji-2x:contains('さ'),
+.emoji-2x:contains('し'),
+.emoji-2x:contains('す'),
+.emoji-2x:contains('せ'),
+.emoji-2x:contains('そ'),
+.emoji-2x:contains('た'),
+.emoji-2x:contains('ち'),
+.emoji-2x:contains('つ'),
+.emoji-2x:contains('て'),
+.emoji-2x:contains('と'),
+.emoji-2x:contains('な'),
+.emoji-2x:contains('に'),
+.emoji-2x:contains('ぬ'),
+.emoji-2x:contains('ね'),
+.emoji-2x:contains('の'),
+.emoji-2x:contains('は'),
+.emoji-2x:contains('ひ'),
+.emoji-2x:contains('ふ'),
+.emoji-2x:contains('へ'),
+.emoji-2x:contains('ほ'),
+.emoji-2x:contains('ま'),
+.emoji-2x:contains('み'),
+.emoji-2x:contains('む'),
+.emoji-2x:contains('め'),
+.emoji-2x:contains('も'),
+.emoji-2x:contains('や'),
+.emoji-2x:contains('ゆ'),
+.emoji-2x:contains('よ'),
+.emoji-2x:contains('ら'),
+.emoji-2x:contains('り'),
+.emoji-2x:contains('る'),
+.emoji-2x:contains('れ'),
+.emoji-2x:contains('ろ'),
+.emoji-2x:contains('わ'),
+.emoji-2x:contains('を'),
+.emoji-2x:contains('ん') {
+  font-size: var(--unified-font-size-base, 15px) !important;
+  line-height: var(--unified-line-height-base, 1.5) !important;
+  margin: 0 !important;
+  display: inline !important;
+  vertical-align: baseline !important;
+  font-family: var(--japanese-channel-font-family) !important;
+  letter-spacing: var(--japanese-letter-spacing-channel, 0.025em) !important;
+}
+
+/* 片假名范围修复 (U+30A0-U+30FF) */
+.emoji-2x:contains('ア'),
+.emoji-2x:contains('イ'),
+.emoji-2x:contains('ウ'),
+.emoji-2x:contains('エ'),
+.emoji-2x:contains('オ'),
+.emoji-2x:contains('カ'),
+.emoji-2x:contains('キ'),
+.emoji-2x:contains('ク'),
+.emoji-2x:contains('ケ'),
+.emoji-2x:contains('コ'),
+.emoji-2x:contains('サ'),
+.emoji-2x:contains('シ'),
+.emoji-2x:contains('ス'),
+.emoji-2x:contains('セ'),
+.emoji-2x:contains('ソ'),
+.emoji-2x:contains('タ'),
+.emoji-2x:contains('チ'),
+.emoji-2x:contains('ツ'),
+.emoji-2x:contains('テ'),
+.emoji-2x:contains('ト'),
+.emoji-2x:contains('ナ'),
+.emoji-2x:contains('ニ'),
+.emoji-2x:contains('ヌ'),
+.emoji-2x:contains('ネ'),
+.emoji-2x:contains('ノ'),
+.emoji-2x:contains('ハ'),
+.emoji-2x:contains('ヒ'),
+.emoji-2x:contains('フ'),
+.emoji-2x:contains('ヘ'),
+.emoji-2x:contains('ホ'),
+.emoji-2x:contains('マ'),
+.emoji-2x:contains('ミ'),
+.emoji-2x:contains('ム'),
+.emoji-2x:contains('メ'),
+.emoji-2x:contains('モ'),
+.emoji-2x:contains('ヤ'),
+.emoji-2x:contains('ユ'),
+.emoji-2x:contains('ヨ'),
+.emoji-2x:contains('ラ'),
+.emoji-2x:contains('リ'),
+.emoji-2x:contains('ル'),
+.emoji-2x:contains('レ'),
+.emoji-2x:contains('ロ'),
+.emoji-2x:contains('ワ'),
+.emoji-2x:contains('ヲ'),
+.emoji-2x:contains('ン') {
+  font-size: var(--unified-font-size-base, 15px) !important;
+  line-height: var(--unified-line-height-base, 1.5) !important;
+  margin: 0 !important;
+  display: inline !important;
+  vertical-align: baseline !important;
+  font-family: var(--japanese-channel-font-family) !important;
+  letter-spacing: var(--japanese-letter-spacing-channel, 0.025em) !important;
+}
+
+/* 🎯 强制覆盖任何emoji类对CJK字符的影响 */
+.content-wrapper .emoji-2x,
+.message-content-wrapper .emoji-2x,
+.message-content .emoji-2x {
+  /* 检查内容是否为CJK字符 */
+}
+
+/* 🔧 JavaScript辅助检测类 */
+.cjk-not-emoji {
+  font-size: var(--unified-font-size-base, 15px) !important;
+  line-height: var(--unified-line-height-base, 1.5) !important;
+  margin: 0 !important;
+  display: inline !important;
+  vertical-align: baseline !important;
+  letter-spacing: var(--cjk-letter-spacing, 0.015em) !important;
+}
+
+.japanese-not-emoji {
+  font-family: var(--japanese-channel-font-family) !important;
+  letter-spacing: var(--japanese-letter-spacing-channel, 0.025em) !important;
+}
+
+.chinese-not-emoji {
+  font-family: var(--font-family-chinese-simplified) !important;
+  letter-spacing: 0.01em !important;
+}
+
+.korean-not-emoji {
+  font-family: var(--font-family-korean) !important;
+  letter-spacing: 0.015em !important;
+}
+
+/* 🚨 紧急覆盖：移除所有emoji效果从CJK元素 */
+*[class*="emoji"][lang="ja"] *,
+*[class*="emoji"][lang="zh"] *,
+*[class*="emoji"][lang="ko"] *,
+.emoji-2x[lang="ja"] *,
+.emoji-2x[lang="zh"] *,
+.emoji-2x[lang="ko"] * {
+  font-size: inherit !important;
+  line-height: inherit !important;
+  margin: 0 !important;
+  display: inline !important;
+  vertical-align: baseline !important;
+}
+
+/* 🎯 确保真正的emoji保持放大效果 */
+.emoji-2x:not([lang="ja"]):not([lang="zh"]):not([lang="ko"]):not([class*="cjk"]):not([class*="japanese"]):not([class*="chinese"]):not([class*="korean"]) {
+  font-size: 1.25em !important;
+  line-height: 1.2 !important;
+  vertical-align: middle !important;
+  display: inline-block !important;
+  margin: 0 0.1em !important;
+}
+
+/* 🔍 调试辅助 - 开发环境可视化 */
+@media screen and (min-width: 0) {
+  .debug-cjk-emoji-fix .emoji-2x[lang="ja"],
+  .debug-cjk-emoji-fix .emoji-2x[lang="zh"],
+  .debug-cjk-emoji-fix .emoji-2x[lang="ko"] {
+    outline: 2px solid #ff0000 !important;
+    background: rgba(255, 0, 0, 0.1) !important;
+  }
+  
+  .debug-cjk-emoji-fix .emoji-2x[lang="ja"]::after {
+    content: '日';
+    position: absolute;
+    top: -1em;
+    right: 0;
+    background: #ff0000;
+    color: white;
+    padding: 1px 3px;
+    font-size: 8px;
+    border-radius: 2px;
+  }
+} 

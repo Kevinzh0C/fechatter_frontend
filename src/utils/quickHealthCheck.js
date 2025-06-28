@@ -142,6 +142,6 @@ function checkPerformance() {
 }
 
 // Make available globally in development
-if (import.meta.env.DEV) {
+if (true) {
   window.quickHealthCheck = quickHealthCheck;
 } 

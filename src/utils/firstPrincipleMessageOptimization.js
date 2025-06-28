@@ -10,7 +10,7 @@ class FirstPrincipleMessageOptimization {
     this.optimizedAPI = null;
     this.directPersistence = null;
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🚀 First Principle Message Optimization initialized');
     }
 
@@ -24,7 +24,7 @@ class FirstPrincipleMessageOptimization {
     this.setupInstantUI();
     this.setupBypassChain();
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('⚡ Ultra-optimized message system ready');
     }
 
@@ -50,13 +50,13 @@ class FirstPrincipleMessageOptimization {
           });
 
           const endTime = performance.now();
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log(`⚡ Fast API call: ${endTime - startTime}ms`);
           }
 
           return response;
         } catch (error) {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.error('❌ Fast API failed:', error);
           throw error;
         }
@@ -96,7 +96,7 @@ class FirstPrincipleMessageOptimization {
           localStorage.setItem(key, serialized);
           return true;
         } catch (error) {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.warn('Direct persistence save failed:', error);
           return false;
         }
@@ -107,7 +107,7 @@ class FirstPrincipleMessageOptimization {
           const item = localStorage.getItem(key);
           return item ? JSON.parse(item) : null;
         } catch (error) {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.warn('Direct persistence get failed:', error);
           return null;
         }
@@ -177,7 +177,7 @@ class FirstPrincipleMessageOptimization {
         if (this.messageCache.has(chatId)) {
           chatStore.messages = [...this.messageCache.get(chatId)];
           chatStore.loading = false;
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log(`⚡ Loaded from memory cache: ${chatStore.messages.length} messages`);
           return;
         }
@@ -188,7 +188,7 @@ class FirstPrincipleMessageOptimization {
           chatStore.messages = [...persistedMessages];
           chatStore.loading = false;
           this.messageCache.set(chatId, persistedMessages);
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log(`📦 Loaded from localStorage: ${persistedMessages.length} messages`);
           return;
         }
@@ -237,7 +237,7 @@ class FirstPrincipleMessageOptimization {
           optimisticMessage
         });
 
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log(`⚡ Optimistic message added in ${performance.now() - startTime}ms`);
         }
 
@@ -264,11 +264,11 @@ class FirstPrincipleMessageOptimization {
             const pending = this.pendingMessages.get(tempId);
             if (pending) {
               const totalTime = performance.now() - pending.startTime;
-              if (import.meta.env.DEV) {
+              if (true) {
                 console.log(`✅ Message sent successfully in ${totalTime}ms`);
               }
         } catch (error) {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.error('❌ Backend send failed:', error);
           }
 
@@ -292,7 +292,7 @@ class FirstPrincipleMessageOptimization {
         // 1. Load messages instantly from cache
         this.instantUI.loadMessagesInstantly(chatId);
 
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log(`⚡ Chat loaded instantly in ${performance.now() - startTime}ms`);
         }
 
@@ -318,11 +318,11 @@ class FirstPrincipleMessageOptimization {
               chatStore.messages = [...messages];
             }
 
-            if (import.meta.env.DEV) {
+            if (true) {
               console.log(`🔄 Background sync completed: ${messages.length} messages`);
             }
         } catch (error) {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.warn('Background fetch failed:', error);
           }
     };
@@ -335,7 +335,7 @@ class FirstPrincipleMessageOptimization {
     try {
       return window.app?._instance?.proxy?.$pinia?._s?.get('chat');
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.warn('Failed to get chat store:', error);
       return null;
     }
@@ -377,25 +377,25 @@ class FirstPrincipleMessageOptimization {
    * Performance diagnostics
    */
   diagnosePerformance() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n⚡ FIRST PRINCIPLE PERFORMANCE DIAGNOSTICS');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('==========================================');
     }
 
     // Memory cache stats
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`📊 Memory cache: ${this.messageCache.size} chats cached`);
     }
 
     // Pending messages
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`⏳ Pending messages: ${this.pendingMessages.size} messages`);
     }
 
     // localStorage usage
     const usage = this.getStorageUsage();
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`💾 localStorage usage: ${usage.used}KB / ${usage.quota}KB`);
     }
 
@@ -426,7 +426,7 @@ class FirstPrincipleMessageOptimization {
    * Test performance of core operations
    */
   testPerformance() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n🔬 Testing core operation performance:');
     }
 
@@ -441,9 +441,9 @@ class FirstPrincipleMessageOptimization {
     const retrieved = this.directPersistence.get('perf_test');
     const getTime = performance.now() - getStart;
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`   💾 localStorage save: ${saveTime.toFixed(2)}ms`);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`   📖 localStorage get: ${getTime.toFixed(2)}ms`);
     }
 
@@ -452,15 +452,15 @@ class FirstPrincipleMessageOptimization {
 
     // Performance targets
     if (saveTime < 1 && getTime < 1) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('   ✅ Performance: EXCELLENT');
       }
     } else if (saveTime < 5 && getTime < 5) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('   👍 Performance: GOOD');
       }
     } else {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('   ⚠️ Performance: NEEDS OPTIMIZATION');
       }
 
@@ -470,7 +470,7 @@ class FirstPrincipleMessageOptimization {
   replaceExistingSystem() {
     const chatStore = this.getChatStore();
     if (!chatStore) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('❌ Cannot replace system - chat store not found');
       return;
     }
@@ -489,7 +489,7 @@ class FirstPrincipleMessageOptimization {
       return this.bypassChain.loadChatUltraFast(chatId);
     };
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🔄 Message system replaced with ultra-fast version');
     }
 
@@ -510,7 +510,7 @@ class FirstPrincipleMessageOptimization {
       delete chatStore._originalSetCurrentChat;
     }
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🔄 Original message system restored');
     }
 
@@ -528,17 +528,17 @@ if (typeof window !== 'undefined') {
     load: (chatId) => firstPrincipleOptimizer.bypassChain.loadChatUltraFast(chatId)
   };
 
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('⚡ Ultra-Fast Message System loaded');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('   Commands:');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('   - window.ultraFast.init() - Initialize ultra-fast system');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('   - window.ultraFast.replace() - Replace existing system');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('   - window.ultraFast.restore() - Restore original system');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('   - window.ultraFast.diagnose() - Performance diagnostics');
   }
 

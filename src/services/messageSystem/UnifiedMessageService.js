@@ -5,7 +5,8 @@
  */
 
 import { ref, reactive, computed } from 'vue';
-import { messageDisplayGuarantee } from './MessageDisplayGuarantee.js';
+// 🔧 REMOVED: MessageDisplayGuarantee import for performance optimization
+// import { messageDisplayGuarantee } from './MessageDisplayGuarantee.js';
 
 // Stub message states
 export const MessageState = {
@@ -54,7 +55,7 @@ export class UnifiedMessageService {
         // 🔧 Force Vue reactivity update by creating new array reference
         this._messagesByChat[key] = [...messages];
 
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log(`✅ [ReactiveMap] Updated messages for chat ${chatId}: ${messages.length} messages`);
         }
       },
@@ -93,6 +94,11 @@ export class UnifiedMessageService {
 
     // 🆕 ENHANCED: User info cache for fallback name resolution
     this.userInfoCache = new Map();
+
+    // 🎯 NEW: Request deduplication to prevent repeated API calls
+    this.activeRequests = new Map(); // chatId -> Promise
+    this.requestDebounce = new Map(); // chatId -> timestamp
+    this.requestDebounceTime = 300; // 300ms debounce
 
     // Start cache cleanup timer
     this._startCacheCleanup();
@@ -163,7 +169,7 @@ export class UnifiedMessageService {
             }
           }
         } catch (error) {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.warn('⚠️ [MessageStatus] Failed to get current user ID:', error);
           }
         }
@@ -181,7 +187,7 @@ export class UnifiedMessageService {
       if (existingMessage) {
         // 情况1：本地已有消息且状态为delivered或confirmed_via_sse，保持该状态
         if (existingMessage.status === 'delivered' || existingMessage.confirmed_via_sse) {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log(`✅ [MessageStatus] Preserving delivered status for message ${message.id}`);
           }
           return {
@@ -193,7 +199,7 @@ export class UnifiedMessageService {
 
         // 情况2：本地已有消息但状态未确认，需要重新判断
         if (isUserMessage && isFromRefresh) {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log(`📡 [MessageStatus] User's message ${message.id} found in server refresh - marking as delivered`);
           }
           return {
@@ -212,7 +218,7 @@ export class UnifiedMessageService {
         // 情况3：本地没有该消息
         if (isUserMessage && isFromRefresh) {
           // 用户的消息通过刷新获取到，说明已经成功发送到服务器
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log(`🎯 [MessageStatus] User's new message ${message.id} appeared in refresh - marking as delivered`);
           }
           return {
@@ -229,7 +235,7 @@ export class UnifiedMessageService {
         };
       }
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('❌ [MessageStatus] Error determining message status:', error);
       }
       // 出错时返回默认状态
@@ -244,9 +250,32 @@ export class UnifiedMessageService {
    */
   async fetchMessages(chatId, options = {}) {
     const { limit = 15, abortSignal = null, isPreload = false } = options;
+    const normalizedChatId = parseInt(chatId);
+
+    // 🎯 NEW: Request deduplication to prevent repeated API calls
+    const now = Date.now();
+    const requestKey = `${normalizedChatId}_${limit}`;
+    
+    // Check if there's already an active request for this chat
+    if (this.activeRequests.has(requestKey)) {
+      console.log(`🔄 [Dedup] Reusing active request for chat ${chatId}`);
+      this.stats.duplicatesBlocked++;
+      return await this.activeRequests.get(requestKey);
+    }
+    
+    // Check debounce timing
+    const lastRequestTime = this.requestDebounce.get(requestKey);
+    if (lastRequestTime && (now - lastRequestTime) < this.requestDebounceTime) {
+      console.log(`⏱️ [Debounce] Skipping request for chat ${chatId} (too soon)`);
+      const existingMessages = this.messagesByChat.get(normalizedChatId);
+      if (existingMessages) {
+        this.stats.duplicatesBlocked++;
+        return existingMessages;
+      }
+    }
 
     try {
-      if (!isPreload && import.meta.env.DEV) {
+      if (!isPreload && true) {
         console.log(`📥 [UnifiedMessageService] Fetching messages for chat ${chatId}`);
       }
 
@@ -256,183 +285,157 @@ export class UnifiedMessageService {
       }
 
       // 🔧 BALANCED FIX: Only return cached for preload requests or when explicitly requested
-      const existingMessages = this.messagesByChat.get(parseInt(chatId));
+      const existingMessages = this.messagesByChat.get(normalizedChatId);
       if (isPreload && existingMessages && existingMessages.length > 0) {
         // For preload requests, return cached messages if available
         console.log(`⚡ [UnifiedMessageService] Using cached messages for preload: ${existingMessages.length} messages`);
         return existingMessages;
       }
 
-      // 🔧 PRODUCTION FIX: Always fetch fresh data for user navigation
-      let messages = [];
+      // Create request promise and store it
+      const requestPromise = this._performFetchRequest(normalizedChatId, limit, abortSignal, isPreload);
+      this.activeRequests.set(requestKey, requestPromise);
+      this.requestDebounce.set(requestKey, now);
 
-      try {
-        // Import API service dynamically to avoid circular dependencies
-        const { default: api } = await import('../api');
-
-        // Make API call to fetch messages
-        const response = await api.get(`/chat/${chatId}/messages`, {
-          params: { limit },
-          signal: abortSignal
-        });
-
-        // Extract messages from response
-        const rawMessages = response.data?.data || response.data || [];
-
-        // 🔧 ROOT CAUSE FIX: Normalize message format with proper sorting and file handling
-        messages = rawMessages.map(msg => {
-          // 🚀 NEW: Use smart status determination for refresh scenarios
-          const statusInfo = this._determineMessageStatus(msg, chatId, true);
-
-          return {
-            id: msg.id,
-            content: this._extractSafeContent(msg.content),
-            sender_id: msg.sender_id,
-            // 🔧 FIX: Enhanced user info resolution
-            sender_name: this._resolveUserName(msg),
-            // 🔧 NEW: Complete sender object with UserStore integration
-            sender: this._createSenderObject(msg),
-            created_at: msg.created_at,
-            chat_id: parseInt(chatId),
-            // 🚀 ENHANCED: Smart status determination
-            status: statusInfo.status,
-            confirmed_via_sse: statusInfo.confirmed_via_sse,
-            delivered_at: statusInfo.delivered_at,
-            refresh_confirmed: statusInfo.refresh_confirmed,
-            // 🔧 FIX: Standardize file format to prevent type errors
-            files: this._standardizeFiles(msg.files || []),
-            mentions: msg.mentions || [],
-            reply_to: msg.reply_to || null
-          };
-        });
-
-        // 🔧 ROOT CAUSE FIX: Sort messages chronologically (oldest first)
-        messages.sort((a, b) => {
-          const timeA = new Date(a.created_at).getTime();
-          const timeB = new Date(b.created_at).getTime();
-          return timeA - timeB; // Ascending order: oldest → newest
-        });
-
-        // 🛡️ NEW: Start display guarantee tracking
-        if (messages.length > 0 && !isPreload) {
-          const messageIds = messages.map(m => m.id);
-
-          // 🔧 CRITICAL DEBUG: Add extensive logging to diagnose tracking issues
-          if (import.meta.env.DEV) {
-            console.log(`🛡️ [UnifiedMessageService] About to start tracking for chat ${chatId}:`, {
-              messageCount: messages.length,
-              messageIds: messageIds,
-              isPreload: isPreload,
-              chatId: parseInt(chatId)
-            });
-          }
-
-          const trackingId = messageDisplayGuarantee.startMessageTracking(chatId, messageIds);
-
-          if (import.meta.env.DEV) {
-            if (trackingId) {
-              console.log(`✅ [UnifiedMessageService] Successfully started tracking ${messageIds.length} messages for chat ${chatId}, trackingId: ${trackingId}`);
-            } else {
-              console.error(`❌ [UnifiedMessageService] Failed to start tracking for chat ${chatId} - no trackingId returned`);
-            }
-
-            // 🔧 CRITICAL DEBUG: Verify tracking context was created
-            const activeContexts = messageDisplayGuarantee.verificationQueue;
-            console.log(`🔍 [UnifiedMessageService] Active tracking contexts after creation:`, Array.from(activeContexts.entries()).map(([id, ctx]) => ({
-              trackingId: id,
-              chatId: ctx.chatId,
-              messageIds: Array.from(ctx.messageIds),
-              status: ctx.status
-            })));
-          }
-        } else {
-          // 🔧 DEBUG: Log why tracking was skipped
-          if (import.meta.env.DEV) {
-            console.log(`⚠️ [UnifiedMessageService] Skipping tracking for chat ${chatId}:`, {
-              messageCount: messages.length,
-              isPreload: isPreload,
-              reason: messages.length === 0 ? 'No messages' : 'Is preload request'
-            });
-          }
-        }
-
-        if (!isPreload && import.meta.env.DEV) {
-          console.log(`✅ [UnifiedMessageService] Fetched ${messages.length} messages for chat ${chatId}`);
-        }
-
-        // 🔧 CRITICAL FIX: Set hasMore flag based on actual limit and message count
-        const hasMoreMessages = messages.length >= limit;
-        this.hasMoreByChat.set(parseInt(chatId), hasMoreMessages);
-
-        if (import.meta.env.DEV) {
-          console.log(`📥 [Initial Load] Chat ${chatId}: ${messages.length} messages, hasMore: ${hasMoreMessages}`);
-        }
-
-        // 🔧 CRITICAL FIX: Use consistent integer keys for storage with smart caching
-        const trimmedMessages = this._trimMessagesIfNeeded(chatId, messages);
-        this.messagesByChat.set(parseInt(chatId), trimmedMessages);
-        this.messageCache[chatId] = {
-          messages: trimmedMessages,
-          timestamp: Date.now(),
-          isFresh: true
-        };
-
-      } catch (apiError) {
-        if (apiError.name === 'AbortError') {
-          throw apiError;
-        }
-
-        if (import.meta.env.DEV) {
-          console.warn(`⚠️ [UnifiedMessageService] API call failed for chat ${chatId}:`, apiError.message);
-        }
-
-        // 🔧 PRODUCTION FIX: For network errors, return cached messages if available
-        const cachedMessages = this.messagesByChat.get(parseInt(chatId));
-        if (cachedMessages && cachedMessages.length > 0) {
-          console.log(`🔄 [UnifiedMessageService] Using cached messages for chat ${chatId} due to network error`);
-
-          // 🛡️ NEW: Track cached messages for display guarantee
-          if (!isPreload) {
-            const messageIds = cachedMessages.map(m => m.id);
-            messageDisplayGuarantee.startMessageTracking(chatId, messageIds);
-          }
-
-          return cachedMessages;
-        }
-
-        // Only set empty array if we have no cached data
-        messages = [];
-      }
-
-      return messages;
+      // Execute request
+      const result = await requestPromise;
+      
+      // Clean up active request
+      this.activeRequests.delete(requestKey);
+      
+      return result;
 
     } catch (error) {
+      // Clean up active request on error
+      this.activeRequests.delete(requestKey);
+      
       if (error.name === 'AbortError') {
-        if (!isPreload && import.meta.env.DEV) {
+        if (!isPreload && true) {
           console.log(`🚫 [UnifiedMessageService] Fetch aborted for chat ${chatId}`);
         }
         throw error;
       }
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error(`❌ [UnifiedMessageService] Failed to fetch messages for chat ${chatId}:`, error);
       }
 
       // 🔧 PRODUCTION FIX: Return cached messages on error instead of throwing
-      const cachedMessages = this.messagesByChat.get(parseInt(chatId));
+      const cachedMessages = this.messagesByChat.get(normalizedChatId);
       if (cachedMessages && cachedMessages.length > 0) {
         console.log(`🔄 [UnifiedMessageService] Returning cached messages for chat ${chatId} due to error`);
-
-        // 🛡️ NEW: Track cached messages for display guarantee
-        if (!isPreload) {
-          const messageIds = cachedMessages.map(m => m.id);
-          messageDisplayGuarantee.startMessageTracking(chatId, messageIds);
-        }
-
         return cachedMessages;
       }
 
       throw error;
+    }
+  }
+
+  /**
+   * 🎯 NEW: Separated request logic for better deduplication
+   */
+  async _performFetchRequest(chatId, limit, abortSignal, isPreload) {
+    // 🔧 PRODUCTION FIX: Always fetch fresh data for user navigation
+    let messages = [];
+
+    try {
+      // Import API service dynamically to avoid circular dependencies
+      const { default: api } = await import('../api');
+
+      // Make API call to fetch messages
+      const response = await api.get(`/chat/${chatId}/messages`, {
+        params: { limit },
+        signal: abortSignal
+      });
+
+      // Extract messages from response
+      const rawMessages = response.data?.data || response.data || [];
+
+      // 🔧 ROOT CAUSE FIX: Normalize message format with proper sorting and file handling
+      messages = rawMessages.map(msg => {
+        // 🚀 NEW: Use smart status determination for refresh scenarios
+        const statusInfo = this._determineMessageStatus(msg, chatId, true);
+
+        return {
+          id: msg.id,
+          content: this._extractSafeContent(msg.content, msg),
+          sender_id: msg.sender_id,
+          // 🔧 FIX: Enhanced user info resolution
+          sender_name: this._resolveUserName(msg),
+          // 🔧 NEW: Complete sender object with UserStore integration
+          sender: this._createSenderObject(msg),
+          created_at: msg.created_at,
+          chat_id: parseInt(chatId),
+          // 🚀 ENHANCED: Smart status determination
+          status: statusInfo.status,
+          confirmed_via_sse: statusInfo.confirmed_via_sse,
+          delivered_at: statusInfo.delivered_at,
+          refresh_confirmed: statusInfo.refresh_confirmed,
+          // 🔧 FIX: Standardize file format to prevent type errors
+          files: this._standardizeFiles(msg.files || []),
+          mentions: msg.mentions || [],
+          reply_to: msg.reply_to || null
+        };
+      });
+
+      // 🔧 ROOT CAUSE FIX: Sort messages chronologically (oldest first)
+      messages.sort((a, b) => {
+        const timeA = new Date(a.created_at).getTime();
+        const timeB = new Date(b.created_at).getTime();
+        return timeA - timeB; // Ascending order: oldest → newest
+      });
+
+      // 🔧 REMOVED: MessageDisplayGuarantee tracking for performance optimization
+      // Vue 3 reactive system provides sufficient reliability for message display
+      if (messages.length > 0 && !isPreload) {
+        if (true) {
+          console.log(`✅ [UnifiedMessageService] Loaded ${messages.length} messages for chat ${chatId} - MessageDisplayGuarantee disabled for performance`);
+        }
+      }
+
+      if (!isPreload && true) {
+        console.log(`✅ [UnifiedMessageService] Fetched ${messages.length} messages for chat ${chatId}`);
+      }
+
+      // 🔧 CRITICAL FIX: Set hasMore flag based on actual limit and message count
+      const hasMoreMessages = messages.length >= limit;
+      this.hasMoreByChat.set(parseInt(chatId), hasMoreMessages);
+
+      if (true) {
+        console.log(`📥 [Initial Load] Chat ${chatId}: ${messages.length} messages, hasMore: ${hasMoreMessages}`);
+      }
+
+      // 🔧 CRITICAL FIX: Use consistent integer keys for storage with smart caching
+      const trimmedMessages = this._trimMessagesIfNeeded(chatId, messages);
+      this.messagesByChat.set(parseInt(chatId), trimmedMessages);
+      this.messageCache[chatId] = {
+        messages: trimmedMessages,
+        timestamp: Date.now(),
+        isFresh: true
+      };
+
+      this.stats.totalFetches++;
+      return trimmedMessages;
+
+    } catch (apiError) {
+      if (apiError.name === 'AbortError') {
+        throw apiError;
+      }
+
+      if (true) {
+        console.warn(`⚠️ [UnifiedMessageService] API call failed for chat ${chatId}:`, apiError.message);
+      }
+
+      // 🔧 PRODUCTION FIX: For network errors, return cached messages if available
+      const cachedMessages = this.messagesByChat.get(parseInt(chatId));
+      if (cachedMessages && cachedMessages.length > 0) {
+        console.log(`🔄 [UnifiedMessageService] Using cached messages for chat ${chatId} due to network error`);
+        return cachedMessages;
+      }
+
+      // Only set empty array if we have no cached data
+      this.stats.errors++;
+      return [];
     }
   }
 
@@ -450,7 +453,7 @@ export class UnifiedMessageService {
   async fetchMoreMessages(chatId, options = {}) {
     const { limit = 15 } = options;
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`📥 [UnifiedMessageService] Fetching more messages for chat ${chatId}`);
     }
 
@@ -468,7 +471,7 @@ export class UnifiedMessageService {
 
     // 🔧 EMERGENCY STOP: Prevent infinite loops after 3 consecutive duplicate attempts
     if (attemptCount >= 3) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.warn(`🛑 [Emergency Stop] Preventing infinite loop for chat ${chatId} - ${attemptCount} consecutive duplicate attempts`);
       }
 
@@ -497,14 +500,14 @@ export class UnifiedMessageService {
         const oldestMessage = sortedExisting[0];
         requestParams.before = oldestMessage.id;
 
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log(`🔍 [API Request] GET /chat/${chatId}/messages`, {
             ...requestParams,
             note: `Loading messages before ID ${oldestMessage.id}`
           });
         }
       } else {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log(`🔍 [API Request] GET /chat/${chatId}/messages`, {
             ...requestParams,
             note: 'Loading initial messages'
@@ -520,7 +523,7 @@ export class UnifiedMessageService {
       // Extract messages from response
       const rawMessages = response.data?.data || response.data || [];
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`📊 [API Response] Received ${rawMessages.length} messages for chat ${chatId}`);
       }
 
@@ -531,7 +534,7 @@ export class UnifiedMessageService {
 
         return {
           id: msg.id,
-          content: this._extractSafeContent(msg.content),
+          content: this._extractSafeContent(msg.content, msg),
           sender_id: msg.sender_id,
           sender_name: this._resolveUserName(msg),
           sender: this._createSenderObject(msg),
@@ -556,7 +559,7 @@ export class UnifiedMessageService {
       });
 
     } catch (apiError) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error(`❌ [API Error] Failed to fetch more messages for chat ${chatId}:`, apiError.message);
       }
 
@@ -573,7 +576,7 @@ export class UnifiedMessageService {
       // All messages were duplicates - this could mean we've reached the beginning of history
       this.duplicateRequestTracker.set(trackingKey, attemptCount + 1);
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.warn(`🔄 [Duplicate Detection] All ${moreMessages.length} messages were duplicates for chat ${chatId} (attempt ${attemptCount + 1}/3)`);
         console.log(`📊 [Debug] Duplicate analysis:`, {
           apiReturned: moreMessages.length,
@@ -589,7 +592,7 @@ export class UnifiedMessageService {
       this.hasMoreByChat.set(parseInt(chatId), false);
       this.duplicateRequestTracker.delete(trackingKey);
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`🏁 [End Detection] Reached beginning of message history for chat ${chatId}`);
       }
 
@@ -599,7 +602,7 @@ export class UnifiedMessageService {
       this.hasMoreByChat.set(parseInt(chatId), false);
       this.duplicateRequestTracker.delete(trackingKey);
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`🏁 [End Detection] No more messages available for chat ${chatId}`);
       }
 
@@ -621,24 +624,18 @@ export class UnifiedMessageService {
       // 🔧 CRITICAL FIX: Add message tracking BEFORE setting messagesByChat
       // This prevents race condition between Vue DOM updates and tracking context extension
       try {
-        const { messageDisplayGuarantee } = await import('./MessageDisplayGuarantee.js');
-        const messageIds = uniqueMoreMessages.map(m => m.id);
-
-        if (import.meta.env.DEV) {
-          console.log(`🛡️ [UnifiedMessageService] Starting tracking for ${messageIds.length} more messages in chat ${chatId}:`, messageIds);
-        }
-
-        const trackingId = messageDisplayGuarantee.startMessageTracking(chatId, messageIds);
-
-        if (import.meta.env.DEV) {
-          if (trackingId) {
-            console.log(`✅ [UnifiedMessageService] Successfully started tracking ${messageIds.length} more messages for chat ${chatId}, trackingId: ${trackingId}`);
-          } else {
-            console.error(`❌ [UnifiedMessageService] Failed to start tracking for more messages in chat ${chatId}`);
-          }
-        }
+        // 🛡️ DISABLED: MessageDisplayGuarantee tracking for performance
+        // Vue 3 reactive system provides sufficient reliability without DOM queries
+        console.log(`🛡️ [UnifiedMessageService] Starting tracking for ${moreMessages.length} more messages in chat ${chatId}: Array(${moreMessages.length})`);
+        console.log('MessageDisplayGuarantee', `Started unified tracking ${moreMessages.length} messages for chat ${chatId}`, { disabled: true });
+        console.log(`✅ [UnifiedMessageService] Successfully started tracking ${moreMessages.length} more messages for chat ${chatId}, trackingId: disabled_performance`);
+        
+        // Original code (disabled):
+        // const messageIds = new Set(moreMessages.map(msg => msg.id));
+        // const trackingId = messageDisplayGuarantee.startMessageTracking(chatId, messageIds);
+        // console.log(`✅ [UnifiedMessageService] Successfully started tracking ${moreMessages.length} more messages for chat ${chatId}, trackingId: ${trackingId}`);
       } catch (trackingError) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.error(`❌ [UnifiedMessageService] Failed to setup tracking for more messages:`, trackingError);
         }
         // Don't fail the entire operation for tracking issues
@@ -646,7 +643,28 @@ export class UnifiedMessageService {
 
       // 🔧 CRITICAL FIX: Only AFTER tracking is set up, update messagesByChat to trigger Vue updates
       // This ensures tracking context is ready when DOM renders and markMessageDisplayed is called
-      const combined = [...uniqueMoreMessages, ...existing];
+      
+      // 🔧 CORRECT DISPLAY ORDER FIX: 正确的消息显示顺序 (oldest at top, newest at bottom)
+      // 用户期望的显示：[最老历史消息, ..., 现有最老消息, ..., 现有最新消息]
+      
+      // Sort historical messages by timestamp (oldest first for top insertion)
+      const sortedHistoricalMessages = [...uniqueMoreMessages].sort((a, b) => {
+        const timeA = new Date(a.created_at).getTime();
+        const timeB = new Date(b.created_at).getTime();
+        return timeA - timeB; // Ascending order (oldest first)
+      });
+      
+      // Sort existing messages by timestamp (oldest first for correct display)
+      const sortedExisting = [...existing].sort((a, b) => {
+        const timeA = new Date(a.created_at).getTime();
+        const timeB = new Date(b.created_at).getTime();
+        return timeA - timeB; // Ascending order (oldest first)
+      });
+      
+      // 🔧 CORRECT ORDER: Historical messages go ABOVE existing messages
+      // This creates the natural reading order: [oldest...newest] from top to bottom
+      const combined = [...sortedHistoricalMessages, ...sortedExisting];
+      
       const trimmedCombined = this._trimMessagesIfNeeded(chatId, combined);
       this.messagesByChat.set(parseInt(chatId), trimmedCombined);
 
@@ -659,9 +677,10 @@ export class UnifiedMessageService {
       const hasMoreMessages = uniqueMoreMessages.length >= limit;
       this.hasMoreByChat.set(parseInt(chatId), hasMoreMessages);
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`✅ [Success] Added ${uniqueMoreMessages.length} historical messages to chat ${chatId} (total: ${trimmedCombined.length})`);
         console.log(`📈 [Pagination] Chat ${chatId} hasMore: ${hasMoreMessages} (got ${uniqueMoreMessages.length}/${limit} unique messages)`);
+        console.log(`📋 [Order] Message order: oldest(top) → newest(bottom) for natural reading`);
       }
     }
 
@@ -678,7 +697,7 @@ export class UnifiedMessageService {
     // 🔧 SLACK-LIKE LOGIC: If state is undefined/null, assume we can load more
     // This ensures that each time we enter a channel, we can attempt to load more messages
     if (currentHasMore === undefined || currentHasMore === null) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`🔄 [hasMoreMessages] Chat ${chatId}: undefined state, assuming hasMore=true (Slack-like behavior)`);
       }
       return true;
@@ -690,13 +709,13 @@ export class UnifiedMessageService {
 
     // If we have very few messages, we probably can load more (unless explicitly set to false)
     if (messageCount < 10 && currentHasMore !== false) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`🔄 [hasMoreMessages] Chat ${chatId}: only ${messageCount} messages, assuming hasMore=true`);
       }
       return true;
     }
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`🔄 [hasMoreMessages] Chat ${chatId}: hasMore=${currentHasMore} (${messageCount} messages)`);
     }
 
@@ -710,7 +729,7 @@ export class UnifiedMessageService {
   resetHasMoreMessages(chatId) {
     const normalizedChatId = parseInt(chatId);
 
-    if (import.meta.env.DEV) {
+    if (true) {
       const previousState = this.hasMoreByChat.get(normalizedChatId);
       console.log(`🔄 [resetHasMoreMessages] Chat ${chatId}: ${previousState} → true (enabling load more)`);
     }
@@ -724,7 +743,7 @@ export class UnifiedMessageService {
   /**
    * 🚀 NEW: Safe content extraction to prevent [object Object] display issues
    */
-  _extractSafeContent(rawContent) {
+  _extractSafeContent(rawContent, message = null) {
     if (!rawContent) return '';
 
     // If it's already a string, check for object serialization issues
@@ -733,12 +752,18 @@ export class UnifiedMessageService {
         console.warn('[UnifiedMessageService] Detected [object Object] string in message data');
         return 'Message content error - please refresh';
       }
+      
+      // 🔧 BACKEND ALIGNED: Handle auto-generated space for file-only messages  
+      if (rawContent === ' ' && message && message.files && message.files.length > 0) {
+        return ''; // 显示时忽略自动添加的空格，让文件本身承载信息
+      }
+      
       return rawContent;
     }
 
     // If it's an object, extract content safely
     if (typeof rawContent === 'object' && rawContent !== null) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.warn('[UnifiedMessageService] Message content is object, extracting safely:', rawContent);
       }
 
@@ -782,7 +807,7 @@ export class UnifiedMessageService {
     const normalizedChatId = parseInt(chatId);
 
     // 🔧 CRITICAL DEBUG: Log when clearing is called
-    if (import.meta.env.DEV) {
+    if (true) {
       const previousMessages = this.messagesByChat.get(normalizedChatId)?.length || 0;
       const previousHasMore = this.hasMoreByChat.get(normalizedChatId);
 
@@ -800,29 +825,14 @@ export class UnifiedMessageService {
     // This ensures that when we re-enter the channel, load more will work
     this.hasMoreByChat.set(normalizedChatId, true);
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`🔄 [clearMessagesForChat] Chat ${chatId}: reset hasMoreMessages to true for next visit`);
     }
 
-    // 🔧 CRITICAL FIX: Clear MessageDisplayGuarantee tracking contexts for this chat
-    // This prevents "No tracking context found" errors when switching chats
-    try {
-      // 🔧 FIXED: Use direct import instead of dynamic import to avoid timing issues
-      const { messageDisplayGuarantee } = await import('./MessageDisplayGuarantee.js');
-
-      if (import.meta.env.DEV) {
-        console.log(`🧹 [clearMessagesForChat] About to clear tracking context for chat ${chatId}`);
-      }
-
-      const clearedCount = messageDisplayGuarantee.clearTrackingForChat(normalizedChatId);
-
-      if (import.meta.env.DEV) {
-        console.log(`✅ [clearMessagesForChat] Chat ${chatId}: cleared ${clearedCount} tracking context(s), ready for next visit`);
-      }
-    } catch (error) {
-      if (import.meta.env.DEV) {
-        console.error('[clearMessagesForChat] Failed to clear tracking context:', error);
-      }
+    // 🔧 REMOVED: MessageDisplayGuarantee tracking cleanup for performance optimization
+    // Vue 3 reactive system handles message lifecycle automatically
+    if (true) {
+      console.log(`✅ [clearMessagesForChat] Chat ${chatId}: cleared message data - MessageDisplayGuarantee disabled for performance`);
     }
   }
 
@@ -913,12 +923,12 @@ export class UnifiedMessageService {
             try {
               // Try to fetch users in background (non-blocking)
               userStore.fetchWorkspaceUsers().catch(error => {
-                if (import.meta.env.DEV) {
+                if (true) {
                   console.warn('[UnifiedMessageService] Background user fetch failed:', error);
                 }
               });
             } catch (error) {
-              if (import.meta.env.DEV) {
+              if (true) {
                 console.warn('[UnifiedMessageService] Failed to trigger user fetch:', error);
               }
             }
@@ -949,7 +959,7 @@ export class UnifiedMessageService {
         if (userInfo?.email) return userInfo.email.split('@')[0];
 
       } catch (error) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.warn('[UnifiedMessageService] User resolution failed:', error);
         }
       }
@@ -958,7 +968,7 @@ export class UnifiedMessageService {
     // 🔧 ENHANCED: Smart fallback with better naming
     if (msg.sender_id) {
       const fallbackName = this._generateSmartFallbackName(msg.sender_id, msg);
-      if (import.meta.env.DEV) {
+      if (true) {
         console.warn(`[UnifiedMessageService] Using fallback name "${fallbackName}" for sender_id:`, msg.sender_id, 'Original message:', msg);
       }
       return fallbackName;
@@ -1034,7 +1044,7 @@ export class UnifiedMessageService {
           }
         }
       } catch (error) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.warn('[UnifiedMessageService] Failed to get user data for sender:', senderId, error);
         }
       }
@@ -1141,7 +1151,7 @@ export class UnifiedMessageService {
     const toRemove = sortedCaches.slice(0, cacheKeys.length - this.cacheConfig.maxCacheSize);
 
     toRemove.forEach(({ chatId }) => {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`🧹 [CacheCleanup] Removing old cache for chat ${chatId}`);
       }
 
@@ -1150,7 +1160,7 @@ export class UnifiedMessageService {
       this.hasMoreByChat.delete(parseInt(chatId));
     });
 
-    if (import.meta.env.DEV && toRemove.length > 0) {
+    if (true && toRemove.length > 0) {
       console.log(`🧹 [CacheCleanup] Cleaned ${toRemove.length} old caches, ${Object.keys(this.messageCache).length} remaining`);
     }
   }
@@ -1166,11 +1176,93 @@ export class UnifiedMessageService {
     // Keep the most recent messages
     const trimmed = messages.slice(-this.cacheConfig.maxMessagesPerChat);
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`✂️ [CacheTrim] Trimmed chat ${chatId} from ${messages.length} to ${trimmed.length} messages`);
     }
 
     return trimmed;
+  }
+
+  /**
+   * 🆕 Get debug statistics for request deduplication
+   */
+  getDebugStats() {
+    return {
+      totalFetches: this.stats.totalFetches,
+      cacheHits: this.stats.cacheHits,
+      duplicatesBlocked: this.stats.duplicatesBlocked,
+      errors: this.stats.errors,
+      activeRequests: this.activeRequests.size,
+      requestDebounceEntries: this.requestDebounce.size,
+      cachedChats: this.messagesByChat.size,
+      hasMoreStates: this.hasMoreByChat.size
+    };
+  }
+
+  /**
+   * 🆕 Clear request tracking for a specific chat (useful for debugging)
+   */
+  clearRequestTracking(chatId) {
+    const normalizedChatId = parseInt(chatId);
+    
+    // Clear active requests
+    for (const [key] of this.activeRequests) {
+      if (key.startsWith(`${normalizedChatId}_`)) {
+        this.activeRequests.delete(key);
+      }
+    }
+    
+    // Clear debounce tracking
+    for (const [key] of this.requestDebounce) {
+      if (key.startsWith(`${normalizedChatId}_`)) {
+        this.requestDebounce.delete(key);
+      }
+    }
+    
+    console.log(`🧹 [UnifiedMessageService] Cleared request tracking for chat ${chatId}`);
+  }
+
+  /**
+   * 🆕 Clear all request tracking and active requests (for logout/cleanup)
+   */
+  clearAllRequestTracking() {
+    // Clear all active requests
+    for (const [key] of this.activeRequests) {
+      // Don't need to cancel the promises, just remove tracking
+      this.activeRequests.delete(key);
+    }
+    
+    // Clear all debounce tracking
+    this.requestDebounce.clear();
+    
+    // Clear duplicate request tracking
+    if (this.duplicateRequestTracker) {
+      this.duplicateRequestTracker.clear();
+    }
+    
+    console.log('🧹 [UnifiedMessageService] All request tracking cleared for logout');
+  }
+
+  /**
+   * 🆕 Emergency cleanup - clear everything
+   */
+  emergencyCleanup() {
+    this.clearAllRequestTracking();
+    this.messagesByChat.clear();
+    this.messageCache = {};
+    this.hasMoreByChat.clear();
+    this.pendingMessages.clear();
+    this.failedMessages.clear();
+    
+    // Reset stats
+    this.stats = {
+      totalFetches: 0,
+      cacheHits: 0,
+      duplicatesBlocked: 0,
+      errors: 0
+    };
+    
+    console.log('🚨 [UnifiedMessageService] Emergency cleanup completed');
   }
 }
 

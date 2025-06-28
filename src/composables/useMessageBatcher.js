@@ -117,7 +117,7 @@ export function useMessageBatcher() {
     batchedMessages.value = uniqueMessages;
 
     // Log performance
-    if (import.meta.env.DEV) {
+    if (true) {
       // console.log(`[MessageBatcher] Flushed ${uniqueMessages.length} messages in ${(now - batch[0].queuedAt).toFixed(2)}ms`);
     }
 

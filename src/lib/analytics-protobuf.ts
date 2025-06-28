@@ -718,11 +718,18 @@ export class ProtobufAnalyticsClient {
 
 // Disable analytics completely to prevent network requests
 export const analytics = {
-  track: () => {},
-  trackError: () => {},
-  trackPageView: () => {},
-  flush: () => {},
-  destroy: () => {}
+  track: () => Promise.resolve(),
+  trackError: () => Promise.resolve(),
+  trackPageView: () => Promise.resolve(),
+  trackNavigation: () => Promise.resolve(),  // Return Promise to avoid .catch() errors
+  trackMessageSent: () => Promise.resolve(),
+  trackUserLogin: () => Promise.resolve(),
+  trackAppStart: () => Promise.resolve(),
+  trackAppExit: () => Promise.resolve(),
+  trackSearch: () => Promise.resolve(),
+  trackFileUpload: () => Promise.resolve(),
+  flush: () => Promise.resolve(),
+  destroy: () => Promise.resolve()
 };
 
 console.log('[Protobuf Analytics] Disabled - no network requests will be made');

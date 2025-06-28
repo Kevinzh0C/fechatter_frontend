@@ -24,12 +24,12 @@ window.debugDuplicates = function () {
   });
 
   if (duplicates.length > 0) {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🔴 Found duplicates in data:', duplicates);
     }
     return duplicates;
   } else {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('✅ No duplicates found in data');
     }
     return [];
@@ -58,12 +58,12 @@ window.debugVirtualList = function () {
   });
 
   if (duplicates.length > 0) {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🔴 Found duplicate DOM elements:', duplicates);
     }
     return duplicates;
   } else {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('✅ No duplicate DOM elements');
     }
     return [];
@@ -93,12 +93,12 @@ window.debugDuplicateContent = function () {
   });
 
   if (duplicates.length > 0) {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🔴 Found duplicate content:', duplicates);
     }
     return duplicates;
   } else {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('✅ No duplicate content found');
     }
     return [];
@@ -107,7 +107,7 @@ window.debugDuplicateContent = function () {
 
 // Debug all duplicate issues
 window.debugAllDuplicates = function () {
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('=== Checking for duplicates ===');
   }
 
@@ -115,7 +115,7 @@ window.debugAllDuplicates = function () {
   const domResults = window.debugVirtualList();
   const contentResults = window.debugDuplicateContent();
 
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('=== Summary ===');
     console.log(`Data duplicates: ${dataResults.length}`);
     console.log(`DOM duplicates: ${domResults.length}`);
@@ -129,6 +129,6 @@ window.debugAllDuplicates = function () {
   };
 };
 
-if (import.meta.env.DEV) {
+if (true) {
   console.log('💡 Duplicate debugger loaded. Use window.debugAllDuplicates() to check for duplicates');
 }

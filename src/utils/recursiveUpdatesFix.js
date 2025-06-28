@@ -442,7 +442,7 @@ if (typeof window !== 'undefined') {
   window.recursiveUpdatesFixer = recursiveUpdatesFixer;
 
   // Auto-start monitoring in development
-  if (import.meta.env.DEV) {
+  if (true) {
     recursiveUpdatesFixer.startMonitoring();
   }
 

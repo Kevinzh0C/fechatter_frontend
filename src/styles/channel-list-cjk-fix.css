@@ -1,0 +1,363 @@
+/* 🏷️ Channel List CJK Font Fix - 频道列表CJK字体修复
+ * 确保频道列表中的中文、日语、韩语内容正确显示
+ * 解决频道名称、用户消息预览等字体问题
+ */
+
+:root {
+  /* 🎯 频道列表专用字体变量 */
+  --channel-list-cjk-font: var(--font-family-unified-cjk, 
+    -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei',
+    'Hiragino Kaku Gothic ProN', 'Yu Gothic Medium',
+    'Apple SD Gothic Neo', 'Malgun Gothic',
+    'Noto Sans CJK SC', 'Noto Sans CJK JP', 'Noto Sans CJK KR',
+    'Helvetica Neue', Arial, sans-serif);
+  
+  /* 📐 频道列表专用排版参数 */
+  --channel-list-letter-spacing: 0.01em;
+  --channel-list-line-height: 1.4;
+  --channel-list-font-weight: 500;
+  
+  /* 🎯 NEW: 频道列表专用字体大小 */
+  --channel-name-font-size: 14px;
+  --channel-message-preview-font-size: 12px;
+  --channel-section-title-font-size: 12px;
+}
+
+/* 🎯 频道列表整体字体 */
+.channel-list {
+  font-family: var(--channel-list-cjk-font) !important;
+  letter-spacing: var(--channel-list-letter-spacing) !important;
+  line-height: var(--channel-list-line-height) !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+  text-rendering: optimizeLegibility !important;
+}
+
+/* 🏷️ 频道名称字体优化 */
+.channel-item .name-text,
+.channel-name .name-text,
+.channel-title {
+  font-family: var(--channel-list-cjk-font) !important;
+  font-size: var(--channel-name-font-size) !important;
+  letter-spacing: var(--channel-list-letter-spacing) !important;
+  line-height: var(--channel-list-line-height) !important;
+  font-weight: var(--channel-list-font-weight) !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+  text-rendering: optimizeLegibility !important;
+}
+
+/* 📝 最后消息预览字体优化 - FIXED: 明确字体大小 */
+.last-message,
+.last-message .message-sender,
+.last-message .message-content {
+  font-family: var(--channel-list-cjk-font) !important;
+  font-size: var(--channel-message-preview-font-size) !important;
+  letter-spacing: var(--channel-list-letter-spacing) !important;
+  line-height: var(--channel-list-line-height) !important;
+  font-weight: normal !important;
+  -webkit-font-smoothing: antialiased !important;
+  text-rendering: optimizeLegibility !important;
+}
+
+/* 🎭 分组标题字体优化 */
+.section-title,
+.section-toggle,
+.section-header {
+  font-family: var(--channel-list-cjk-font) !important;
+  font-size: var(--channel-section-title-font-size) !important;
+  letter-spacing: var(--channel-list-letter-spacing) !important;
+  -webkit-font-smoothing: antialiased !important;
+  text-rendering: optimizeLegibility !important;
+}
+
+/* 🔤 特定语言优化 */
+
+/* 🇯🇵 日语频道名称优化 */
+.channel-item .name-text:lang(ja),
+.channel-item .name-text[lang="ja"],
+.channel-name[lang="ja"],
+.channel-title:lang(ja),
+.channel-title[lang="ja"] {
+  font-family: var(--japanese-channel-font-family, 
+    'Hiragino Kaku Gothic ProN', 'Yu Gothic Medium', 'Meiryo', 
+    'Source Han Sans JP', 'Noto Sans CJK JP', -apple-system, BlinkMacSystemFont, sans-serif) !important;
+  letter-spacing: 0.025em !important;
+  line-height: 1.6 !important;
+  font-weight: 500 !important;
+  word-break: keep-all !important;
+  overflow-wrap: break-word !important;
+}
+
+/* 🇨🇳 中文频道名称优化 */
+.channel-item .name-text:lang(zh),
+.channel-item .name-text[lang="zh"],
+.channel-item .name-text[lang="zh-CN"],
+.channel-item .name-text[lang="zh-Hans"],
+.channel-name[lang="zh"],
+.channel-title:lang(zh),
+.channel-title[lang="zh-CN"] {
+  font-family: var(--font-family-chinese-simplified, 
+    'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 
+    'Source Han Sans SC', 'Noto Sans CJK SC', -apple-system, BlinkMacSystemFont, sans-serif) !important;
+  letter-spacing: 0.01em !important;
+  line-height: 1.65 !important;
+  font-weight: 500 !important;
+}
+
+/* 🇰🇷 韩语频道名称优化 */
+.channel-item .name-text:lang(ko),
+.channel-item .name-text[lang="ko"],
+.channel-name[lang="ko"],
+.channel-title:lang(ko) {
+  font-family: var(--font-family-korean, 
+    'Apple SD Gothic Neo', 'Malgun Gothic', 'Source Han Sans KR', 
+    'Noto Sans CJK KR', -apple-system, BlinkMacSystemFont, sans-serif) !important;
+  letter-spacing: 0.015em !important;
+  line-height: 1.6 !important;
+  font-weight: 500 !important;
+}
+
+/* 📱 直接消息 (DM) 字体优化 */
+.dm-item .name-text,
+.dm-name,
+.user-name {
+  font-family: var(--channel-list-cjk-font) !important;
+  font-size: var(--channel-name-font-size) !important;
+  letter-spacing: var(--channel-list-letter-spacing) !important;
+  line-height: var(--channel-list-line-height) !important;
+  font-weight: var(--channel-list-font-weight) !important;
+  -webkit-font-smoothing: antialiased !important;
+  text-rendering: optimizeLegibility !important;
+}
+
+/* 👥 群组名称字体优化 */
+.group-item .name-text,
+.group-name {
+  font-family: var(--channel-list-cjk-font) !important;
+  font-size: var(--channel-name-font-size) !important;
+  letter-spacing: var(--channel-list-letter-spacing) !important;
+  line-height: var(--channel-list-line-height) !important;
+  font-weight: var(--channel-list-font-weight) !important;
+  -webkit-font-smoothing: antialiased !important;
+  text-rendering: optimizeLegibility !important;
+}
+
+/* 🎨 消息预览中的CJK内容优化 - FIXED: 明确字体大小 */
+.last-message .message-content:lang(ja),
+.last-message .message-content[lang="ja"] {
+  font-family: var(--japanese-channel-font-family) !important;
+  font-size: var(--channel-message-preview-font-size) !important;
+  letter-spacing: 0.025em !important;
+  line-height: 1.6 !important;
+  font-weight: normal !important;
+}
+
+.last-message .message-content:lang(zh),
+.last-message .message-content[lang="zh"],
+.last-message .message-content[lang="zh-CN"] {
+  font-family: var(--font-family-chinese-simplified) !important;
+  font-size: var(--channel-message-preview-font-size) !important;
+  letter-spacing: 0.01em !important;
+  line-height: 1.65 !important;
+  font-weight: normal !important;
+}
+
+.last-message .message-content:lang(ko),
+.last-message .message-content[lang="ko"] {
+  font-family: var(--font-family-korean) !important;
+  font-size: var(--channel-message-preview-font-size) !important;
+  letter-spacing: 0.015em !important;
+  line-height: 1.6 !important;
+  font-weight: normal !important;
+}
+
+/* 🚨 强制应用修复类 */
+.channel-list-cjk-optimized,
+.force-channel-cjk-font {
+  font-family: var(--channel-list-cjk-font) !important;
+  letter-spacing: var(--channel-list-letter-spacing) !important;
+  line-height: var(--channel-list-line-height) !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+  text-rendering: optimizeLegibility !important;
+}
+
+/* 🔧 确保emoji修复不影响频道列表 */
+.channel-list .emoji-2x:lang(ja),
+.channel-list .emoji-2x:lang(zh),
+.channel-list .emoji-2x:lang(ko),
+.channel-item .emoji-2x[lang="ja"],
+.channel-item .emoji-2x[lang="zh"],
+.channel-item .emoji-2x[lang="ko"] {
+  font-size: inherit !important;
+  line-height: inherit !important;
+  margin: 0 !important;
+  display: inline !important;
+  vertical-align: baseline !important;
+  font-family: inherit !important;
+}
+
+/* 🎯 NEW: 更精确的频道列表消息预览控制 */
+.channel-item .last-message,
+.dm-item .last-message,
+.group-item .last-message {
+  font-size: var(--channel-message-preview-font-size) !important;
+  font-weight: normal !important;
+  line-height: 1.4 !important;
+  color: rgba(255, 255, 255, 0.6) !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.channel-item .last-message .message-sender,
+.dm-item .last-message .message-sender,
+.group-item .last-message .message-sender {
+  font-size: var(--channel-message-preview-font-size) !important;
+  font-weight: 500 !important;
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.channel-item .last-message .message-content,
+.dm-item .last-message .message-content,
+.group-item .last-message .message-content {
+  font-size: var(--channel-message-preview-font-size) !important;
+  font-weight: normal !important;
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.channel-item .last-message .message-time,
+.dm-item .last-message .message-time,
+.group-item .last-message .message-time {
+  font-size: 11px !important;
+  font-weight: normal !important;
+  color: rgba(255, 255, 255, 0.4) !important;
+}
+
+/* 📱 响应式频道列表字体优化 */
+@media (max-width: 768px) {
+  :root {
+    --channel-list-letter-spacing: 0.015em;
+    --channel-list-line-height: 1.5;
+  }
+  
+  .channel-item .name-text {
+    font-size: 15px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --channel-list-letter-spacing: 0.02em;
+    --channel-list-line-height: 1.6;
+  }
+  
+  .channel-item .name-text {
+    font-size: 16px !important;
+  }
+}
+
+/* 🌙 暗色主题频道列表优化 */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --channel-list-font-weight: 450; /* 暗色主题下稍微增加字重 */
+  }
+  
+  .channel-list,
+  .channel-item .name-text {
+    -webkit-font-smoothing: subpixel-antialiased !important;
+  }
+}
+
+/* 🖨️ 高分辨率屏幕优化 */
+@media (min-resolution: 2dppx) {
+  .channel-list,
+  .channel-item .name-text {
+    -webkit-font-smoothing: subpixel-antialiased !important;
+    text-rendering: geometricPrecision !important;
+  }
+}
+
+/* 🎯 高对比度模式 */
+@media (prefers-contrast: high) {
+  :root {
+    --channel-list-font-weight: 600;
+  }
+  
+  .channel-item .name-text {
+    letter-spacing: calc(var(--channel-list-letter-spacing) + 0.005em) !important;
+  }
+}
+
+/* 🚨 CRITICAL: 最高优先级重置 - 确保消息预览不被放大 */
+.channel-item .last-message,
+.channel-item .last-message *,
+.dm-item .last-message,
+.dm-item .last-message *,
+.group-item .last-message,
+.group-item .last-message * {
+  font-size: 12px !important;
+  font-weight: normal !important;
+  line-height: 1.4 !important;
+  margin: 0 !important;
+  display: inline !important;
+  vertical-align: baseline !important;
+}
+
+/* 🚨 CRITICAL: 防止emoji、数字、符号优化影响频道列表 */
+.channel-list .emoji-2x,
+.channel-list *[class*="emoji"],
+.channel-list .numbers-not-emoji,
+.channel-list .symbols-not-emoji,
+.channel-list .ascii-not-emoji,
+.channel-item .emoji-2x,
+.channel-item *[class*="emoji"],
+.channel-item .numbers-not-emoji,
+.channel-item .symbols-not-emoji,
+.channel-item .ascii-not-emoji,
+.dm-item .emoji-2x,
+.dm-item *[class*="emoji"],
+.dm-item .numbers-not-emoji,
+.dm-item .symbols-not-emoji,
+.dm-item .ascii-not-emoji,
+.group-item .emoji-2x,
+.group-item *[class*="emoji"],
+.group-item .numbers-not-emoji,
+.group-item .symbols-not-emoji,
+.group-item .ascii-not-emoji {
+  font-size: inherit !important;
+  line-height: inherit !important;
+  margin: 0 !important;
+  display: inline !important;
+  vertical-align: baseline !important;
+}
+
+/* 🎯 频道名称明确控制 */
+.channel-item .name-text,
+.dm-item .name-text,
+.group-item .name-text {
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  line-height: 1.4 !important;
+}
+
+/* 📝 消息预览明确控制 */
+.channel-item .last-message .message-sender {
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.channel-item .last-message .message-content {
+  font-size: 12px !important;
+  font-weight: normal !important;
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.channel-item .last-message .message-time {
+  font-size: 11px !important;
+  font-weight: normal !important;
+  color: rgba(255, 255, 255, 0.4) !important;
+} 

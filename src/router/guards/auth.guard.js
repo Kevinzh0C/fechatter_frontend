@@ -23,25 +23,62 @@ export function createAuthGuard(router) {
   router.beforeEach(async (to, from, next) => {
     const authStore = useAuthStore();
     
+    // 🔧 CRITICAL FIX: 检测logout状态，避免在logout过程中干扰导航
+    if (authStore.logoutState?.isLoggingOut) {
+      if (true) {
+        console.log('🚪 [AUTH_GUARD] Logout in progress, allowing navigation without checks');
+      }
+      return next();
+    }
+    
     // 等待认证初始化完成
     if (!authStore.isInitialized) {
       await authStore.initialize();
     }
     
     const isPublicRoute = publicRoutes.includes(to.path) || to.meta.public === true;
-    const isAuthenticated = authStore.isLoggedIn;
+    // 🔧 CRITICAL FIX: 使用统一的认证状态检查
+    const isAuthenticated = authStore.isAuthenticated;
     
     // 记录导航
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`🔒 Auth Guard: ${from.path} → ${to.path}`, {
-      isPublicRoute,
-      isAuthenticated,
-      requiresAuth: requiresAuth(to)
-    });
+        isPublicRoute,
+        isAuthenticated,
+        requiresAuth: requiresAuth(to),
+        logoutInProgress: authStore.logoutState?.isLoggingOut,
+        hasToken: !!authStore.token,
+        hasUser: !!authStore.user
+      });
+    }
     
-    // 已登录用户访问登录/注册页面，重定向到首页
+    // 🔧 ENHANCED: 已登录用户访问登录/注册页面，重定向到首页
+    // 但避免重定向循环
     if (isAuthenticated && (to.path === '/login' || to.path === '/register')) {
-      return next('/home');
+      // 🔧 NEW: 额外检查防止重定向循环
+      if (from.path === '/home' || from.path === '/') {
+        if (true) {
+          console.warn('🔒 [AUTH_GUARD] Potential redirect loop detected, allowing navigation');
+        }
+        return next();
+      }
+      
+      // 额外验证认证状态
+      const hasValidToken = !!authStore.token;
+      const hasValidUser = !!authStore.user;
+      
+      if (hasValidToken && hasValidUser && to.path !== '/home') {
+        if (true) {
+          console.log('🔒 [AUTH_GUARD] Authenticated user redirected from login to home');
+        }
+        return next('/home');
+      } else {
+        // 认证状态不一致，可能是logout过程中，允许访问login
+        if (true) {
+          console.log('🔒 [AUTH_GUARD] Auth state inconsistent, allowing login access');
+        }
+        return next();
+      }
     }
     
     // 未登录用户访问需要认证的页面
@@ -52,15 +89,16 @@ export function createAuthGuard(router) {
     }
     
     // 检查会话超时
-    if (isAuthenticated && authStore.checkSessionTimeout()) {
-      if (import.meta.env.DEV) {
+    if (isAuthenticated && authStore.checkSessionTimeout && authStore.checkSessionTimeout()) {
+      if (true) {
         console.log('⏰ Session timeout detected');
+      }
       await authStore.logout();
       return next('/login');
     }
     
     // 更新最后活动时间
-    if (isAuthenticated) {
+    if (isAuthenticated && authStore.updateLastActivity) {
       authStore.updateLastActivity();
     }
     
@@ -77,6 +115,7 @@ export function createAuthGuard(router) {
     const defaultTitle = 'Fechatter';
     document.title = to.meta.title ? `${to.meta.title} - ${defaultTitle}` : defaultTitle;
   });
+}
 
 /**
  * 路由元数据助手

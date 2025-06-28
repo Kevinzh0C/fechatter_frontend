@@ -1,0 +1,291 @@
+###
+### 🖼️ THUMBNAIL LOADING DIAGNOSTIC - REST API TESTS
+### Based on systematic analysis of image loading failure root causes
+### 
+### 📊 ERROR CLASSIFICATION:
+### 🌐 Network: Connection timeout, DNS failure, ngrok issues, CORS violations
+### 🖥️ Server: 404 not found, 403 forbidden, 502/503 unavailable, 401 unauthorized  
+### 💻 Client: Invalid URL generation, missing auth headers, component state issues, cache corruption
+###
+
+### 🔧 VARIABLES SETUP
+@ngrokUrl = https://ca90-45-77-178-85.ngrok-free.app
+@localUrl = http://localhost:5173
+@directServer = http://45.77.178.85:8080
+@workspaceId = 2
+
+# Test files from screenshot analysis
+@testFile1 = 60c155658fcb1ef14145b5c9e359a571c504b8e1a7449d9965f720d3c1eebb68.png
+@testFile2 = 5ec998139f871694521fe2c26a66f3060005cbd1a3b93598f367ead9d05dbb3.webp
+
+# URL patterns based on fileUrlHandler.js analysis
+@staticUrl1 = /files/{{workspaceId}}/60c/155/{{testFile1}}
+@staticUrl2 = /files/{{workspaceId}}/5ec/998/{{testFile2}}
+
+###
+### 📍 STEP 1: VERIFY NGROK TUNNEL STATUS
+### Test if ngrok tunnel is working and accessible
+###
+
+GET {{ngrokUrl}}/health
+ngrok-skip-browser-warning: true
+Accept: application/json
+
+### Expected: 200 OK (if health endpoint exists) or 404 (if no health endpoint but server accessible)
+
+###
+### 📍 STEP 2: TEST STATIC FILE ACCESS - DIRECT NGROK
+### Test the high-performance static file URLs through ngrok tunnel
+###
+
+# Test PNG file
+GET {{ngrokUrl}}{{staticUrl1}}
+ngrok-skip-browser-warning: true
+Accept: image/png
+
+### Expected: 200 OK with image/png content-type
+### Root cause if fails: Server file missing, nginx config issue, or ngrok tunnel problem
+
+###
+
+# Test WebP file  
+GET {{ngrokUrl}}{{staticUrl2}}
+ngrok-skip-browser-warning: true
+Accept: image/webp
+
+### Expected: 200 OK with image/webp content-type
+### Root cause if fails: File format not supported or missing file
+
+###
+### 📍 STEP 3: TEST VIA LOCAL DEV SERVER (VITE PROXY)
+### Test if Vite dev server proxy is correctly forwarding requests
+###
+
+# Test via local development server proxy
+GET {{localUrl}}{{staticUrl1}}
+Accept: image/png
+
+### Expected: 200 OK - Vite should proxy to ngrok
+### Root cause if fails: Vite proxy configuration issue or ngrok unreachable
+
+###
+
+# Test API endpoint proxy
+GET {{localUrl}}/api/files/download/{{testFile1}}
+Accept: image/png
+Authorization: Bearer test_token
+
+### Expected: 401 Unauthorized (authentication required)
+### Root cause if fails: API routing issue or server down
+
+###
+### 📍 STEP 4: VERIFY FILE EXISTENCE ON SERVER
+### Test if files actually exist in expected locations
+###
+
+# Check file with HEAD request (faster than GET)
+HEAD {{ngrokUrl}}{{staticUrl1}}
+ngrok-skip-browser-warning: true
+
+### Expected: 200 OK with content-length header
+### Root cause if fails: File doesn't exist at expected path
+
+###
+
+HEAD {{ngrokUrl}}{{staticUrl2}}
+ngrok-skip-browser-warning: true
+
+### Expected: 200 OK with content-length header
+
+###
+### 📍 STEP 5: TEST CORS AND SECURITY HEADERS
+### Verify CORS configuration for frontend access
+###
+
+OPTIONS {{ngrokUrl}}{{staticUrl1}}
+ngrok-skip-browser-warning: true
+Origin: http://localhost:5173
+Access-Control-Request-Method: GET
+Access-Control-Request-Headers: content-type
+
+### Expected: 200 OK with proper CORS headers
+### Root cause if fails: CORS not configured for static files
+
+###
+### 📍 STEP 6: TEST DIRECT SERVER ACCESS (BYPASS NGROK)
+### Test if the issue is with ngrok tunnel specifically
+###
+
+GET {{directServer}}{{staticUrl1}}
+Accept: image/png
+
+### Expected: Connection error (server not directly accessible) or 200 OK
+### Root cause if fails: Network firewall or server config issue
+
+###
+### 📍 STEP 7: TEST AUTHENTICATED API DOWNLOAD
+### Test the authenticated download endpoint
+###
+
+GET {{ngrokUrl}}/api/files/download/{{testFile1}}
+ngrok-skip-browser-warning: true
+Accept: image/png
+Authorization: Bearer invalid_token
+
+### Expected: 401 Unauthorized (working auth system)
+### Root cause if fails: API endpoint not configured
+
+###
+### 📍 STEP 8: TEST URL GENERATION VARIATIONS
+### Test different URL formats to identify format issues
+###
+
+# Test without workspace ID (should fail or redirect)
+GET {{ngrokUrl}}/files/{{testFile1}}
+ngrok-skip-browser-warning: true
+
+### Expected: 404 Not Found
+### Root cause if success: URL generation logic incorrect
+
+###
+
+# Test with wrong workspace ID
+GET {{ngrokUrl}}/files/999/60c/155/{{testFile1}}
+ngrok-skip-browser-warning: true
+
+### Expected: 404 Not Found
+### Root cause if success: Security issue - cross-workspace access
+
+###
+
+# Test legacy URL format
+GET {{ngrokUrl}}/files/{{workspaceId}}/{{testFile1}}
+ngrok-skip-browser-warning: true
+
+### Expected: 404 Not Found (hash structure required)
+### Root cause if success: Both URL formats supported
+
+###
+### 📍 STEP 9: TEST SYMLINK SYSTEM
+### Verify the symlink system is working
+###
+
+# Test symlink file that should exist
+GET {{ngrokUrl}}/files/def456789.png
+ngrok-skip-browser-warning: true
+
+### Expected: 200 OK (symlink working)
+### Root cause if fails: Symlink system not working
+
+###
+### 📍 STEP 10: PERFORMANCE AND CACHE TESTING  
+### Test download performance and caching behavior
+###
+
+# Test with cache headers
+GET {{ngrokUrl}}{{staticUrl1}}
+ngrok-skip-browser-warning: true
+If-None-Match: "*"
+Cache-Control: no-cache
+
+### Expected: 200 OK with proper cache headers
+### Check: Cache-Control, ETag, Last-Modified headers
+
+###
+
+# Test partial content (range requests)
+GET {{ngrokUrl}}{{staticUrl1}}
+ngrok-skip-browser-warning: true
+Range: bytes=0-1023
+
+### Expected: 206 Partial Content or 200 OK
+### Root cause if fails: Server doesn't support range requests
+
+###
+### 📍 STEP 11: ERROR SIMULATION TESTS
+### Test various error conditions
+###
+
+# Test non-existent file
+GET {{ngrokUrl}}/files/{{workspaceId}}/xxx/yyy/nonexistent.png
+ngrok-skip-browser-warning: true
+
+### Expected: 404 Not Found
+### Root cause if different: Error handling issue
+
+###
+
+# Test malformed URL
+GET {{ngrokUrl}}/files/{{workspaceId}}/invalid-hash-format.png
+ngrok-skip-browser-warning: true
+
+### Expected: 404 Not Found
+### Root cause if different: URL validation issue
+
+###
+### 📍 STEP 12: FRONTEND SIMULATION TESTS
+### Simulate actual frontend requests
+###
+
+# Test with browser-like headers (simulate EnhancedImageThumbnail component)
+GET {{ngrokUrl}}{{staticUrl1}}
+ngrok-skip-browser-warning: true
+Accept: image/webp,image/avif,image/jxl,image/heic,image/heic-sequence,video/*,*/*;q=0.8
+Accept-Encoding: gzip, deflate, br
+Accept-Language: en-US,en;q=0.9
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36
+Referer: http://localhost:5173/
+
+### Expected: 200 OK with correct content-type
+### Root cause if fails: Server rejects browser requests
+
+###
+
+# Test with fetch API headers (simulate component fetch)
+GET {{ngrokUrl}}{{staticUrl1}}
+ngrok-skip-browser-warning: true
+Accept: */*
+Origin: http://localhost:5173
+Sec-Fetch-Dest: image
+Sec-Fetch-Mode: cors
+Sec-Fetch-Site: cross-site
+
+### Expected: 200 OK
+### Root cause if fails: CORS issue with Sec-Fetch headers
+
+###
+### 📊 DIAGNOSTIC ANALYSIS GUIDE
+###
+### ✅ ALL TESTS PASS:
+### - Static file system working perfectly
+### - Frontend should be able to load thumbnails
+### - Issue likely in Vue component logic or state management
+###
+### ❌ NGROK TESTS FAIL (Steps 2-3):
+### - ngrok tunnel down or misconfigured  
+### - Check: ngrok process status, tunnel URL, firewall
+###
+### ❌ STATIC FILE TESTS FAIL (Steps 2, 6):
+### - Files missing from server /app/data/ directory
+### - nginx static serving misconfigured
+### - Check: file permissions, nginx config, docker mounts
+###
+### ❌ CORS TESTS FAIL (Step 5):
+### - Frontend can't access due to CORS policy
+### - Fix: Add CORS headers to nginx static file config
+###
+### ❌ URL FORMAT TESTS REVEAL ISSUES (Steps 8-9):
+### - Frontend generating wrong URL format
+### - Fix: Update fileUrlHandler.js URL generation logic
+###
+### ❌ PERFORMANCE TESTS FAIL (Step 10):
+### - Server not optimized for images
+### - Fix: Add proper caching and compression headers
+###
+### 🔧 NEXT STEPS BASED ON RESULTS:
+### 1. Run this test suite completely
+### 2. Identify failing steps using the diagnostic guide above  
+### 3. Fix root cause based on failure pattern
+### 4. Re-run tests to verify fix
+### 5. Test in actual frontend application
+### 

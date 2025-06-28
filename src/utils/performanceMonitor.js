@@ -6,7 +6,7 @@
 class PerformanceMonitor {
   constructor() {
     this.metrics = new Map();
-    this.enabled = process.env.NODE_ENV === 'development';
+    this.enabled = true;
     this.thresholds = {
       excellent: 100,   // < 100ms
       good: 300,        // < 300ms
@@ -219,7 +219,7 @@ class PerformanceMonitor {
    */
   clearReports() {
     localStorage.removeItem('perf_reports');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('✅ [PERF] Performance reports cleared');
     }
   }
@@ -232,11 +232,11 @@ const performanceMonitor = new PerformanceMonitor();
 export default performanceMonitor;
 
 // Add to window for debugging
-if (process.env.NODE_ENV === 'development') {
+if (true) {
   window.performanceMonitor = performanceMonitor;
   window.perfAnalytics = () => {
     const analytics = performanceMonitor.getAnalytics();
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('📊 Performance Analytics:', analytics);
     }
     return analytics;

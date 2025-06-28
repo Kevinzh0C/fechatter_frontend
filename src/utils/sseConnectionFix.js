@@ -18,7 +18,7 @@ class SSEConnectionFix {
     // Prevent excessive fix attempts
     const now = Date.now();
     if (this.isFixing || (now - this.lastFixTime) < this.fixDebounceMs) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('🔧 SSE fix already in progress or too recent, skipping');
       return false;
     }
@@ -27,7 +27,7 @@ class SSEConnectionFix {
     this.lastFixTime = now;
 
     try {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('🔧 Starting SSE connection fix...');
       }
 
@@ -36,7 +36,7 @@ class SSEConnectionFix {
       let tokens = tokenManager.getTokens();
 
       if (!tokens.accessToken) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.error('❌ No access token available for SSE fix');
         return false;
       }
@@ -46,18 +46,18 @@ class SSEConnectionFix {
       const shouldRefresh = tokenManager.shouldRefreshToken();
 
       if (isExpired || shouldRefresh) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('🔐 Token is expired/expiring, refreshing...');
         }
 
         try {
           await tokenManager.refreshToken();
           tokens = tokenManager.getTokens(); // Get fresh tokens
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log('✅ Token refreshed successfully');
           }
         } catch (refreshError) {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.error('❌ Token refresh failed:', refreshError);
           }
 
@@ -76,33 +76,33 @@ class SSEConnectionFix {
           currentState.connectionState === 'error' ||
           !currentState.isConnected) {
 
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log('🔌 Disconnecting failed SSE connection...');
           service.disconnect();
 
           // Wait a moment before reconnecting
           await new Promise(resolve => setTimeout(resolve, 1000));
 
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log('🔌 Reconnecting SSE with fresh token...');
           await service.connect(tokens.accessToken);
 
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log('✅ SSE connection fix completed');
           return true;
         } else {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log('✅ SSE connection is already healthy');
           return true;
         }
       } else {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.warn('⚠️ SSE service not available');
         return false;
       }
 
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('❌ SSE connection fix failed:', error);
       return false;
     } finally {
@@ -113,7 +113,7 @@ class SSEConnectionFix {
    * Handle authentication failure
    */
   handleAuthFailure() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🔐 Authentication failed, redirecting to login...');
     }
 
@@ -135,7 +135,7 @@ class SSEConnectionFix {
       const tokens = tokenManager.getTokens();
 
       if (!tokens.accessToken) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.error('❌ No token available for SSE test');
         return false;
       }
@@ -147,7 +147,7 @@ class SSEConnectionFix {
 
       const testUrl = `${sseUrl}?access_token=${encodeURIComponent(tokens.accessToken)}`;
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('🧪 Testing SSE endpoint:', sseUrl);
       }
 
@@ -160,21 +160,21 @@ class SSEConnectionFix {
       });
 
       if (response.status === 200) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('✅ SSE endpoint test passed');
         return true;
       } else if (response.status === 401) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.error('❌ SSE endpoint returned 401 - token issue');
         return false;
       } else {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.warn('⚠️ SSE endpoint returned unexpected status:', response.status);
         return false;
       }
 
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('❌ SSE endpoint test failed:', error);
       return false;
     }
@@ -183,7 +183,7 @@ class SSEConnectionFix {
    * Auto-fix SSE connection issues
    */
   async autoFix() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🔧 Running SSE auto-fix...');
     }
 
@@ -191,23 +191,23 @@ class SSEConnectionFix {
     const endpointOk = await this.testSSEEndpoint();
 
     if (!endpointOk) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('🔧 Endpoint test failed, attempting connection fix...');
       const fixResult = await this.fixSSEConnection();
 
       if (fixResult) {
         // Test again after fix
         const retestResult = await this.testSSEEndpoint();
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('🔧 Auto-fix result:', retestResult ? 'SUCCESS' : 'FAILED');
         return retestResult;
       } else {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('🔧 Auto-fix failed');
         return false;
       }
     } else {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('✅ SSE endpoint is healthy, no fix needed');
       return true;
     }
@@ -227,13 +227,13 @@ class SSEConnectionFix {
           state.connectionState !== 'connecting' &&
           state.connectionState !== 'permanently_failed') {
 
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log('🔧 SSE monitoring detected issue, auto-fixing...');
           await this.autoFix();
         }
     }, 30000); // 30 seconds
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('👁️ SSE connection monitoring started');
     }
 
@@ -251,7 +251,7 @@ if (typeof window !== 'undefined') {
     }, 5000); // Start monitoring after 5 seconds
   });
 
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('🔧 SSE Connection Fix loaded - use window.sseConnectionFix');
   }
 

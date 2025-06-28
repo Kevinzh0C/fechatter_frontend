@@ -16,7 +16,8 @@ export class RefactoredMessageService {
     // 🔧 Dependency Injection - No global access
     this.apiClient = dependencies.apiClient;
     this.userDataResolver = dependencies.userDataResolver;
-    this.messageDisplayGuarantee = dependencies.messageDisplayGuarantee;
+    // 🔧 REMOVED: MessageDisplayGuarantee dependency for performance optimization
+    // this.messageDisplayGuarantee = dependencies.messageDisplayGuarantee;
     this.logger = dependencies.logger;
     this.cacheProvider = dependencies.cacheProvider;
 
@@ -224,31 +225,12 @@ export class RefactoredMessageService {
   }
 
   /**
-   * Start message tracking for display guarantee
-   * Single responsibility: Tracking coordination
+   * 🔧 REMOVED: Message tracking for performance optimization
+   * Vue 3 reactive system provides sufficient reliability
    */
   async startMessageTracking(chatId, messages) {
-    if (!this.messageDisplayGuarantee) {
-      this.logger.logMessageFetch(chatId, messages.length, { tracking: 'disabled' });
-      return;
-    }
-
-    try {
-      const messageIds = messages.map(msg => msg.id);
-      const trackingId = await this.messageDisplayGuarantee.startMessageTracking(chatId, messageIds);
-
-      this.logger.logTrackingStart(chatId, messageIds, trackingId);
-
-      return trackingId;
-
-    } catch (error) {
-      this.logger.logTrackingFailure(chatId, {
-        operation: 'startMessageTracking',
-        messageCount: messages.length,
-        error: error.message
-      });
-      // Don't throw - tracking failure shouldn't break message loading
-    }
+    this.logger.logMessageFetch(chatId, messages.length, { tracking: 'disabled_for_performance' });
+    return null;
   }
 
   /**
@@ -265,8 +247,8 @@ export class RefactoredMessageService {
       delete this.messageCache[chatId];
       this.hasMoreByChat.delete(normalizedChatId);
 
-      // Clear tracking contexts
-      const clearedContexts = this.messageDisplayGuarantee.clearTrackingForChat(normalizedChatId);
+      // 🔧 REMOVED: MessageDisplayGuarantee tracking cleanup for performance
+      const clearedContexts = 0;
 
       this.logger.logClearingComplete(chatId, clearedContexts);
 
@@ -412,7 +394,7 @@ export class RefactoredMessageService {
       dependencies: {
         hasApiClient: !!this.apiClient,
         hasUserDataResolver: !!this.userDataResolver,
-        hasMessageDisplayGuarantee: !!this.messageDisplayGuarantee,
+        hasMessageDisplayGuarantee: false, // Disabled for performance
         hasLogger: !!this.logger,
         hasCacheProvider: !!this.cacheProvider
       },
@@ -469,7 +451,7 @@ export class RefactoredMessageService {
         ? ((this.metrics.cacheHits / this.metrics.fetchCount) * 100).toFixed(2) + '%'
         : '0%',
       userResolver: this.userDataResolver?.getMetrics?.() || null,
-      displayGuarantee: this.messageDisplayGuarantee?.getMetrics?.() || null
+      displayGuarantee: null // Disabled for performance
     };
   }
 

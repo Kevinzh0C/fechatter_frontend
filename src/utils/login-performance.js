@@ -3,12 +3,11 @@
  * Simplified Login Performance Utilities
  */
 
-
+// Simplified - use localhost as default since this is performance testing
+const apiHost = 'localhost';
 
 // DNS预取优化
 export const prefetchDNS = () => {
-  const apiHost = import.meta.env.VITE_API_BASE_URL?.replace(/^https?:\/\//, '') || 'localhost';
-
   const link = document.createElement('link');
   link.rel = 'dns-prefetch';
   link.href = `//${apiHost}`;
@@ -30,7 +29,7 @@ export const optimizeLoginPerformance = () => {
     prefetchDNS();
     setupPerformanceMonitoring();
   } catch (error) {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.warn('⚠️ 登录优化失败，继续使用标准流程:', error);
     }
   }
@@ -38,7 +37,7 @@ export const optimizeLoginPerformance = () => {
 
 // 简化版性能分析
 export const analyzeLoginPerformance = () => {
-  if (import.meta.env.DEV) {
+  if (true) {
     const loadTime = performance.timing.loadEventEnd - performance.timing.navigationStart;
     console.log('Login performance:', loadTime + 'ms');
   }

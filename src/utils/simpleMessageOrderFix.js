@@ -5,7 +5,7 @@
 
 class SimpleMessageOrderFix {
   constructor() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🔧 Simple Message Order Fix initialized');
     }
 
@@ -14,31 +14,31 @@ class SimpleMessageOrderFix {
    * 立即修复当前消息排序
    */
   fixNow() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n🔧 FIXING MESSAGE ORDER NOW');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('===========================');
     }
 
     const chatStore = this.getChatStore();
     if (!chatStore) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('❌ Chat store not found');
       return false;
     }
 
     const messages = chatStore.messages || [];
     if (messages.length === 0) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('⚠️ No messages to fix');
       return false;
     }
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`🔧 Current messages: ${messages.length}`);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`   First: ${this.formatTime(messages[0].created_at)} - "${messages[0].content?.substring(0, 30)}..."`);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`   Last:  ${this.formatTime(messages[messages.length - 1].created_at)} - "${messages[messages.length - 1].content?.substring(0, 30)}..."`);
     }
 
@@ -49,18 +49,18 @@ class SimpleMessageOrderFix {
       return timeA - timeB; // Ascending order
     });
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`✅ Fixed messages:`);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`   First: ${this.formatTime(messages[0].created_at)} - "${messages[0].content?.substring(0, 30)}..."`);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`   Last:  ${this.formatTime(messages[messages.length - 1].created_at)} - "${messages[messages.length - 1].content?.substring(0, 30)}..."`);
     }
 
     // Trigger reactivity
     chatStore.messages = [...messages];
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('✅ Message order fixed! Messages now display oldest→newest');
     return true;
   }
@@ -70,15 +70,15 @@ class SimpleMessageOrderFix {
    * 修复所有缓存的消息
    */
   fixAllCaches() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n🔧 FIXING ALL MESSAGE CACHES');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('=============================');
     }
 
     const chatStore = this.getChatStore();
     if (!chatStore) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('❌ Chat store not found');
       return false;
     }
@@ -95,7 +95,7 @@ class SimpleMessageOrderFix {
     Object.keys(messageCache).forEach(chatId => {
       const cache = messageCache[chatId];
       if (cache && cache.messages && cache.messages.length > 0) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log(`🔧 Fixing cache for chat ${chatId} (${cache.messages.length} messages)`);
         }
 
@@ -109,7 +109,7 @@ class SimpleMessageOrderFix {
       }
     });
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`✅ Fixed ${fixCount} message collections`);
     return fixCount > 0;
   }
@@ -119,22 +119,22 @@ class SimpleMessageOrderFix {
    * 验证当前消息顺序
    */
   verify() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n🔍 VERIFYING MESSAGE ORDER');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('==========================');
     }
 
     const chatStore = this.getChatStore();
     if (!chatStore) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('❌ Chat store not found');
       return false;
     }
 
     const messages = chatStore.messages || [];
     if (messages.length < 2) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('⚠️ Not enough messages to verify order');
       return true;
     }
@@ -149,28 +149,28 @@ class SimpleMessageOrderFix {
       if (prevTime > currTime) {
         isCorrect = false;
         violations++;
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log(`❌ Order violation at position ${i}:`);
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log(`   Previous: ${this.formatTime(messages[i - 1].created_at)}`);
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log(`   Current:  ${this.formatTime(messages[i].created_at)}`);
         }
 
     if (isCorrect) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('✅ Message order is CORRECT (oldest→newest)');
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`   First: ${this.formatTime(messages[0].created_at)}`);
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`   Last:  ${this.formatTime(messages[messages.length - 1].created_at)}`);
       }
     } else {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`❌ Message order is WRONG (${violations} violations)`);
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('   Expected: oldest→newest');
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('   Run window.simpleFix.fixNow() to correct');
       }
 
@@ -210,7 +210,7 @@ if (typeof window !== 'undefined') {
     fixAll: () => simpleMessageOrderFix.fixAllCaches(),
     verify: () => simpleMessageOrderFix.verify(),
     run: () => {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('🔧 Running simple message order fix...');
       const result = simpleMessageOrderFix.fixAllCaches();
       simpleMessageOrderFix.verify();
@@ -218,15 +218,15 @@ if (typeof window !== 'undefined') {
     }
   };
 
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('🔧 Simple Message Order Fix loaded');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('   Commands:');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('   - window.simpleFix.run() - Fix all and verify');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('   - window.simpleFix.fix() - Fix current messages');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('   - window.simpleFix.verify() - Check order');
   }
 } 

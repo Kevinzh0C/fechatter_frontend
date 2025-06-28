@@ -89,7 +89,7 @@ export const SSERobustnessGuide = {
     checkGlobalManager: () => {
       if (window.sseGlobalManager) {
         const status = window.sseGlobalManager.getStatus();
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('📊 SSE Global Manager Status:', {
         connections: status.connections.length,
           banned: status.sessionStats.permanentlyBanned.length,
@@ -100,7 +100,7 @@ export const SSERobustnessGuide = {
     checkSSEService: () => {
       if (window.realtimeCommunicationService) {
         const state = window.realtimeCommunicationService.getConnectionState();
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('🔌 SSE Service State:', {
         connected: state.isConnected,
           state: state.state,
@@ -109,25 +109,25 @@ export const SSERobustnessGuide = {
     },
 
     resetConnections: () => {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('🔄 Resetting SSE connections...');
       if (window.realtimeCommunicationService) {
         window.realtimeCommunicationService.disconnect();
       if (window.sseGlobalManager) {
         window.sseGlobalManager.reset();
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('✅ SSE connections reset');
       }
 };
 
 // Expose for debugging
-if (typeof window !== 'undefined' && import.meta.env.DEV) {
+if (typeof window !== 'undefined' && true) {
   window.sseRobustness = SSERobustnessGuide;
 
   console.log('🛡️ SSE Robustness Guide loaded');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('Use window.sseRobustness for documentation and monitoring');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('Quick check: window.sseRobustness.monitoring.checkSSEService()');
   }
 

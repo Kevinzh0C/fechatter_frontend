@@ -6,7 +6,7 @@
 
 class SystemHealthValidator {
   constructor() {
-    this.isEnabled = import.meta.env.DEV;
+    this.isEnabled = true;
     this.validationResults = [];
   }
 
@@ -296,7 +296,7 @@ const systemHealthValidator = new SystemHealthValidator();
 export { systemHealthValidator };
 
 // Make available globally in development
-if (import.meta.env.DEV) {
+if (true) {
   window.systemHealthValidator = systemHealthValidator;
 
   // Add convenient global functions

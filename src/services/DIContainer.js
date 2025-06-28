@@ -112,7 +112,7 @@ class DIContainer {
     // Add global property for easier access
     app.config.globalProperties.$container = this;
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('✅ DIContainer installed into Vue app');
 
       // Add debug helpers
@@ -165,7 +165,7 @@ export function configureServices(container) {
   // container.singleton('api', ApiService);
   // container.factory('eventBus', () => new EventBus());
 
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('🔧 Core services configured');
   }
 }

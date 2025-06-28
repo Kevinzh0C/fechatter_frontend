@@ -7,7 +7,7 @@ async function emergencyAuthFix() {
   console.group('🚨 Emergency Auth Fix');
 
   try {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('1️⃣ Clearing all authentication state...');
     }
 
@@ -25,11 +25,11 @@ async function emergencyAuthFix() {
         localStorage.removeItem(key);
       }
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('✅ Storage cleared');
     }
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('2️⃣ Clearing token manager...');
     }
 
@@ -37,15 +37,15 @@ async function emergencyAuthFix() {
     try {
       const { default: tokenManager } = await import('@/services/tokenManager');
       await tokenManager.clearTokens();
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('✅ Token manager cleared');
       }
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.warn('⚠️ Token manager not available or failed to clear:', error.message);
       }
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('3️⃣ Clearing auth store...');
     }
 
@@ -54,15 +54,15 @@ async function emergencyAuthFix() {
       const { useAuthStore } = await import('@/stores/auth');
       const authStore = useAuthStore();
       authStore.clearAuth();
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('✅ Auth store cleared');
       }
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.warn('⚠️ Auth store not available or failed to clear:', error.message);
       }
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('4️⃣ Disconnecting SSE...');
     }
 
@@ -70,44 +70,44 @@ async function emergencyAuthFix() {
     try {
       if (window.sseConnectionManager) {
         window.sseConnectionManager.disconnect();
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('✅ SSE disconnected');
         }
       } else {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('✅ No SSE connection to disconnect');
         }
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.warn('⚠️ SSE disconnect failed:', error.message);
       }
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('5️⃣ Redirecting to login...');
     }
 
     // Force redirect to login
     const currentPath = window.location.pathname;
     if (currentPath !== '/login' && currentPath !== '/register') {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('🔄 Redirecting to login page...');
       window.location.href = '/login';
     } else {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('✅ Already on login page');
       }
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('✅ Emergency auth fix completed');
     }
 
   } catch (error) {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.error('❌ Emergency auth fix failed:', error);
     }
 
     // Ultimate fallback: hard reload to login
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🔄 Performing hard redirect as fallback...');
     window.location.href = '/login';
   }
@@ -119,7 +119,7 @@ async function emergencyAuthFix() {
  * Quick 401 error suppression
  */
 function quick401Suppression() {
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('🔇 Applying quick 401 error suppression...');
   }
 
@@ -139,11 +139,11 @@ function quick401Suppression() {
       window.logSuppressor.addPattern(pattern);
     });
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('✅ 401 error suppression patterns added');
     }
   } else {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.warn('⚠️ Log suppressor not available');
     }
 
@@ -164,12 +164,12 @@ function isAuthErrorState() {
       const tokenExpiry = authData.tokens?.expiresAt;
 
       if (tokenExpiry && Date.now() > tokenExpiry) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('🔍 Detected expired token');
         return true;
       }
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('🔍 Detected corrupted auth data');
       return true;
     }
@@ -188,18 +188,18 @@ if (typeof window !== 'undefined') {
 
   // Auto-run if in auth error state
   if (isAuthErrorState()) {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🔍 Auth error state detected, auto-running emergency fix in 2 seconds...');
     setTimeout(() => {
       emergencyAuthFix();
     }, 2000);
   }
 
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('🚨 Emergency Auth Fix loaded');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('💡 Use window.emergencyAuthFix() for immediate auth cleanup');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('💡 Use window.quick401Suppression() to suppress 401 noise');
   }
 

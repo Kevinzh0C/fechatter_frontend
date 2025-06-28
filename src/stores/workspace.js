@@ -115,7 +115,7 @@ export const useWorkspaceStore = defineStore('workspace', {
           this.fetchWorkspaceChats().catch(() => [])
         ]);
       } catch (error) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.error('Failed to initialize workspace:', error);
         }
       }

@@ -1,610 +1,904 @@
 <template>
-  <div class="chat-view-container">
-    <!-- 🔥 FULL WIDTH LAYOUT - NO SIDEBAR -->
-    <div class="main-content-container full-width">
-      <!-- Chat Content -->
-      <div class="chat-content-container">
-        <!-- Chat Header -->
-        <div class="chat-header">
-          <div class="chat-header-info">
-            <div class="chat-title">
-              <span class="channel-prefix">#</span>
-              <h1>{{ currentChat?.name || 'Loading...' }}</h1>
-            </div>
-            <div class="chat-description">
-              {{ currentChat?.description || 'Chat channel' }}
-            </div>
-          </div>
-
-          <div class="chat-header-actions elegant">
-            <button class="header-action elegant-search" @click="openPerfectSearch">
-              <!-- 🔍 黄金分割比例搜索图标 -->
-              <svg class="golden-search-icon" width="20" height="20" viewBox="0 0 100 100" fill="none"
-                xmlns="http://www.w3.org/2000/svg">
-                <!-- 主搜索圆环 - 黄金分割比例设计 -->
-                <circle cx="38.2" cy="38.2" r="23.6" stroke="currentColor" stroke-width="6.18" fill="none"
-                  stroke-linecap="round" />
-
-                <!-- 搜索手柄 - 黄金分割角度 -->
-                <line x1="55.9" y1="55.9" x2="76.4" y2="76.4" stroke="currentColor" stroke-width="6.18"
-                  stroke-linecap="round" />
-
-                <!-- 精致内部高光效果 -->
-                <circle cx="32.4" cy="32.4" r="4.8" fill="currentColor" opacity="0.3" />
-              </svg>
-              <span class="action-text">Search</span>
-            </button>
-            <button class="header-action elegant-btn" @click="openChatSettings">
-              <Icon name="settings" class="action-icon" />
-            </button>
-          </div>
+  <div class="chat-content-container">
+    <!-- Chat Header -->
+    <div class="chat-header">
+      <div class="chat-header-info">
+        <div class="chat-title">
+          <span v-if="currentChat?.chat_type === 'PublicChannel'" class="channel-prefix">#</span>
+          <span v-else-if="currentChat?.chat_type === 'PrivateChannel'" class="channel-prefix">🔒</span>
+          <h1>{{ getDisplayChatName() }}</h1>
         </div>
-
-        <!-- Messages Container -->
-        <div class="messages-container" :class="{ 'has-input-preview': hasInputPreview }">
-          <!-- 🔥 DISCORD MESSAGE SYSTEM -->
-          <DiscordMessageList v-if="currentChatId" :chat-id="currentChatId" :current-user-id="authStore.user?.id || 0"
-            :messages="chatStore.messages" :loading="chatStore.loading" :has-more-messages="chatStore.hasMoreMessages"
-            :typing-users="[]" @load-more-messages="handleLoadMoreMessages"
-            @user-profile-opened="handleUserProfileOpened" @dm-created="handleDMCreated" @reply-to="handleReplyTo"
-            @edit-message="handleEditMessage" @delete-message="handleDeleteMessage"
-            @scroll-position-changed="handleScrollPositionChanged"
-            @reading-position-updated="handleReadingPositionUpdated" />
-          <div v-else class="messages-loading">
-            <div class="loading-spinner"></div>
-            <div class="loading-text">Loading chat messages...</div>
-          </div>
-        </div>
-
-        <!-- Message Input -->
-        <div class="input-container">
-          <MessageInput v-if="currentChatId" :chat-id="currentChatId" :current-user-id="authStore.user?.id || 0"
-            @message-sent="handleMessageSent" @error="handleMessageError" class="message-input" />
-          <div v-else class="loading-input">
-            <div class="loading-message">Loading chat...</div>
-          </div>
+        <div class="chat-description">
+          {{ getDisplayChatDescription() }}
         </div>
       </div>
 
-      <!-- Perfect Search Modal -->
-      <PerfectSearchModal v-if="showPerfectSearch" :is-open="showPerfectSearch" :chat-id="currentChatId"
-        @close="handlePerfectSearchClose" @navigate="handlePerfectSearchNavigate" />
-
-      <!-- Member Management Modal -->
-      <div v-if="showMemberManagement" class="chat-modal-overlay" @click="showMemberManagement = false">
-        <div class="chat-modal chat-modal-large" @click.stop>
-          <div class="chat-modal-header">
-            <h3>Manage Members</h3>
-            <button class="chat-modal-close" @click="showMemberManagement = false">×</button>
-          </div>
-          <div class="chat-modal-content">
-            <MemberManagement :chat-id="currentChatId" :chat="currentChat" @member-updated="handleMemberUpdated" />
-          </div>
-        </div>
+      <div class="chat-header-actions elegant">
+        <button class="header-action elegant-search" @click="openPerfectSearch">
+          <svg class="golden-search-icon" width="20" height="20" viewBox="0 0 100 100" fill="none">
+            <circle cx="38.2" cy="38.2" r="23.6" stroke="currentColor" stroke-width="6.18" fill="none" stroke-linecap="round" />
+            <line x1="55.9" y1="55.9" x2="76.4" y2="76.4" stroke="currentColor" stroke-width="6.18" stroke-linecap="round" />
+            <circle cx="32.4" cy="32.4" r="4.8" fill="currentColor" opacity="0.3" />
+          </svg>
+          <span class="action-text">Search</span>
+        </button>
+        <button class="header-action elegant-btn" @click="openChatSettings">
+          <Icon name="settings" class="action-icon" />
+        </button>
       </div>
-
-      <!-- ChatSettings Modal -->
-      <div v-if="showChatSettings" class="chat-modal-overlay" @click="showChatSettings = false">
-        <div class="chat-modal" @click.stop>
-          <div class="chat-modal-header">
-            <h3>Chat Settings</h3>
-            <button class="chat-modal-close" @click="showChatSettings = false">×</button>
-          </div>
-          <div class="chat-modal-content">
-            <ChatSettings :chat="currentChat" @close="showChatSettings = false" @save="handleChatSettingsUpdate" />
-          </div>
-        </div>
-      </div>
-
-      <!-- UserProfileModal -->
-      <UserProfile v-if="selectedUserProfile" :user="selectedUserProfile" @close="selectedUserProfile = null"
-        @dm-created="handleDMCreated" />
-
-      <!-- Translation Panel -->
-      <TranslationPanel v-if="activeTranslationPanel && translationPanelMessage" :visible="!!activeTranslationPanel"
-        :message="translationPanelMessage" :position="getOptimalTranslationPanelPosition()"
-        @close="handleTranslationPanelClose" @translated="handleTranslationCompleted"
-        @applied="handleTranslationApplied" />
     </div>
+
+    <!-- Messages Container -->
+    <div class="messages-container" :class="{ 'has-input-preview': hasInputPreview }">
+      <!-- Discord Message List Component -->
+      <DiscordMessageList 
+        v-if="currentChatId" 
+        :chat-id="currentChatId" 
+        :current-user-id="authStore.user?.id || 0"
+        :messages="chatStore.messages" 
+        :loading="chatStore.loading" 
+        :has-more-messages="chatStore.hasMoreMessages"
+        :typing-users="[]" 
+        @load-more-messages="handleLoadMoreMessages"
+        @user-profile-opened="handleUserProfileOpened" 
+        @dm-created="handleDMCreated" 
+        @reply-to="handleReplyTo"
+        @edit-message="handleEditMessage" 
+        @delete-message="handleDeleteMessage"
+        @scroll-position-changed="handleScrollPositionChanged"
+        @reading-position-updated="handleReadingPositionUpdated" 
+      />
+      <div v-else class="messages-loading">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Loading chat messages...</div>
+      </div>
+    </div>
+
+    <!-- Message Input -->
+    <div class="input-container">
+      <MessageInput 
+        v-if="currentChatId" 
+        :chat-id="currentChatId" 
+        :current-user-id="authStore.user?.id || 0"
+        @message-sent="handleMessageSent" 
+        @error="handleMessageError" 
+        class="message-input" 
+      />
+      <div v-else class="loading-input">
+        <div class="loading-message">Loading chat...</div>
+      </div>
+    </div>
+
+    <!-- Perfect Search Modal -->
+    <PerfectSearchModal 
+      v-if="showPerfectSearch" 
+      :is-open="showPerfectSearch" 
+      :chat-id="currentChatId"
+      @close="handlePerfectSearchClose" 
+      @navigate="handlePerfectSearchNavigate" 
+    />
+
+    <!-- Member Management Modal -->
+    <div v-if="showMemberManagement" class="chat-modal-overlay" @click="showMemberManagement = false">
+      <div class="chat-modal chat-modal-large" @click.stop>
+        <div class="chat-modal-header">
+          <h3>Manage Members</h3>
+          <button class="chat-modal-close" @click="showMemberManagement = false">×</button>
+        </div>
+        <div class="chat-modal-content">
+          <MemberManagement :chat-id="currentChatId" :chat="currentChat" @member-updated="handleMemberUpdated" />
+        </div>
+      </div>
+    </div>
+
+    <!-- ChatSettings Modal -->
+    <div v-if="showChatSettings" class="chat-modal-overlay" @click="showChatSettings = false">
+      <div class="chat-modal" @click.stop>
+        <div class="chat-modal-header">
+          <h3>Chat Settings</h3>
+          <button class="chat-modal-close" @click="showChatSettings = false">×</button>
+        </div>
+        <div class="chat-modal-content">
+          <ChatSettings :chat="currentChat" @close="showChatSettings = false" @save="handleChatSettingsUpdate" />
+        </div>
+      </div>
+    </div>
+
+    <!-- UserProfileModal -->
+    <UserProfile 
+      v-if="selectedUserProfile" 
+      :user="selectedUserProfile" 
+      @close="selectedUserProfile = null"
+      @dm-created="handleDMCreated" 
+    />
+
+    <!-- Translation Panel -->
+    <TranslationPanel 
+      v-if="activeTranslationPanel && translationPanelMessage" 
+      :visible="!!activeTranslationPanel"
+      :message="translationPanelMessage" 
+      :position="getOptimalTranslationPanelPosition()"
+      @close="handleTranslationPanelClose" 
+      @translated="handleTranslationCompleted"
+      @applied="handleTranslationApplied" 
+    />
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import { useAuthStore } from '@/stores/auth';
-import { useChatStore } from '@/stores/chat';
-import { useMessageUIStore } from '@/stores/messageUI';
-import minimalSSE from '@/services/sse-minimal';
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth.js'
+import { useChatStore } from '@/stores/chat.js'
+import { useMessageUIStore } from '@/stores/messageUI.js'
+import minimalSSE from '@/services/sse-minimal.js'
 
-// Components
-import Icon from '@/components/icons/BaseIcon.vue';
-import MessageInput from '@/components/chat/MessageInput/index.vue';
-import DiscordMessageList from '@/components/discord/DiscordMessageList.vue';
-import MemberManagement from '@/components/chat/MemberManagement.vue';
-import ChatSettings from '@/components/chat/ChatSettings.vue';
-import UserProfile from '@/components/modals/UserProfile.vue';
-import PerfectSearchModal from '@/components/search/PerfectSearchModal.vue';
-import TranslationPanel from '@/components/chat/TranslationPanel.vue';
+// Components - reusing existing components
+import Icon from '@/components/icons/BaseIcon.vue'
+import MessageInput from '@/components/chat/MessageInput/index.vue'
+import DiscordMessageList from '@/components/discord/DiscordMessageList.vue'
+import MemberManagement from '@/components/chat/MemberManagement.vue'
+import ChatSettings from '@/components/chat/ChatSettings.vue'
+import UserProfile from '@/components/modals/UserProfile.vue'
+import PerfectSearchModal from '@/components/search/PerfectSearchModal.vue'
+import TranslationPanel from '@/components/chat/TranslationPanel.vue'
 
 // Router and stores
-const route = useRoute();
-const router = useRouter();
-const authStore = useAuthStore();
-const chatStore = useChatStore();
-const messageUIStore = useMessageUIStore();
+const route = useRoute()
+const router = useRouter()
+const authStore = useAuthStore()
+const chatStore = useChatStore()
+const messageUIStore = useMessageUIStore()
 
-// State - 🔧 CRITICAL FIX: Initialize with route param or safe default
+// State - core chat functionality
 const initChatId = () => {
-  const routeId = route.params.id;
+  const routeId = route.params.id
   if (routeId && !isNaN(parseInt(routeId))) {
-    return parseInt(routeId);
+    return parseInt(routeId)
   }
-  console.warn('⚠️ Invalid or missing chat ID in route:', routeId);
-  return null; // Will trigger loading state until proper ID is set
-};
-const currentChatId = ref(initChatId());
-const selectedUserProfile = ref(null);
-const replyToMessage = ref(null);
-const showPerfectSearch = ref(false);
-const showMemberManagement = ref(false);
-const showChatSettings = ref(false);
-const hasInputPreview = ref(false);
-const selectedTranslationPanel = ref(null);
+  console.warn('⚠️ Invalid or missing chat ID in route:', routeId)
+  return null
+}
 
-// Computed
-const currentChat = computed(() => chatStore.getCurrentChat);
+const currentChatId = ref(initChatId())
+const selectedUserProfile = ref(null)
+const replyToMessage = ref(null)
+const showPerfectSearch = ref(false)
+const showMemberManagement = ref(false)
+const showChatSettings = ref(false)
+const hasInputPreview = ref(false)
+
+// Computed - with safe fallbacks
+const currentChat = computed(() => chatStore.getCurrentChat)
 
 // Translation panel integration
-const activeTranslationPanel = computed(() => messageUIStore.activeTranslationPanel);
+const activeTranslationPanel = computed(() => messageUIStore.activeTranslationPanel)
 const translationPanelMessage = computed(() => {
-  if (!activeTranslationPanel.value) return null;
-  const messageId = activeTranslationPanel.value.messageId;
-  return chatStore.messages.find(msg => msg.id === messageId);
-});
+  if (!activeTranslationPanel.value) return null
+  const messageId = activeTranslationPanel.value.messageId
+  return chatStore.messages.find(msg => msg.id === messageId)
+})
 
-// 🔧 OPTIMIZED: Prevent infinite loading loops
-let loadingInProgress = false;
+// Optimized loading prevention
+let loadingInProgress = false
 
-// 🔥 DISCORD MESSAGE LIST EVENT HANDLERS
+// 🚨 DISABLED: Route-level scroll enforcement system
+// 原因：与DiscordMessageList和UnifiedScrollManager产生竞争条件
+// 解决方案：让专门的滚动组件全权负责滚动管理
+let routeScrollEnforcementDisabled = true; // 🔴 PERMANENTLY DISABLED
+let routeScrollEnforcementPaused = false;
+let routeScrollPauseReason = '';
+let routeScrollPausedForChat = null;
+
+// Global pause/resume functions for UnifiedScrollManager integration (kept for compatibility)
+window.pauseRouteScrollEnforcement = (chatId, reason) => {
+  routeScrollEnforcementPaused = true;
+  routeScrollPauseReason = reason;
+  routeScrollPausedForChat = chatId;
+  console.log(`🚨 [ROUTE SCROLL] PAUSED for chat ${chatId} - reason: ${reason} (DISABLED)`);
+};
+
+window.resumeRouteScrollEnforcement = (chatId) => {
+  if (routeScrollPausedForChat === chatId || !routeScrollPausedForChat) {
+    routeScrollEnforcementPaused = false;
+    routeScrollPauseReason = '';
+    routeScrollPausedForChat = null;
+    console.log(`🚨 [ROUTE SCROLL] RESUMED for chat ${chatId} (DISABLED)`);
+  }
+};
+
+// Discord Message List Event Handlers
 const handleLoadMoreMessages = async () => {
-  // 🔧 CRITICAL FIX: Prevent infinite loops
   if (!currentChatId.value || chatStore.loading || !chatStore.hasMoreMessages || loadingInProgress) {
     console.log('⏸️ Load more blocked:', {
       chatId: currentChatId.value,
       loading: chatStore.loading,
       hasMore: chatStore.hasMoreMessages,
       inProgress: loadingInProgress
-    });
-    return;
+    })
+    // 🎯 CRITICAL: 返回一个resolved Promise，避免undefined.then错误
+    return Promise.resolve([])
   }
 
-  loadingInProgress = true;
+  loadingInProgress = true
 
   try {
-    console.log('📥 Loading more messages for chat:', currentChatId.value);
-    await chatStore.fetchMoreMessages(currentChatId.value);
+    console.log('📥 Loading more messages for chat:', currentChatId.value)
+    const result = await chatStore.fetchMoreMessages(currentChatId.value)
+    // 🎯 CRITICAL: 返回实际结果供API生命周期检测器使用
+    return result || []
   } catch (error) {
-    console.error('Failed to load more messages:', error);
+    console.error('Failed to load more messages:', error)
+    // 🎯 CRITICAL: 错误情况下也要返回Promise，避免undefined.then错误
+    throw error
   } finally {
-    // 🔧 Reset loading flag after delay to prevent rapid calls
     setTimeout(() => {
-      loadingInProgress = false;
-    }, 500);
+      loadingInProgress = false
+    }, 500)
   }
-};
+}
 
 const handleUserProfileOpened = (user) => {
-  selectedUserProfile.value = user;
-};
+  selectedUserProfile.value = user
+}
 
 const handleDMCreated = async (chat) => {
-  console.log('🔥 DM Created:', chat);
-
-  // Close user profile modal
-  selectedUserProfile.value = null;
+  console.log('🔥 DM Created:', chat)
+  selectedUserProfile.value = null
 
   if (chat && chat.id) {
     try {
-      // 🔧 SIMPLIFIED: Just use router.push, handleChannelSelected will handle message loading
-      await router.push(`/chat/${chat.id}`);
-      console.log('✅ Successfully navigated to DM:', chat.id);
+      await router.push(`/chat/${chat.id}`)
+      console.log('✅ Successfully navigated to DM:', chat.id)
     } catch (error) {
-      console.error('❌ Failed to navigate to DM:', error);
-      // Fallback: Force reload with new URL
-      window.location.href = `/chat/${chat.id}`;
+      console.error('❌ Failed to navigate to DM:', error)
+      window.location.href = `/chat/${chat.id}`
     }
   } else {
-    console.error('❌ Invalid chat object received:', chat);
+    console.error('❌ Invalid chat object received:', chat)
   }
-};
+}
 
 const handleReplyTo = (message) => {
-  replyToMessage.value = message;
-};
+  replyToMessage.value = message
+}
 
 const handleEditMessage = (message) => {
-  console.log('Edit message:', message.id);
-};
+  console.log('Edit message:', message.id)
+}
 
 const handleDeleteMessage = (message) => {
-  console.log('Delete message:', message.id);
-};
+  console.log('Delete message:', message.id)
+}
 
 const handleScrollPositionChanged = (position) => {
-  console.log('Scroll position changed:', position);
-};
+  console.log('Scroll position changed:', position)
+}
 
 const handleReadingPositionUpdated = (position) => {
-  console.log('Reading position updated:', position);
-};
+  console.log('Reading position updated:', position)
+}
 
-// 🚀 CRITICAL FIX: SSE Listener Lifecycle Management
+// SSE Listener Lifecycle Management - Redesigned for stability
 const ensureSSEListeners = async () => {
   try {
-    console.log('🔗 Ensuring SSE listeners are properly configured...');
+    console.log('🔗 [Chat.vue] Ensuring SSE listeners for real-time chat...')
 
-    // Check if MinimalSSE service is available
-    if (!minimalSSE) {
-      console.error('❌ MinimalSSE service not available');
-      return false;
+    // 🔧 CRITICAL: Multi-layer authentication check
+    const authChecks = {
+      isAuthenticated: authStore.isAuthenticated,
+      hasToken: !!authStore.token,
+      hasUser: !!authStore.user,
+      tokenLength: authStore.token?.length || 0,
+      userId: authStore.user?.id
     }
 
-    // Check SSE connection status
-    const sseStatus = minimalSSE.getStatus?.() || {};
-    console.log('📡 SSE Status:', sseStatus);
+    console.log('🔍 [SSE] Authentication status:', authChecks)
+
+    if (!authChecks.isAuthenticated || !authChecks.hasToken || !authChecks.hasUser) {
+      console.warn('⚠️ [SSE] Incomplete authentication state, skipping SSE connection', authChecks)
+      return false
+    }
+
+    // 🔧 ENHANCED: Check if we're actually in a chat context
+    if (!currentChatId.value) {
+      console.log('ℹ️ [SSE] No current chat ID, deferring SSE connection until chat is loaded')
+      return false
+    }
+
+    if (!minimalSSE) {
+      console.error('❌ MinimalSSE service not available')
+      return false
+    }
+
+    const sseStatus = minimalSSE.getStatus?.() || {}
+    console.log('📡 [SSE] Current status:', sseStatus)
 
     if (!sseStatus.connected) {
-      console.warn('⚠️ SSE not connected, attempting to establish connection...');
+      console.log('🚀 [SSE] Initiating connection for chat context...')
 
-      // Try to get token and connect
-      const token = authStore.token;
-      if (token) {
-        minimalSSE.connect(token);
-        console.log('🔄 SSE connection attempt initiated');
-        console.log('📡 [SSE] Using token:', token.substring(0, 20) + '...');
-
-        // Wait a moment for connection to establish
-        await new Promise(resolve => setTimeout(resolve, 1000));
-      } else {
-        console.error('❌ No access token available for SSE connection');
-        return false;
+      // 🔧 ENHANCED: Comprehensive token validation
+      const token = authStore.token
+      const tokenValidation = {
+        exists: !!token,
+        isString: typeof token === 'string',
+        hasLength: token?.length > 30, // JWT tokens are typically longer
+        hasJWTFormat: token?.includes('.') && token?.split('.').length === 3,
+        notExpired: true // We'll trust the authStore for now
       }
-    }
 
-    // Check if message listeners are registered
-    const listeners = minimalSSE.listeners;
-    if (listeners && listeners.get) {
-      const messageListeners = listeners.get('message') || [];
-      console.log(`📨 Current message listeners: ${messageListeners.length}`);
+      console.log('🔍 [SSE] Token validation:', tokenValidation)
 
-      if (messageListeners.length === 0) {
-        console.warn('⚠️ No message listeners found, setting up SSE message listeners...');
+      const isValidToken = Object.values(tokenValidation).every(Boolean)
+      if (!isValidToken) {
+        console.error('❌ [SSE] Token validation failed', tokenValidation)
+        return false
+      }
 
-        // Re-setup SSE message listeners through chat store
-        if (chatStore.setupSSEMessageListeners) {
-          chatStore.setupSSEMessageListeners();
-          console.log('✅ SSE message listeners re-registered');
-
-          // Verify listeners were added
-          const verifyListeners = listeners.get('message') || [];
-          console.log(`🔍 Verification: ${verifyListeners.length} message listeners now registered`);
-
-          if (verifyListeners.length === 0) {
-            console.error('❌ Failed to register SSE message listeners');
-            return false;
-          }
+      try {
+        console.log('🔌 [SSE] Connecting with validated token for real-time chat updates...')
+        
+        // 🔧 NEW: Add connection timeout
+        const connectionPromise = minimalSSE.connect(token)
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('SSE connection timeout')), 10000)
+        )
+        
+        await Promise.race([connectionPromise, timeoutPromise])
+        console.log('✅ [SSE] Connection attempt completed')
+        
+        // 🔧 ENHANCED: Verify connection with multiple checks
+        await new Promise(resolve => setTimeout(resolve, 1500)) // Longer stabilization
+        
+        const finalStatus = minimalSSE.getStatus?.() || {}
+        const isConnected = finalStatus.connected && minimalSSE.isConnected
+        
+        if (isConnected) {
+          console.log('✅ [SSE] Real-time connection verified and ready for chat')
+          return true
         } else {
-          console.error('❌ chatStore.setupSSEMessageListeners not available');
-          return false;
+          console.warn('⚠️ [SSE] Connection completed but verification failed', finalStatus)
+          return false
         }
-      } else {
-        console.log('✅ SSE message listeners already configured');
+      } catch (error) {
+        console.error('❌ [SSE] Connection failed:', error.message || error)
+        return false
       }
     } else {
-      console.error('❌ SSE listeners interface not available');
-      return false;
+      console.log('✅ [SSE] Already connected and ready for real-time updates')
+      return true
     }
 
-    console.log('✅ SSE listeners lifecycle management completed successfully');
-    return true;
+    const listeners = minimalSSE.listeners
+    if (listeners && listeners.get) {
+      const messageListeners = listeners.get('message') || []
+      console.log(`📨 Current message listeners: ${messageListeners.length}`)
+
+      if (messageListeners.length === 0) {
+        console.warn('⚠️ No message listeners found, setting up SSE message listeners...')
+
+        if (chatStore.setupSSEMessageListeners) {
+          chatStore.setupSSEMessageListeners()
+          console.log('✅ SSE message listeners re-registered')
+
+          const verifyListeners = listeners.get('message') || []
+          console.log(`🔍 Verification: ${verifyListeners.length} message listeners now registered`)
+
+          if (verifyListeners.length === 0) {
+            console.error('❌ Failed to register SSE message listeners')
+            return false
+          }
+        } else {
+          console.error('❌ chatStore.setupSSEMessageListeners not available')
+          return false
+        }
+      } else {
+        console.log('✅ SSE message listeners already configured')
+      }
+    } else {
+      console.error('❌ SSE listeners interface not available')
+      return false
+    }
+
+    console.log('✅ SSE listeners lifecycle management completed successfully')
+    return true
 
   } catch (error) {
-    console.error('❌ Error in SSE listeners lifecycle management:', error);
-    return false;
+    console.error('❌ Error in SSE listeners lifecycle management:', error)
+    return false
   }
-};
+}
 
 // Chat management
 const handleChannelSelected = async (chatId) => {
-  if (!chatId) return;
+  if (!chatId) return
 
-  // 🔧 CRITICAL FIX: Use navigateToChat instead of setCurrentChat
-  // This ensures messages are properly loaded for all chats including DMs
-  currentChatId.value = parseInt(chatId);
+  const numericChatId = parseInt(chatId)
+  currentChatId.value = numericChatId
+  chatStore.currentChatId = numericChatId
 
   try {
-    await chatStore.navigateToChat(parseInt(chatId));
-    console.log('✅ Successfully navigated to chat with messages loaded:', chatId);
+    console.log('🎯 [Chat.vue] Navigating to chat:', chatId)
+    await chatStore.navigateToChat(numericChatId)
+    console.log('✅ Successfully navigated to chat with messages loaded:', chatId)
+    
+    // 🔴 DISABLED: Route-level scroll to bottom enforcement
+    // 让DiscordMessageList组件自主决定滚动行为
+    console.log('🔴 [IRON LAW] Route change scroll enforcement DISABLED - delegating to DiscordMessageList')
+    
+    // 🎯 ALTERNATIVE: 发送建议信号而不是强制滚动
+    const routeChangeSuggestion = new CustomEvent('fechatter:suggest-scroll-to-bottom', {
+      detail: { 
+        chatId: numericChatId,
+        source: 'Chat.vue-route-watch',
+        reason: 'route_change_suggestion',
+        priority: 'medium' // 中等优先级建议
+      }
+    })
+    window.dispatchEvent(routeChangeSuggestion)
+    console.log('💡 [Chat.vue] Sent route change scroll suggestion to DiscordMessageList');
+    
+    // 🔴 LEGACY: Route scroll enforcement (DISABLED)
+    const enforceRouteScrollToBottom = async () => {
+      if (routeScrollEnforcementDisabled) {
+        console.log('🔴 [IRON LAW] Route scroll enforcement permanently disabled');
+        return;
+      }
+      
+      // 🚨 LEGACY CODE (将在下个版本删除)
+      console.log('⚠️ [IRON LAW] Route scroll enforcement is deprecated');
+    }
+    
+    await enforceRouteScrollToBottom()
+    
+    // Then ensure SSE is connected for the new chat context
+    // Add a small delay to let chat context settle
+    setTimeout(async () => {
+      const sseConnected = await ensureSSEListeners()
+      if (sseConnected) {
+        console.log('✅ [Chat.vue] SSE verified for new chat context:', numericChatId)
+      } else {
+        console.warn('⚠️ [Chat.vue] SSE connection issue for chat:', numericChatId)
+      }
+      
+      // 🔴 DISABLED: Final enforcement after SSE setup
+      // 发送最终建议而不是强制滚动
+      setTimeout(() => {
+        const finalSuggestionEvent = new CustomEvent('fechatter:suggest-scroll-to-bottom', {
+          detail: { 
+            chatId: numericChatId,
+            source: 'Chat.vue-final',
+            reason: 'post_sse_suggestion',
+            priority: 'low' // 低优先级最终建议
+          }
+        })
+        window.dispatchEvent(finalSuggestionEvent)
+        console.log('💡 [Chat.vue] Final route change suggestion completed')
+      }, 100)
+    }, 300)
   } catch (error) {
-    console.error('Failed to switch chat:', error);
+    console.error('Failed to switch chat:', error)
   }
-};
+}
 
+// Event handlers
 const openPerfectSearch = () => {
-  showPerfectSearch.value = true;
-};
+  showPerfectSearch.value = true
+}
 
 const openChatSettings = () => {
-  showChatSettings.value = true;
-};
+  showChatSettings.value = true
+}
 
 const handleMemberUpdated = () => {
-  console.log('Member updated');
-};
+  console.log('Member updated')
+}
 
 const handleChatSettingsUpdate = () => {
-  console.log('Chat settings updated');
-  showChatSettings.value = false;
-};
+  console.log('Chat settings updated')
+  showChatSettings.value = false
+}
 
 // Translation Panel Event Handlers
 const handleTranslationPanelClose = () => {
-  console.log('🌐 Translation panel closed');
-  messageUIStore.closeTranslationPanel();
-};
+  console.log('🌐 Translation panel closed')
+  messageUIStore.closeTranslationPanel()
+}
 
 const handleTranslationCompleted = (translationResult) => {
-  console.log('🌐 Translation completed:', translationResult);
-  // Additional logic if needed
-};
+  console.log('🌐 Translation completed:', translationResult)
+}
 
 const handleTranslationApplied = (applicationResult) => {
-  console.log('🌐 Translation applied:', applicationResult);
-  // Additional logic if needed - e.g., update message content
-};
+  console.log('🌐 Translation applied:', applicationResult)
+}
 
-// Date formatting utility
-const formatMessageDate = (dateString) => {
-  if (!dateString) return '';
-  const date = new Date(dateString);
-  return date.toLocaleString();
-};
+// Chat display utilities
+const getDisplayChatName = () => {
+  if (!currentChatId.value) return 'Loading...'
+  
+  if (!currentChat.value) {
+    const chat = chatStore.getChatById(currentChatId.value)
+    if (chat) {
+      return chat.display_name || chat.name || `Chat ${currentChatId.value}`
+    }
+    return 'Loading...'
+  }
+  
+  return currentChat.value.display_name || currentChat.value.name || `Chat ${currentChatId.value}`
+}
 
-// 🔧 ENHANCED: Handle message sending with advanced file upload support
+const getDisplayChatDescription = () => {
+  if (!currentChatId.value) return 'Loading chat...'
+  
+  if (!currentChat.value) return 'Loading chat information...'
+  
+  if (currentChat.value.description) {
+    return currentChat.value.description
+  }
+  
+  switch (currentChat.value.chat_type) {
+    case 'PublicChannel':
+      return 'Public channel'
+    case 'PrivateChannel':
+      return 'Private channel'
+    case 'Single':
+      return 'Direct message'
+    case 'Group':
+      return 'Group chat'
+    default:
+      return 'Chat channel'
+  }
+}
+
+// Enhanced message sending with file upload support
 const handleMessageSent = async (messageData) => {
   if (!currentChatId.value) {
-    console.error('❌ No chat ID available for handling sent message');
-    return;
+    console.error('❌ No chat ID available for handling sent message')
+    return
   }
 
   try {
     console.log('📨 [Chat.vue] Processing message for sending:', {
       chatId: currentChatId.value,
       content: messageData.content || '(empty)',
+      contentLength: messageData.content?.length || 0,
+      contentTrimmed: messageData.content?.trim() || '(empty)',
+      contentTrimmedLength: messageData.content?.trim()?.length || 0,
       filesCount: messageData.files?.length || 0,
-      hasFiles: messageData.files?.length > 0
-    });
+      hasFiles: messageData.files?.length > 0,
+      messageData: messageData
+    })
 
-    // 🚀 Enhanced: Use different methods based on whether files are present
+    // 🔧 BACKEND ALIGNED: Backend requires content to be non-empty even with files
+    // 注意：不要再次trim，因为MessageInput可能已经添加了必要的空格
+    const contentToSend = messageData.content || '';
+    const hasValidContent = contentToSend.length > 0;
+    const hasValidFiles = messageData.files && messageData.files.length > 0;
+
+    // 🔧 BACKEND REQUIREMENT: Content must always be non-empty
+    if (!hasValidContent) {
+      console.error('❌ [Chat.vue] Message validation failed: Empty content not allowed', {
+        originalContent: messageData.content,
+        contentToSend: contentToSend,
+        files: messageData.files,
+        backendRequirement: 'Content must be 1-4000 characters even with files'
+      })
+      emit('error', {
+        type: 'validation',
+        message: hasValidFiles 
+          ? 'Message content is required even with files (backend requirement)'
+          : 'Message content cannot be empty'
+      })
+      return
+    }
+
+    if (contentToSend.length > 4000) {
+      console.error('❌ [Chat.vue] Message validation failed: Content too long', {
+        contentLength: contentToSend.length,
+        maxLength: 4000
+      })
+      emit('error', {
+        type: 'validation', 
+        message: 'Message content must be less than 4000 characters'
+      })
+      return
+    }
+
     const sendOptions = {
       formatMode: messageData.formatMode,
       replyTo: messageData.reply_to,
       mentions: messageData.mentions
-    };
+    }
 
-    let result;
+    let result
 
-    if (messageData.files && messageData.files.length > 0) {
-      // 🚀 NEW: Use enhanced file message system with progress tracking
-      console.log('📤 [Chat.vue] Sending message with files using enhanced system');
+    if (hasValidFiles) {
+      console.log('📤 [Chat.vue] Sending message with files using enhanced system', {
+        content: contentToSend,
+        contentLength: contentToSend.length,
+        filesCount: messageData.files.length
+      })
 
       result = await chatStore.sendMessageWithFiles(
-        messageData.content || '',
-        messageData.files, // Pass raw File objects, not URLs
+        contentToSend, // 🔧 Use validated content
+        messageData.files,
         sendOptions
-      );
+      )
 
       console.log('✅ [Chat.vue] File message sent with enhanced system:', {
         messageId: result?.message?.id,
         filesUploaded: result?.message?.files?.length || 0
-      });
+      })
 
-    } else {
-      // 🚀 Use regular message system for text-only messages
-      console.log('📨 [Chat.vue] Sending text-only message');
+    } else if (hasValidContent) {
+      console.log('📨 [Chat.vue] Sending text-only message', {
+        content: contentToSend,
+        contentLength: contentToSend.length
+      })
 
-      result = await chatStore.sendMessage(messageData.content, sendOptions);
+      result = await chatStore.sendMessage(contentToSend, sendOptions) // 🔧 Use validated content
 
       console.log('✅ [Chat.vue] Text message sent:', {
         messageId: result?.message?.id
-      });
+      })
+    } else {
+      console.error('❌ [Chat.vue] No valid content or files to send')
+      return
     }
 
-    // Clear reply state on success
-    replyToMessage.value = null;
-
-    return result;
+    replyToMessage.value = null
+    return result
 
   } catch (error) {
-    console.error('❌ [Chat.vue] Failed to send message:', error);
+    console.error('❌ [Chat.vue] Failed to send message:', error)
+    
+    // 🔧 Enhanced error handling with more specific messages
+    let errorMessage = 'Failed to send message'
+    if (error.response?.status === 400) {
+      const errorData = error.response.data
+      if (errorData.message?.includes('content')) {
+        errorMessage = 'Message content validation failed'
+      } else if (errorData.message?.includes('file')) {
+        errorMessage = 'File validation failed'
+      } else {
+        errorMessage = errorData.message || 'Invalid request'
+      }
+    } else if (error.response?.status === 401) {
+      errorMessage = 'Authentication failed. Please login again.'
+    } else if (error.response?.status === 403) {
+      errorMessage = 'You do not have permission to send messages in this chat'
+    } else if (error.response?.status >= 500) {
+      errorMessage = 'Server error. Please try again later.'
+    }
 
-    // Show user-friendly error message
-    handleMessageError(`发送消息失败: ${error.message}`);
-    throw error;
+    emit('error', {
+      type: 'send_failed',
+      message: errorMessage,
+      error
+    })
+    
+    throw error
   }
-};
+}
 
-// 🚀 NEW: Handle errors from MessageInput
+// Handle errors from MessageInput
 const handleMessageError = (errorMessage) => {
-  console.error('❌ [Chat.vue] MessageInput error:', errorMessage);
+  console.error('❌ [Chat.vue] MessageInput error:', errorMessage)
 
-  // 显示用户友好的错误消息
   if (typeof window !== 'undefined' && window.showNotification) {
-    window.showNotification(errorMessage, 'error');
+    window.showNotification(errorMessage, 'error')
   } else {
-    // Fallback notification
-    alert(errorMessage);
+    alert(errorMessage)
   }
-};
+}
 
-// Lifecycle
+// Lifecycle - Optimized for SSE stability
 onMounted(async () => {
-  console.log('🔥 Chat.vue mounted - Discord system');
+  console.log('🔥 [Chat.vue] Chat component mounted - initializing real-time system')
 
-  // 🚀 CRITICAL FIX: Ensure SSE listeners are properly set up
-  await ensureSSEListeners();
+  try {
+    // Step 1: Initialize chat store foundation
+    if (!chatStore.isInitialized) {
+      console.log('🔄 [Chat.vue] Initializing chat store...')
+      await chatStore.initialize()
+    }
 
-  // 🔧 FIXED: Simplified logic - currentChatId is already set by initChatId()
-  const chatId = route.params.id;
+    // Step 2: Load chat list for navigation
+    if (chatStore.chats.length === 0) {
+      console.log('🔄 [Chat.vue] Fetching chats for sidebar...')
+      await chatStore.fetchChats()
+    }
 
-  // Only log the final state, don't duplicate validation
-  if (currentChatId.value) {
-    console.log('✅ Valid chat ID confirmed on mount:', currentChatId.value);
-    await handleChannelSelected(currentChatId.value);
-  } else {
-    console.warn('⚠️ No valid chat ID available on mount, route param:', chatId);
+    console.log('✅ [Chat.vue] Chat store ready, chats loaded:', chatStore.chats.length)
+
+    // Step 3: Setup current chat context
+    const chatId = route.params.id
+    if (currentChatId.value) {
+      console.log('✅ [Chat.vue] Valid chat ID confirmed on mount:', currentChatId.value)
+      chatStore.currentChatId = currentChatId.value
+      await handleChannelSelected(currentChatId.value)
+    } else {
+      console.warn('⚠️ [Chat.vue] No valid chat ID available on mount, route param:', chatId)
+    }
+
+    // Step 4: ONLY NOW attempt SSE connection (after chat context is established)
+    console.log('🔌 [Chat.vue] Chat context ready, setting up real-time connection...')
+    
+    // Add a small delay to ensure all state is stabilized
+    await new Promise(resolve => setTimeout(resolve, 500))
+    
+    const sseConnected = await ensureSSEListeners()
+    if (sseConnected) {
+      console.log('✅ [Chat.vue] Real-time connection established for chat updates')
+    } else {
+      console.warn('⚠️ [Chat.vue] Real-time connection not established, will retry when needed')
+    }
+
+  } catch (error) {
+    console.error('❌ [Chat.vue] Failed to initialize chat system:', error)
   }
 
-  // 🔍 Add Perfect Search keyboard shortcut
-  document.addEventListener('keydown', handleGlobalKeydown);
-});
+  // Step 5: Setup global event listeners
+  document.addEventListener('keydown', handleGlobalKeydown)
+  
+  console.log('🎯 [Chat.vue] Chat component fully initialized and ready')
+})
 
 onUnmounted(() => {
-  console.log('🔥 Chat.vue unmounted');
-  loadingInProgress = false; // Reset on unmount
+  console.log('🔥 Chat.vue unmounted')
+  loadingInProgress = false
+  document.removeEventListener('keydown', handleGlobalKeydown)
+})
 
-  // Remove keyboard event listener
-  document.removeEventListener('keydown', handleGlobalKeydown);
-});
-
-// 🔍 Global keyboard shortcuts
+// Global keyboard shortcuts
 const handleGlobalKeydown = (event) => {
-  // Cmd+K (Mac) or Ctrl+K (Windows/Linux) to open Perfect Search
   if ((event.metaKey || event.ctrlKey) && event.key === 'k') {
-    event.preventDefault();
-    openPerfectSearch();
+    event.preventDefault()
+    openPerfectSearch()
   }
-};
+}
 
-// Watch route changes
+// Watch route changes - Optimized for SSE stability
 watch(
   () => route.params.id,
   async (newChatId) => {
-    // 🚀 CRITICAL FIX: Ensure SSE listeners on route changes
-    await ensureSSEListeners();
+    console.log('🔄 [Chat.vue] Route changed to chat:', newChatId)
 
-    // 🔧 CRITICAL FIX: Use same validation logic as initChatId
     if (newChatId && !isNaN(parseInt(newChatId))) {
-      const validChatId = parseInt(newChatId);
+      const validChatId = parseInt(newChatId)
       if (validChatId !== currentChatId.value) {
-        currentChatId.value = validChatId;
-        loadingInProgress = false; // Reset loading state
-        await handleChannelSelected(validChatId);
+        console.log('🎯 [Chat.vue] Switching chat context from', currentChatId.value, 'to', validChatId)
+        
+        currentChatId.value = validChatId
+        chatStore.currentChatId = validChatId
+        loadingInProgress = false
+        
+        // First switch chat context
+        await handleChannelSelected(validChatId)
+        
+        // 🔴 DISABLED: Route-level scroll to bottom enforcement
+        // 让DiscordMessageList组件自主决定滚动行为
+        console.log('🔴 [IRON LAW] Route change scroll enforcement DISABLED - delegating to DiscordMessageList')
+        
+        // 🎯 ALTERNATIVE: 发送建议信号而不是强制滚动
+        const routeChangeSuggestion = new CustomEvent('fechatter:suggest-scroll-to-bottom', {
+          detail: { 
+            chatId: validChatId,
+            source: 'Chat.vue-route-watch',
+            reason: 'route_change_suggestion',
+            priority: 'medium' // 中等优先级建议
+          }
+        })
+        window.dispatchEvent(routeChangeSuggestion)
+        console.log('💡 [Chat.vue] Sent route change scroll suggestion to DiscordMessageList');
+        
+        // 🔴 LEGACY: Route scroll enforcement (DISABLED)
+        const enforceRouteScrollToBottom = async () => {
+          if (routeScrollEnforcementDisabled) {
+            console.log('🔴 [IRON LAW] Route scroll enforcement permanently disabled');
+            return;
+          }
+          
+          // 🚨 LEGACY CODE (将在下个版本删除)
+          console.log('⚠️ [IRON LAW] Route scroll enforcement is deprecated');
+        }
+        
+        await enforceRouteScrollToBottom()
+        
+        // Then ensure SSE is connected for the new chat context
+        // Add a small delay to let chat context settle
+        setTimeout(async () => {
+          const sseConnected = await ensureSSEListeners()
+          if (sseConnected) {
+            console.log('✅ [Chat.vue] SSE verified for new chat context:', validChatId)
+          } else {
+            console.warn('⚠️ [Chat.vue] SSE connection issue for chat:', validChatId)
+          }
+          
+          // 🔴 DISABLED: Final enforcement after SSE setup
+          // 发送最终建议而不是强制滚动
+          setTimeout(() => {
+            const finalSuggestionEvent = new CustomEvent('fechatter:suggest-scroll-to-bottom', {
+              detail: { 
+                chatId: validChatId,
+                source: 'Chat.vue-final',
+                reason: 'post_sse_suggestion',
+                priority: 'low' // 低优先级最终建议
+              }
+            })
+            window.dispatchEvent(finalSuggestionEvent)
+            console.log('💡 [Chat.vue] Final route change suggestion completed')
+          }, 100)
+        }, 300)
       }
     } else {
-      // Invalid chat ID - set to null to trigger loading state
-      console.warn('⚠️ Invalid chat ID in route watch:', newChatId);
-      currentChatId.value = null;
+      console.warn('⚠️ [Chat.vue] Invalid chat ID in route watch:', newChatId)
+      currentChatId.value = null
+      chatStore.currentChatId = null
     }
   }
-);
-
-// 🔧 Watch currentChatId to ensure it's never null when needed
-watch(currentChatId, (newId) => {
-  if (newId) {
-    console.log('✅ Chat ID set to:', newId);
-  }
-});
+)
 
 // Translation Panel position logic
 const getOptimalTranslationPanelPosition = () => {
-  // 🎯 优化翻译面板位置：右边最高位置，避免遮挡消息区域
   if (typeof window === 'undefined') {
-    return { x: 400, y: 80 }; // SSR fallback
+    return { x: 400, y: 80 }
   }
 
-  const viewportWidth = window.innerWidth;
-  const viewportHeight = window.innerHeight;
-  const panelWidth = 420; // 翻译面板宽度 + margin
-  const panelHeight = 500; // 估算最大高度
-  const topMargin = 80; // 距离顶部的安全距离
-  const rightMargin = 20; // 距离右边的安全距离
-  const messageAreaWidth = Math.min(860, viewportWidth * 0.7); // 消息区域宽度
+  const viewportWidth = window.innerWidth
+  const viewportHeight = window.innerHeight
+  const panelWidth = 420
+  const panelHeight = 500
+  const topMargin = 80
+  const rightMargin = 20
+  const messageAreaWidth = Math.min(860, viewportWidth * 0.7)
 
-  // 计算消息区域的右边界（居中布局）
-  const messageAreaLeft = (viewportWidth - messageAreaWidth) / 2;
-  const messageAreaRight = messageAreaLeft + messageAreaWidth;
+  const messageAreaLeft = (viewportWidth - messageAreaWidth) / 2
+  const messageAreaRight = messageAreaLeft + messageAreaWidth
 
-  // 计算翻译面板的最佳位置
-  let left, top;
+  let left, top
 
-  // 优先放在消息区域右侧
   if (viewportWidth - messageAreaRight >= panelWidth + rightMargin) {
-    // 消息区域右侧有足够空间
-    left = messageAreaRight + 16; // 距离消息区域16px
+    left = messageAreaRight + 16
   } else if (messageAreaLeft >= panelWidth + rightMargin) {
-    // 消息区域左侧有足够空间
-    left = messageAreaLeft - panelWidth - 16;
+    left = messageAreaLeft - panelWidth - 16
   } else {
-    // 屏幕右边显示，即使可能遮挡一部分消息
-    left = viewportWidth - panelWidth - rightMargin;
+    left = viewportWidth - panelWidth - rightMargin
   }
 
-  // 垂直位置：尽可能高，但要考虑header高度
-  top = topMargin;
+  top = topMargin
 
-  // 确保不超出屏幕边界
-  left = Math.max(rightMargin, Math.min(left, viewportWidth - panelWidth - rightMargin));
-  top = Math.max(topMargin, Math.min(top, viewportHeight - panelHeight - 20));
+  left = Math.max(rightMargin, Math.min(left, viewportWidth - panelWidth - rightMargin))
+  top = Math.max(topMargin, Math.min(top, viewportHeight - panelHeight - 20))
 
-  return { x: left, y: top };
-};
+  return { x: left, y: top }
+}
 
 const handlePerfectSearchClose = () => {
-  showPerfectSearch.value = false;
-};
+  showPerfectSearch.value = false
+}
 
 const handlePerfectSearchNavigate = (navigationResult) => {
-  console.log('🎯 Perfect Search navigation:', navigationResult);
-  // 关闭搜索模态框
-  showPerfectSearch.value = false;
+  console.log('🎯 Perfect Search navigation:', navigationResult)
+  showPerfectSearch.value = false
 
-  // 如果需要切换到不同的聊天
   if (navigationResult.chatId && navigationResult.chatId !== currentChatId.value) {
-    router.push(`/chat/${navigationResult.chatId}`);
+    router.push(`/chat/${navigationResult.chatId}`)
   }
+}
 
-  // Perfect Search 已经处理了消息导航，这里只需要处理界面状态
-};
+console.log('✅ Chat.vue fully restored with all components:', currentChatId.value)
 </script>
 
 <style scoped>
-.chat-view-container {
-  display: flex;
-  height: 100vh;
-  overflow: hidden;
-  background-color: #f8f9fa;
-}
-
-.main-content-container {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  background-color: #313338;
-}
-
-.main-content-container.full-width {
-  width: 100%;
-  flex-grow: 1;
-}
-
 .chat-content-container {
   display: flex;
   flex-direction: column;
   height: 100vh;
   max-height: 100vh;
   overflow: hidden;
+  background: #f8f9fa;
 }
 
 .chat-header {
@@ -614,8 +908,6 @@ const handlePerfectSearchNavigate = (navigationResult) => {
   padding: 12px 16px;
   border-bottom: 1px solid #e1e5e9;
   background: white;
-  position: relative;
-  z-index: 10;
   flex-shrink: 0;
 }
 
@@ -637,7 +929,6 @@ const handlePerfectSearchNavigate = (navigationResult) => {
 }
 
 .chat-title h1 {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Source Han Sans CN', 'Noto Sans CJK SC', 'Helvetica Neue', Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   font-size: 18px;
   font-weight: 900;
   color: #1d1c1d;
@@ -645,51 +936,103 @@ const handlePerfectSearchNavigate = (navigationResult) => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  line-height: 1.4;
-  letter-spacing: 0.01em;
-  font-feature-settings: 'liga' 1, 'kern' 1;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
 }
 
 .chat-description {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Source Han Sans CN', 'Noto Sans CJK SC', 'Helvetica Neue', Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   font-size: 13px;
   color: #616061;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  line-height: 1.4;
-  letter-spacing: 0.01em;
-  font-feature-settings: 'liga' 1, 'kern' 1;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
 }
 
-.chat-header-actions.elegant {
+.chat-header-actions {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
 .header-action {
-  background: transparent;
+  background: #f0f0f0;
   border: none;
   border-radius: 6px;
   cursor: pointer;
   display: flex;
   align-items: center;
-  justify-content: center;
-  transition: background-color 0.2s ease, color 0.2s ease;
-  padding: 8px;
+  gap: 6px;
+  padding: 8px 12px;
   color: #616061;
+  transition: all 0.2s ease;
 }
 
 .header-action:hover {
-  background-color: #f0f0f0;
+  background-color: #e8f4fd;
   color: #1d1c1d;
+}
+
+.messages-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 20px;
+}
+
+.messages-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-messages {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #616061;
+  font-size: 14px;
+}
+
+.loading-spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid #e1e5e9;
+  border-top: 3px solid #2563eb;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 12px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.messages-loading {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-text {
+  color: #616061;
+  font-size: 14px;
+}
+
+.input-container {
+  flex-shrink: 0;
+  border-top: 1px solid #e1e5e9;
+  background: white;
+  padding: 16px;
+}
+
+.chat-header-actions.elegant {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .elegant-search {
@@ -706,11 +1049,6 @@ const handlePerfectSearchNavigate = (navigationResult) => {
   box-shadow: 0 4px 12px rgba(0, 122, 255, 0.15);
 }
 
-.elegant-search .action-text {
-  font-weight: 500;
-  font-size: 14px;
-}
-
 .elegant-btn {
   width: 36px;
   height: 36px;
@@ -721,11 +1059,25 @@ const handlePerfectSearchNavigate = (navigationResult) => {
   height: 20px;
 }
 
-.input-container {
-  flex-shrink: 0;
-  border-top: 1px solid #e1e5e9;
-  background: white;
-  padding: 16px;
+.golden-search-icon {
+  transition: all 0.2s ease;
+  color: inherit;
+}
+
+.golden-search-icon:hover {
+  transform: scale(1.1);
+}
+
+.elegant-search:hover .golden-search-icon {
+  color: #007AFF;
+}
+
+.has-input-preview {
+  transform: translateY(-150px);
+}
+
+.message-input {
+  width: 100%;
 }
 
 .loading-input {
@@ -755,68 +1107,6 @@ const handlePerfectSearchNavigate = (navigationResult) => {
   border-top: 2px solid #2563eb;
   border-radius: 50%;
   animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-.messages-loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 200px;
-  color: #616061;
-  background: #f8f9fa;
-  border-radius: 8px;
-  margin: 20px;
-}
-
-.messages-loading .loading-spinner {
-  width: 24px;
-  height: 24px;
-  border: 3px solid #e1e5e9;
-  border-top: 3px solid #2563eb;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 12px;
-}
-
-.messages-loading .loading-text {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.messages-container {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  overflow: hidden;
-}
-
-.messages-container.has-input-preview {
-  transform: translateY(-150px);
-}
-
-.input-container {
-  position: relative;
-  z-index: 10;
-  background: #ffffff;
-  border-top: 1px solid #e5e7eb;
-  padding: 16px;
-}
-
-.message-input {
-  width: 100%;
 }
 
 /* Modals */
@@ -893,19 +1183,5 @@ const handlePerfectSearchNavigate = (navigationResult) => {
   flex: 1;
   overflow-y: auto;
   padding: 24px;
-}
-
-/* 🔍 黄金分割搜索图标样式 */
-.golden-search-icon {
-  transition: all 0.2s ease;
-  color: inherit;
-}
-
-.golden-search-icon:hover {
-  transform: scale(1.1);
-}
-
-.elegant-search:hover .golden-search-icon {
-  color: #007AFF;
 }
 </style>

@@ -4,7 +4,7 @@
  */
 
 // Determine environment
-const env = import.meta.env.MODE || 'development';
+const env = 'development' || 'development';
 const isDev = env === 'development';
 
 const staticConfig = {
@@ -45,7 +45,7 @@ export function isDebugEnabled() {
   return staticConfig.app.debug;
 }
 
-if (import.meta.env.DEV) {
+if (true) {
   console.log('🎛️ Fechatter Static Configuration Loaded');
   console.log('Environment:', staticConfig.app.environment);
 }

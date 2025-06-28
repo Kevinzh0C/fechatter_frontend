@@ -1,0 +1,280 @@
+/* 🇯🇵 Japanese Channel Optimization - 日语频道专项优化
+ * 确保日语内容在频道中舒适、正确、清晰地显示
+ * 专门针对日语频道的字体、间距、排版优化
+ */
+
+:root {
+  /* 🎌 日语频道专用字体参数 */
+  --japanese-channel-font-family: 
+    'Hiragino Kaku Gothic ProN', 
+    'Hiragino Sans', 
+    'Yu Gothic Medium', 
+    'Yu Gothic', 
+    'Meiryo', 
+    'Source Han Sans JP', 
+    'Noto Sans CJK JP', 
+    'MS PGothic',
+    -apple-system, 
+    BlinkMacSystemFont, 
+    sans-serif;
+    
+  /* 📐 日语专用排版参数 - 频道优化 */
+  --japanese-letter-spacing-channel: 0.025em;  /* 频道中日语字符间距 */
+  --japanese-line-height-channel: 1.65;       /* 频道中日语行高 */
+  --japanese-word-spacing: 0.1em;             /* 日语单词间距 */
+  
+  /* 🎨 日语渲染增强 */
+  --japanese-font-synthesis: weight style;     /* 字体合成 */
+  --japanese-font-variant: normal;             /* 字体变体 */
+  --japanese-text-decoration-skip-ink: auto;   /* 文本装饰跳过墨水 */
+}
+
+/* 🏷️ 日语频道标题优化 */
+.channel-title,
+.chat-title,
+h1, h2, h3 {
+  font-family: var(--japanese-channel-font-family) !important;
+  letter-spacing: var(--japanese-letter-spacing-channel) !important;
+  line-height: var(--japanese-line-height-channel) !important;
+  word-spacing: var(--japanese-word-spacing) !important;
+  font-synthesis: var(--japanese-font-synthesis);
+  font-variant: var(--japanese-font-variant);
+  text-decoration-skip-ink: var(--japanese-text-decoration-skip-ink);
+  
+  /* 🎯 日语特殊处理 */
+  word-break: keep-all !important;             /* 保持日语单词完整 */
+  overflow-wrap: break-word !important;        /* 允许长单词换行 */
+  hyphens: none !important;                    /* 禁用连字符 */
+  
+  /* 🌟 视觉增强 */
+  text-rendering: optimizeLegibility !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+}
+
+/* 📝 日语消息内容专项优化 */
+.discord-message-item .content-wrapper,
+.message-content,
+.message-text {
+  font-family: var(--japanese-channel-font-family) !important;
+  letter-spacing: var(--japanese-letter-spacing-channel) !important;
+  line-height: var(--japanese-line-height-channel) !important;
+  word-spacing: var(--japanese-word-spacing) !important;
+  
+  /* 🎯 日语排版专用设置 */
+  word-break: keep-all !important;
+  overflow-wrap: break-word !important;
+  hyphens: none !important;
+  white-space: pre-wrap !important;            /* 保持空白字符 */
+  
+  /* 🌟 渲染优化 */
+  text-rendering: optimizeLegibility !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+  font-feature-settings: 'liga' 1, 'kern' 1, 'palt' 1 !important;
+}
+
+/* 👤 日语用户名优化 */
+.username-button,
+.sender-name {
+  font-family: var(--japanese-channel-font-family) !important;
+  letter-spacing: var(--japanese-letter-spacing-channel) !important;
+  word-break: keep-all !important;
+  overflow-wrap: break-word !important;
+  
+  /* 🎨 用户名特殊处理 */
+  font-weight: 500 !important;
+  text-rendering: optimizeLegibility !important;
+}
+
+/* 🕐 时间戳保持可读性 */
+.message-timestamp,
+time {
+  font-family: var(--japanese-channel-font-family) !important;
+  letter-spacing: normal !important;  /* 时间戳不需要额外间距 */
+}
+
+/* 🎯 特定日语字符优化 */
+
+/* 平假名优化 */
+.content-wrapper :deep(*):lang(ja),
+.content-wrapper :deep([lang="ja"]),
+*:lang(ja),
+[lang="ja"] {
+  font-family: var(--japanese-channel-font-family) !important;
+  letter-spacing: var(--japanese-letter-spacing-channel) !important;
+  line-height: var(--japanese-line-height-channel) !important;
+  word-break: keep-all !important;
+  overflow-wrap: break-word !important;
+}
+
+/* 片假名特殊处理 */
+.katakana-text,
+*[data-script="katakana"] {
+  letter-spacing: 0.03em !important;  /* 片假名需要稍微更大的间距 */
+}
+
+/* 汉字（漢字）处理 */
+.kanji-text,
+*[data-script="kanji"] {
+  letter-spacing: 0.02em !important;  /* 汉字间距适中 */
+  line-height: 1.6 !important;
+}
+
+/* 🔤 日语标点符号优化 */
+.content-wrapper :deep(*):contains('。'),
+.content-wrapper :deep(*):contains('、'),
+.content-wrapper :deep(*):contains('？'),
+.content-wrapper :deep(*):contains('！') {
+  /* 日语标点符号周围的间距处理 */
+  text-spacing: ideograph-alpha ideograph-numeric;
+}
+
+/* 📱 响应式日语优化 */
+@media (max-width: 768px) {
+  :root {
+    --japanese-letter-spacing-channel: 0.03em;  /* 移动端增加间距 */
+    --japanese-line-height-channel: 1.7;        /* 移动端增加行高 */
+  }
+  
+  .discord-message-item .content-wrapper,
+  .message-content {
+    word-break: break-all !important;           /* 移动端允许强制换行 */
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --japanese-letter-spacing-channel: 0.035em; /* 小屏幕进一步增加间距 */
+    --japanese-line-height-channel: 1.75;       /* 小屏幕进一步增加行高 */
+  }
+}
+
+/* 🌙 暗色主题日语优化 */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --japanese-channel-font-family: 
+      'Hiragino Kaku Gothic ProN', 
+      'Yu Gothic Medium',           /* 暗色主题下优先中等字重 */
+      'Yu Gothic', 
+      'Meiryo', 
+      'Source Han Sans JP', 
+      'Noto Sans CJK JP', 
+      'MS PGothic',
+      -apple-system, 
+      BlinkMacSystemFont, 
+      sans-serif;
+  }
+  
+  .discord-message-item .content-wrapper,
+  .message-content,
+  .username-button {
+    -webkit-font-smoothing: subpixel-antialiased !important;
+    font-weight: 450 !important;                /* 暗色主题下稍微增加字重 */
+  }
+}
+
+/* 🖨️ 高分辨率屏幕日语优化 */
+@media (min-resolution: 2dppx) {
+  .discord-message-item .content-wrapper,
+  .message-content,
+  .channel-title {
+    -webkit-font-smoothing: subpixel-antialiased !important;
+    text-rendering: geometricPrecision !important;
+  }
+}
+
+/* 🎯 高对比度模式日语增强 */
+@media (prefers-contrast: high) {
+  .discord-message-item .content-wrapper,
+  .message-content,
+  .username-button {
+    font-weight: 600 !important;                /* 高对比度下增加字重 */
+    letter-spacing: calc(var(--japanese-letter-spacing-channel) + 0.01em) !important;
+  }
+}
+
+/* 🔍 搜索结果中的日语高亮 */
+mark:lang(ja),
+.search-highlight:lang(ja),
+.highlighted-text:lang(ja) {
+  font-family: var(--japanese-channel-font-family) !important;
+  letter-spacing: var(--japanese-letter-spacing-channel) !important;
+  background-color: rgba(255, 235, 59, 0.4) !important; /* 日语高亮稍微加强 */
+  padding: 0.1em 0.3em !important;
+  border-radius: 3px !important;
+}
+
+/* 🎨 日语频道特殊元素 */
+
+/* 表情符号与日语文本的协调 */
+.emoji + *:lang(ja),
+*:lang(ja) + .emoji {
+  margin-left: 0.15em !important;
+  margin-right: 0.15em !important;
+}
+
+/* 日语引用块优化 */
+blockquote:lang(ja),
+.quote-block:lang(ja) {
+  font-family: var(--japanese-channel-font-family) !important;
+  letter-spacing: var(--japanese-letter-spacing-channel) !important;
+  line-height: var(--japanese-line-height-channel) !important;
+  border-left: 3px solid #7c3aed !important;   /* 紫色引用线，与日语匹配 */
+  padding-left: 1em !important;
+  font-style: normal !important;               /* 日语引用不使用斜体 */
+}
+
+/* 日语列表项优化 */
+li:lang(ja),
+.list-item:lang(ja) {
+  font-family: var(--japanese-channel-font-family) !important;
+  letter-spacing: var(--japanese-letter-spacing-channel) !important;
+  line-height: var(--japanese-line-height-channel) !important;
+  margin-bottom: 0.5em !important;             /* 日语列表项间距 */
+}
+
+/* 日语链接优化 */
+a:lang(ja),
+.link:lang(ja) {
+  font-family: inherit !important;
+  letter-spacing: inherit !important;
+  text-decoration: underline !important;
+  text-decoration-color: #7c3aed !important;   /* 紫色下划线 */
+  text-decoration-thickness: 1px !important;
+  text-underline-offset: 0.2em !important;
+}
+
+/* 🚨 强制应用 - 最高优先级 */
+.japanese-channel-optimized,
+.force-japanese-font {
+  font-family: var(--japanese-channel-font-family) !important;
+  letter-spacing: var(--japanese-letter-spacing-channel) !important;
+  line-height: var(--japanese-line-height-channel) !important;
+  word-break: keep-all !important;
+  overflow-wrap: break-word !important;
+  text-rendering: optimizeLegibility !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+}
+
+/* 📝 调试工具（仅开发环境） */
+@media screen and (min-width: 0) {
+  .debug-japanese-font {
+    outline: 1px dashed #7c3aed !important;
+    position: relative;
+  }
+  
+  .debug-japanese-font::after {
+    content: 'JP';
+    position: absolute;
+    top: -1em;
+    right: 0;
+    background: #7c3aed;
+    color: white;
+    padding: 2px 4px;
+    font-size: 10px;
+    border-radius: 2px;
+    font-family: monospace;
+  }
+} 

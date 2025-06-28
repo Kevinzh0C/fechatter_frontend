@@ -1,0 +1,227 @@
+/* 🎯 Scoped Styles Controller - CSS作用域控制器
+ * 确保每个CSS文件只在其负责的页面/组件范围内生效
+ * 防止全局样式污染和冲突
+ * 🚨 CRITICAL: 不要破坏基础功能组件
+ */
+
+/* ===== 🔐 登录页面样式限定 ===== */
+/* 仅在登录页面启用登录相关样式 */
+body:not([data-route="/login"]):not(.login-page):not([data-page="login"]) {
+  /* 禁用登录页面特定的全局样式覆盖 */
+  --login-protection-disabled: true;
+}
+
+/* ===== 🚨 CRITICAL: 保护基础功能组件 ===== */
+/* 确保以下组件在所有页面都能正常工作 */
+
+/* 保护消息输入框 - 在所有页面都必须正常工作 */
+.message-input,
+.message-textarea,
+.input-container,
+.main-input-area,
+.input-btn {
+  /* 防止被重置 - 这些是核心功能 */
+  all: revert-layer !important;
+}
+
+/* 保护滚动条 */
+*::-webkit-scrollbar,
+*::-webkit-scrollbar-track,
+*::-webkit-scrollbar-thumb {
+  /* 防止滚动条被破坏 */
+  all: revert-layer !important;
+}
+
+/* 保护基础布局元素 */
+.messages-container,
+.input-container,
+.chat-layout,
+.chat-content {
+  /* 防止聊天布局被破坏 */
+  all: revert-layer !important;
+}
+
+/* ===== 💬 聊天页面样式限定 - 修复版 ===== */
+/* 仅在聊天页面启用聊天相关增强样式，但不破坏基础功能 */
+body:not([data-route*="/chat"]):not(.chat-page) .discord-message:not(.message-input *):not(.input-container *),
+body:not([data-route*="/chat"]):not(.chat-page) .simple-message-list:not(.message-input *) {
+  /* 重置Discord消息增强样式，但保护输入框 */
+  padding: revert;
+  margin: revert;
+  background: revert;
+  transition: revert;
+}
+
+/* ===== 🏷️ 频道列表样式限定 - 修复版 ===== */
+/* 仅在主页面和聊天页面启用频道列表样式 */
+body:not([data-route="/home"]):not([data-route*="/chat"]):not(.has-sidebar) .channel-item:not(.message-input *),
+body:not([data-route="/home"]):not([data-route*="/chat"]):not(.has-sidebar) .dm-item:not(.message-input *),
+body:not([data-route="/home"]):not([data-route*="/chat"]):not(.has-sidebar) .group-item:not(.message-input *) {
+  /* 重置频道列表样式，但保护输入框区域 */
+  display: revert !important;
+  padding: revert !important;
+  margin: revert !important;
+}
+
+/* ===== 📝 代码高亮样式限定 - 修复版 ===== */
+/* 仅在需要的页面启用代码高亮，但不影响输入框 */
+body:not([data-route*="/chat"]):not([data-route="/demo"]):not([data-route="/debug"]):not(.has-code-content) .enhanced-code-container:not(.message-input *),
+body:not([data-route*="/chat"]):not([data-route="/demo"]):not([data-route="/debug"]):not(.has-code-content) .hljs:not(.message-input *) {
+  /* 重置代码高亮样式，但保护输入框中的代码 */
+  font-family: revert !important;
+  font-size: revert !important;
+  padding: revert !important;
+  background: revert !important;
+}
+
+/* ===== 🌏 CJK字体样式限定 - 保守版 ===== */
+/* CJK字体优化仅在需要的页面启用，但不影响基础功能 */
+body:not(.has-cjk-content):not([data-route="/home"]):not([data-route*="/chat"]) .channel-item:not(.message-input *) {
+  /* 只影响频道项目，不影响输入框 */
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+}
+
+/* ===== 🎯 页面特定样式启用标记 ===== */
+
+/* 聊天页面 - 启用所有功能 */
+body[data-route*="/chat"],
+body.chat-page {
+  --enable-message-styles: true;
+  --enable-code-highlight: true;
+  --enable-cjk-fonts: true;
+  --enable-channel-list: true;
+  --enable-input-components: true;
+  --enable-scroll-components: true;
+}
+
+/* 主页 - 启用侧边栏功能 */
+body[data-route="/home"],
+body.home-page {
+  --enable-channel-list: true;
+  --enable-cjk-fonts: true;
+  --enable-input-components: true;
+  --enable-scroll-components: true;
+}
+
+/* 登录页面 - 仅启用登录样式 */
+body[data-route="/login"],
+body.login-page {
+  --enable-login-protection: true;
+}
+
+/* Demo/Debug页面 - 启用代码高亮和基础功能 */
+body[data-route="/demo"],
+body[data-route="/debug"],
+body.demo-page,
+body.debug-page {
+  --enable-code-highlight: true;
+  --enable-input-components: true;
+  --enable-scroll-components: true;
+}
+
+/* ===== 🛡️ 核心功能保护 ===== */
+
+/* 🚨 EMERGENCY: 确保输入框组件永远可用 */
+.message-input,
+.message-input *,
+.input-container,
+.input-container *,
+.main-input-area,
+.main-input-area *,
+.message-textarea {
+  /* 绝对防护 - 这些组件必须在任何页面都能工作 */
+  all: revert-layer !important;
+  position: relative !important;
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+/* 🚨 EMERGENCY: 确保滚动功能永远可用 */
+.messages-container,
+.chat-content,
+.discord-message-list {
+  /* 防止滚动被破坏 */
+  overflow: auto !important;
+  max-height: revert !important;
+  height: revert !important;
+}
+
+/* 🚨 EMERGENCY: 确保基础布局不被破坏 */
+.chat-layout,
+.chat-view,
+.app-layout {
+  /* 基础布局保护 */
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100vh !important;
+  width: 100% !important;
+}
+
+/* ===== 🔧 条件样式应用 - 安全版 ===== */
+
+/* 只有标记了特定类的元素才应用对应样式，但不破坏基础功能 */
+.message-content:not(.discord-enhanced):not(.message-input):not(.message-input *),
+.channel-item:not(.sidebar-enhanced):not(.message-input):not(.message-input *),
+.code-block:not(.highlight-enhanced):not(.message-input):not(.message-input *) {
+  /* 保持原始样式，不应用增强，但保护输入组件 */
+  all: revert;
+}
+
+/* ===== 📱 响应式作用域 ===== */
+
+/* 移动端样式限定 */
+@media (max-width: 768px) {
+  /* 确保移动端基础功能不被破坏 */
+  .message-input,
+  .input-container,
+  .main-input-area {
+    /* 移动端输入框保护 */
+    all: revert-layer !important;
+  }
+}
+
+/* ===== 🎨 主题作用域 ===== */
+
+/* 暗色主题样式仅在暗色模式启用时生效，但不影响功能 */
+body:not([data-theme="dark"]):not(.dark-mode) {
+  /* 重置暗色主题变量，但保护功能组件 */
+  --bg-primary: revert;
+  --text-primary: revert;
+  --border-primary: revert;
+}
+
+/* ===== 🚨 紧急重置机制 ===== */
+
+/* 为特定页面提供完全重置选项，但保护核心功能 */
+body.reset-all-styles *:not(.message-input):not(.message-input *):not(.input-container):not(.input-container *) {
+  all: revert !important;
+}
+
+body.minimal-styles *:not(.message-input):not(.message-input *):not(.input-container):not(.input-container *) {
+  /* 只保留最基本的样式，但保护输入功能 */
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: inherit;
+  color: inherit;
+  background: transparent;
+  border: none;
+}
+
+/* ===== 🔍 调试辅助 ===== */
+
+/* 开发模式下显示当前页面的样式作用域 */
+body[data-debug="true"]::before {
+  content: "Route: " attr(data-route) " | Page: " attr(class);
+  position: fixed;
+  top: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 8px;
+  font-size: 12px;
+  z-index: 9999;
+  border-radius: 0 0 0 8px;
+} 

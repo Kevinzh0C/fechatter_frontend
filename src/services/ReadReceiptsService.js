@@ -16,10 +16,12 @@ class ReadReceiptsService {
       const data = response.data?.data || response.data;
       return Array.isArray(data) ? data : [];
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('Failed to fetch detailed receipts:', error);
+      }
       return [];
     }
+  }
 
   /**
    * 获取消息的基础已读回执
@@ -32,10 +34,12 @@ class ReadReceiptsService {
       const data = response.data?.data || response.data;
       return Array.isArray(data) ? data : [];
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('Failed to fetch basic receipts:', error);
+      }
       return [];
     }
+  }
 
   /**
    * 标记消息为已读（增强版）
@@ -48,10 +52,12 @@ class ReadReceiptsService {
       await api.post(`/chat/${chatId}/messages/${messageId}/read/enhanced`);
       return true;
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('Failed to mark message as read (enhanced):', error);
+      }
       return false;
     }
+  }
 
   /**
    * 批量标记消息为已读
@@ -66,10 +72,12 @@ class ReadReceiptsService {
       });
       return true;
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('Failed to mark messages as read:', error);
+      }
       return false;
     }
+  }
 
   /**
    * 格式化已读回执显示文本
@@ -93,21 +101,21 @@ class ReadReceiptsService {
     if (readReceipts.length === totalMembers - 1) { // 排除发送者
       return {
         text: 'Read by all',
-        detail: `Read by all ${readReceipts.length} members`,
+        detail: `All ${readReceipts.length} members`,
         icon: 'read-all',
         count: readReceipts.length
       };
     } else if (readReceipts.length > 0) {
       return {
         text: `Read by ${readReceipts.length}`,
-        detail: `Read by ${readReceipts.length} of ${totalMembers - 1} members`,
+        detail: `${readReceipts.length} of ${totalMembers - 1} members`,
         icon: 'read-some',
         count: readReceipts.length
       };
     } else if (deliveredReceipts.length > 0) {
       return {
-        text: 'Delivered',
-        detail: `Delivered to ${deliveredReceipts.length} members`,
+        text: '',
+        detail: `${deliveredReceipts.length} members`,
         icon: 'delivered',
         count: deliveredReceipts.length
       };
@@ -119,6 +127,7 @@ class ReadReceiptsService {
         count: 0
       };
     }
+  }
 
   /**
    * 生成已读回执的详细信息
@@ -198,6 +207,7 @@ class ReadReceiptsService {
     if (typeof callback === 'function') {
       callback(messageId, receipt);
     }
+  }
 
   /**
    * 格式化时间显示
@@ -223,5 +233,7 @@ class ReadReceiptsService {
     } else {
       return date.toLocaleDateString();
     }
+  }
+}
 
 export default new ReadReceiptsService();

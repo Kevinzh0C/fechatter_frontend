@@ -48,10 +48,22 @@ remote_exec() {
 start_tunnel() {
     echo -e "${BLUE}🚀 Starting Docker ngrok tunnel...${NC}"
     
-    remote_exec "docker-compose -f ${COMPOSE_FILE} up -d"
+    # Stop any existing ngrok containers
+    remote_exec "docker stop fechatter-ngrok-tunnel 2>/dev/null || true"
+    remote_exec "docker rm fechatter-ngrok-tunnel 2>/dev/null || true"
+    
+    # Start new tunnel with dynamic domain (no --url parameter)
+    remote_exec "docker run -d \
+        --name fechatter-ngrok-tunnel \
+        --restart unless-stopped \
+        -p 4040:4040 \
+        -e NGROK_AUTHTOKEN=2z1RvwiPVR0LBsPzdWkFtBehIEX_sj78dVygq3BnRts5e7VY \
+        --network fechatter-network \
+        ngrok/ngrok http 80 --log=stdout --log-level=info"
     
     echo -e "${GREEN}✅ Tunnel started successfully${NC}"
-    sleep 3
+    echo -e "${BLUE}⏳ Waiting for tunnel to establish...${NC}"
+    sleep 5
     get_tunnel_url
 }
 
@@ -59,7 +71,8 @@ start_tunnel() {
 stop_tunnel() {
     echo -e "${BLUE}🛑 Stopping Docker ngrok tunnel...${NC}"
     
-    remote_exec "docker-compose -f ${COMPOSE_FILE} down"
+    remote_exec "docker stop fechatter-ngrok-tunnel 2>/dev/null || true"
+    remote_exec "docker rm fechatter-ngrok-tunnel 2>/dev/null || true"
     
     echo -e "${GREEN}✅ Tunnel stopped successfully${NC}"
 }

@@ -72,7 +72,7 @@ export class RouterPerformance {
     if (this.navigationStart > 0) {
       const duration = performance.now() - this.navigationStart;
 
-      if (import.meta.env.VITE_DEBUG === 'true') {
+      if (true) {
         console.log(`Navigation to ${routeName} took ${duration.toFixed(2)}ms`);
       }
 
@@ -101,7 +101,7 @@ export const setupRouterAfterHooks = (router: Router): void => {
     RouterPerformance.endNavigation(to.name as string);
 
     // 调试日志
-    if (import.meta.env.VITE_DEBUG === 'true') {
+    if (true) {
       const context = (to as any).navigationContext;
       if (context) {
         console.groupEnd();
@@ -120,6 +120,9 @@ export const setupRouterAfterHooks = (router: Router): void => {
         });
       }
     }
+
+    // Debug logging always enabled (removed VITE_DEBUG check)
+    console.log('🔍 [RouterUtils] Enhanced route guard triggered');
   });
 
   // 导航错误处理
@@ -129,5 +132,8 @@ export const setupRouterAfterHooks = (router: Router): void => {
 
     // 重定向到错误页面
     router.push('/error/500');
+
+    // Debug logging always enabled (removed VITE_DEBUG check)
+    console.log('🔍 [RouterUtils] Enhanced error handling activated');
   });
 };

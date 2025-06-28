@@ -45,7 +45,7 @@ class CompleteErrorSuppressor {
    * Initialize the suppressor
    */
   initialize() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🛡️ [CompleteErrorSuppressor] Initializing...');
     }
 
@@ -58,7 +58,7 @@ class CompleteErrorSuppressor {
     // Add unhandled rejection handler
     this.addUnhandledRejectionHandler();
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('✅ [CompleteErrorSuppressor] Initialized successfully');
     }
 
@@ -180,7 +180,7 @@ class CompleteErrorSuppressor {
    */
   enable() {
     this.enabled = true;
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('✅ [CompleteErrorSuppressor] Suppression enabled');
     }
 
@@ -189,7 +189,7 @@ class CompleteErrorSuppressor {
    */
   disable() {
     this.enabled = false;
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('❌ [CompleteErrorSuppressor] Suppression disabled');
     }
 
@@ -198,7 +198,7 @@ class CompleteErrorSuppressor {
    */
   restore() {
     console.error = this.originalConsoleError;
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🔄 [CompleteErrorSuppressor] Original console.error restored');
     }
 
@@ -219,29 +219,29 @@ class CompleteErrorSuppressor {
    * Show suppressed errors
    */
   showSuppressed() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🔇 [CompleteErrorSuppressor] Suppressed Errors:');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`Total suppressed: ${this.suppressedErrors.length}`);
     }
 
     this.suppressedErrors.slice(-10).forEach((entry, index) => {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`\n--- Suppressed Error ${index + 1} ---`);
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('Time:', entry.timestamp.toLocaleTimeString());
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('Type:', entry.type || 'console.error');
       }
 
       if (entry.args) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('Args:', entry.args);
       if (entry.error) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('Error:', entry.error);
       if (entry.message) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('Message:', entry.message);
         }
     });
@@ -251,7 +251,7 @@ class CompleteErrorSuppressor {
    */
   clearSuppressed() {
     this.suppressedErrors = [];
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🧹 [CompleteErrorSuppressor] Suppressed errors cleared');
     }
 
@@ -261,12 +261,12 @@ class CompleteErrorSuppressor {
   addPattern(pattern) {
     if (pattern instanceof RegExp) {
       this.patterns.push(pattern);
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('➕ [CompleteErrorSuppressor] Added pattern:', pattern);
       }
     } else if (typeof pattern === 'string') {
       this.patterns.push(new RegExp(pattern, 'i'));
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('➕ [CompleteErrorSuppressor] Added pattern:', pattern);
       }
 
@@ -274,24 +274,24 @@ class CompleteErrorSuppressor {
    * Test suppression
    */
   test() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🧪 [CompleteErrorSuppressor] Running suppression test...');
     }
 
     // Test 1: Extension error
-    if (import.meta.env.DEV) {
+    if (true) {
       console.error('Error: fetchError: Failed to fetch at chrome-extension://abc/content.js:123');
     }
 
     // Test 2: Normal error (should pass)
-    if (import.meta.env.DEV) {
+    if (true) {
       console.error('Normal application error');
     }
 
     // Test 3: Unhandled rejection
     Promise.reject(new Error('Extension context invalidated'));
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('Test complete. Stats:', this.getStats());
     }
 

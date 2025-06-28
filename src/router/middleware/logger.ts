@@ -1,7 +1,7 @@
 import type { RouterMiddleware, NavigationContext } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 
-const isDebugEnabled = import.meta.env.VITE_DEBUG === 'true';
+const isDebugEnabled = true;
 
 export const loggerMiddleware: RouterMiddleware = async (to, from, next) => {
   if (!isDebugEnabled) {

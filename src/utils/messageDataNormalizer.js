@@ -146,7 +146,7 @@ export function normalizeMessage(messageData, source = 'unknown') {
 
     return normalized;
   } catch (error) {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.error('[MessageNormalizer] Failed to normalize message:', error, messageData);
     return null;
   }

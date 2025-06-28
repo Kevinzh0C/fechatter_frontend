@@ -154,7 +154,11 @@ const authStore = useAuthStore();
 const chatStore = useChatStore();
 const { error: notifyError } = useToast();
 
+// 🔧 DEBOUNCE: Add anti-flicker state management
 const loading = ref(false);
+const isInitialized = ref(false);
+const fetchDebounceTimer = ref<NodeJS.Timeout | null>(null);
+const hasFailedFetch = ref(false);
 
 // Navigation function
 async function navigateToChat(chatId: number) {
@@ -180,12 +184,16 @@ const allChats = computed(() => {
 });
 
 const sortedChannels = computed(() => {
-  console.log('🔍 [ChannelList] All chats for debugging:', allChats.value);
-  console.log('🔍 [ChannelList] Filtering for channels, listType:', props.listType);
+  // 🔧 FIXED: Only prevent rendering if both conditions are true: not initialized AND no data
+  // This allows showing data even during initialization if we have cached data
+  if (!isInitialized.value && allChats.value.length === 0) {
+    console.log('🔍 [ChannelList] Preventing flicker - not initialized and no data');
+    return []; // Prevent flicker during initial load
+  }
 
+  // 🔧 REMOVED: Excessive debug logging from computed property
   const filtered = allChats.value.filter(c => {
     const chat = c as any; // Type bypass
-    console.log(`🔍 [ChannelList] Chat ${chat.id}: name="${chat.name}", chat_type="${chat.chat_type}"`);
     // Filter for channels (both public and private)
     return chat.chat_type === 'PublicChannel' ||
       chat.chat_type === 'PrivateChannel' ||
@@ -194,30 +202,46 @@ const sortedChannels = computed(() => {
       chat.chat_type === 'private_channel';
   });
 
-  console.log('🔍 [ChannelList] Filtered channels:', filtered);
+  console.log('🔍 [ChannelList] Channels filtered:', filtered.length, 'out of', allChats.value.length);
   return filtered.sort((a: any, b: any) => (a.name || '').localeCompare(b.name || ''));
 });
 
 const sortedDMs = computed(() => {
-  console.log('🔍 [ChannelList] Filtering for DMs, listType:', props.listType);
+  // 🔧 FIXED: Same logic as channels
+  if (!isInitialized.value && allChats.value.length === 0) {
+    console.log('🔍 [ChannelList] Preventing DM flicker - not initialized and no data');
+    return []; // Prevent flicker during initial load
+  }
 
   const filtered = allChats.value.filter(c => {
-    const chat = c as any; // Type bypass
-    console.log(`🔍 [ChannelList] Chat ${chat.id}: name="${chat.name}", chat_type="${chat.chat_type}"`);
-    // Filter for direct messages/single chats
-    return chat.chat_type === 'Single' ||
-      chat.chat_type === 'direct' ||
-      chat.chat_type === 'single' ||
-      chat.chat_type === 'direct_message';
+    const chat = c as any;
+    return chat.chat_type === 'DirectMessage' ||
+      chat.chat_type === 'DM' ||
+      chat.chat_type === 'direct_message' ||
+      chat.chat_type === 'dm';
   });
 
-  console.log('🔍 [ChannelList] Filtered DMs:', filtered);
+  console.log('🔍 [ChannelList] DMs filtered:', filtered.length, 'out of', allChats.value.length);
   return filtered.sort((a: any, b: any) => {
-    const aTime = a.last_message?.created_at || a.updated_at || '';
-    const bTime = b.last_message?.created_at || b.updated_at || '';
-    return new Date(bTime).getTime() - new Date(aTime).getTime();
+    // Sort by last message time, newest first
+    const aTime = new Date(a.last_message?.created_at || a.created_at || 0).getTime();
+    const bTime = new Date(b.last_message?.created_at || b.created_at || 0).getTime();
+    return bTime - aTime;
   });
 });
+
+// 🔧 FIX: Debounced fetch function to prevent excessive API calls
+const debouncedFetchChats = () => {
+  // Clear existing timer
+  if (fetchDebounceTimer.value) {
+    clearTimeout(fetchDebounceTimer.value);
+  }
+
+  // Set new timer with 200ms delay
+  fetchDebounceTimer.value = setTimeout(async () => {
+    await fetchChats();
+  }, 200);
+};
 
 function formatSmartTimestamp(timestamp?: string) {
   if (!timestamp) return '';
@@ -289,15 +313,42 @@ function getOnlineStatus(dm: Chat): string {
   return statuses[dm.id % 3]; // 简单的演示逻辑
 }
 
+// 🔧 ENHANCED: Smart fetch with better UX and loading management
 const fetchChats = async () => {
+  // Prevent multiple simultaneous fetches
+  if (loading.value || hasFailedFetch.value) {
+    console.log('🔧 [ChannelList] Fetch skipped - already loading or failed');
+    return;
+  }
+
   try {
     loading.value = true;
+    console.log('🔍 [ChannelList] Fetching chats for optimal ChatBar UX...');
+    
+    // 🔧 ENHANCED: Check if chatStore is already loaded to avoid duplicate calls
+    if (chatStore.chats.length > 0 && chatStore.isInitialized) {
+      console.log('✅ [ChannelList] Chats already available from store, using cached data');
+      isInitialized.value = true;
+      hasFailedFetch.value = false;
+      return;
+    }
+    
     // Use chat store instead of direct service call
     await chatStore.fetchChats();
-    // No need to set allChats since it's computed from store
+    
+    // Mark as initialized after first successful fetch
+    isInitialized.value = true;
+    hasFailedFetch.value = false;
+    
+    console.log(`✅ [ChannelList] Chats fetched successfully: ${chatStore.chats.length} chats`);
   } catch (error: any) {
-    console.error('获取聊天列表失败:', error);
-    notifyError('获取聊天列表失败');
+    console.error('❌ [ChannelList] 获取聊天列表失败:', error);
+    hasFailedFetch.value = true;
+    
+    // Only show error toast if user is authenticated (to avoid login page errors)
+    if (authStore.isAuthenticated) {
+      notifyError('获取聊天列表失败');
+    }
   } finally {
     loading.value = false;
   }
@@ -314,62 +365,83 @@ async function closeDM(dmId: number) {
   }
 }
 
-
-
-// 监听认证状态变化
-watch(() => authStore.user, (newUser) => {
-  if (newUser) {
-    fetchChats();
+// 🔧 OPTIMIZED: Reduced watchers to prevent excessive updates
+// Auth watcher that responds to login/logout state changes
+watch(() => authStore.isAuthenticated, (newAuth, oldAuth) => {
+  console.log('🔍 [ChannelList] Auth state changed:', { oldAuth, newAuth });
+  
+  if (newAuth && !oldAuth) {
+    // User just logged in
+    console.log('🔧 [ChannelList] User just logged in, fetching chats');
+    debouncedFetchChats();
+  } else if (!newAuth && oldAuth) {
+    // User just logged out
+    console.log('🔧 [ChannelList] User logged out, clearing state');
+    isInitialized.value = false;
+    hasFailedFetch.value = false;
   }
-}, { immediate: true });
+}, { immediate: false });
 
-// Watch for chat store changes to ensure real-time updates
-watch(() => chatStore.chats, () => {
-  // Computed properties will automatically update when store changes
-  // No need to manually update allChats since it's computed
-}, { immediate: true, deep: true });
-
-// Watch for loading state from chat store
+// 🔧 OPTIMIZED: Only watch for loading state from store, not chats themselves
 watch(() => chatStore.loading, (newLoading) => {
   // Sync local loading state with store loading state
-  if (newLoading !== undefined) {
+  if (newLoading !== undefined && newLoading !== loading.value) {
     loading.value = newLoading;
   }
-});
+}, { immediate: false });
 
 // 组件挂载时加载数据
 onMounted(() => {
-  if (authStore.user) {
+  console.log('🔧 [ChannelList] Component mounted', {
+    listType: props.listType,
+    authStoreAuth: authStore.isAuthenticated,
+    hasToken: !!authStore.token,
+    hasLocalToken: !!localStorage.getItem('auth_token'),
+    isInitialized: isInitialized.value,
+    timestamp: new Date().toISOString()
+  });
+  
+  // 🔧 ENHANCED: Multi-layer auth check like App.vue
+  const isAuth = authStore.isAuthenticated || 
+                 (!!authStore.token && !!authStore.user) || 
+                 (!!localStorage.getItem('auth_token') && !!localStorage.getItem('auth_user'));
+  
+  // Check if user is already authenticated and initialize immediately
+  if (isAuth && !isInitialized.value) {
+    console.log('🔧 [ChannelList] User authenticated on mount, fetching chats');
+    // Immediate fetch for already authenticated users
     fetchChats();
+  } else {
+    console.log('🔧 [ChannelList] User not authenticated on mount, waiting for auth', {
+      isAuth,
+      isInitialized: isInitialized.value
+    });
   }
 
-  // Set up real-time updates listener if available
+  // 🔧 REDUCED: Minimal event listeners
   if (typeof window !== 'undefined') {
-    // Listen for chat list refresh events
+    // Only listen for explicit refresh events, not automatic updates
     const handleChatListRefresh = () => {
-      fetchChats();
-    };
-
-    // Listen for chat store updates
-    const handleChatsUpdated = (event: any) => {
-      // The computed properties will automatically update
-      // This is just for debugging/logging if needed
-      console.log('📱 [ChannelList] Chats updated from store:', event.detail);
+      console.log('🔧 [ChannelList] Manual refresh requested');
+      debouncedFetchChats();
     };
 
     window.addEventListener('fechatter:refresh-chats', handleChatListRefresh);
-    window.addEventListener('fechatter:chats-updated', handleChatsUpdated);
 
     // Cleanup on unmount
     onUnmounted(() => {
       window.removeEventListener('fechatter:refresh-chats', handleChatListRefresh);
-      window.removeEventListener('fechatter:chats-updated', handleChatsUpdated);
+      
+      // Clear debounce timer
+      if (fetchDebounceTimer.value) {
+        clearTimeout(fetchDebounceTimer.value);
+      }
     });
   }
 
   // 暴露刷新方法供父组件使用
   defineExpose({
-    refresh: fetchChats
+    refresh: debouncedFetchChats // Use debounced version
   });
 });
 </script>

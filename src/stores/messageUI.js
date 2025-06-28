@@ -250,6 +250,6 @@ export const useMessageUIStore = defineStore('messageUI', () => {
 })
 
 // 🌐 Global Debug Access
-if (typeof window !== 'undefined' && import.meta.env.DEV) {
+if (typeof window !== 'undefined' && true) {
   window.messageUIStore = useMessageUIStore
 }

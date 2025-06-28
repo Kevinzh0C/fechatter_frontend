@@ -249,7 +249,7 @@ export function useKeyboardShortcuts(options = {}) {
           break;
 
         case 'toggleDebugPanel':
-          if (import.meta.env.DEV) {
+          if (true) {
             emitGlobalEvent('toggle-debug-panel');
           }
           break;
@@ -270,7 +270,9 @@ export function useKeyboardShortcuts(options = {}) {
           break;
 
         case 'navigateToFirstMessage':
-          emitGlobalEvent('navigate-to-first-message');
+          // 🔴 DISABLED: Navigate to first message can cause jumping to top
+          // emitGlobalEvent('navigate-to-first-message');
+          console.log('🔴 [KeyboardShortcuts] Navigate to first message disabled to prevent jumping');
           break;
 
         case 'navigateToLastMessage':
@@ -312,7 +314,7 @@ export function useKeyboardShortcuts(options = {}) {
           break;
 
         default:
-          if (import.meta.env.DEV) {
+          if (true) {
             console.warn(`Unknown keyboard shortcut action: ${shortcutData.action}`);
           }
           return false;
@@ -320,7 +322,7 @@ export function useKeyboardShortcuts(options = {}) {
 
       return true;
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error(`Error executing keyboard shortcut ${shortcut}:`, error);
       }
       return false;
@@ -361,7 +363,7 @@ export function useKeyboardShortcuts(options = {}) {
       try {
         await chatStore.toggleChatMute(parseInt(currentChatId));
       } catch (error) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.error('Failed to toggle chat mute:', error);
         }
       }
@@ -372,7 +374,7 @@ export function useKeyboardShortcuts(options = {}) {
     try {
       await chatStore.markAllAsRead();
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('Failed to mark all chats as read:', error);
       }
     }

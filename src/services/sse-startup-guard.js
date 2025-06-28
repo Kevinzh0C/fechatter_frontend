@@ -15,7 +15,7 @@ class SSEStartupGuard {
       currentPath.includes('/register') ||
       currentPath === '/';
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🛡️ [SSE GUARD] Connection check:');
       console.log('  - currentPath:', currentPath);
       console.log('  - isOnChatPage:', isOnChatPage);
@@ -24,7 +24,7 @@ class SSEStartupGuard {
 
     // 🚀 路径检查
     if (!isOnChatPage || isOnAuthPage) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('⚠️ [SSE GUARD] BLOCKING SSE - not on chat page');
       }
       return false;
@@ -38,14 +38,14 @@ class SSEStartupGuard {
         authStore.token.length > 50;
 
       if (!hasValidAuth) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('⚠️ [SSE GUARD] BLOCKING SSE - invalid authentication');
         }
         return false;
       }
     }
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('✅ [SSE GUARD] ALLOWING SSE connection');
     }
     return true;
@@ -56,13 +56,13 @@ class SSEStartupGuard {
    */
   static guardedSSEConnect(sseService, token, authStore = null) {
     if (!this.shouldConnectSSE(authStore)) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('🛡️ [SSE GUARD] SSE connection blocked by guard');
       }
       return Promise.resolve(false);
     }
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🛡️ [SSE GUARD] Allowing SSE connection to proceed');
     }
     return sseService.connect(token);

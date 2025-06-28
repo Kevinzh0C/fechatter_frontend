@@ -71,7 +71,7 @@ export const useSimplifiedAuthStore = defineStore('auth-simplified', () => {
       timestamp: Date.now()
     });
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`🔄 Auth state: ${oldState} → ${newState}`);
     }
 
@@ -167,7 +167,7 @@ export const useSimplifiedAuthStore = defineStore('auth-simplified', () => {
       // 🌐 轻量级验证请求
       await authService.validateToken(tokenToValidate);
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('✅ Token validation successful');
       }
     } catch (error) {
@@ -177,7 +177,7 @@ export const useSimplifiedAuthStore = defineStore('auth-simplified', () => {
           const refreshed = await authService.refreshToken();
           setAuthData(refreshed);
 
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log('🔄 Token refreshed successfully');
           }
         } catch (refreshError) {
@@ -206,7 +206,7 @@ export const useSimplifiedAuthStore = defineStore('auth-simplified', () => {
     // 🎪 发送登出事件
     authEventBus.emit('auth:logout', { reason });
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`🚪 Logged out: ${reason}`);
     }
   };
@@ -225,7 +225,7 @@ export const useSimplifiedAuthStore = defineStore('auth-simplified', () => {
     // 🔄 尝试从存储恢复
     const recovered = await attemptRecovery();
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`🎯 Auth initialized: ${recovered ? 'recovered' : 'logged out'}`);
     }
 

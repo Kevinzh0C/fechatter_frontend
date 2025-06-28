@@ -29,7 +29,7 @@ class MinimalSSEGlobalManager {
       status: 'connecting'
     });
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`🔗 [SSEGlobalManager] Registered connection: ${connectionId}`);
     return connectionId;
   }

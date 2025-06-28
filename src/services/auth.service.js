@@ -22,7 +22,7 @@ class AuthService {
       const { default: tokenManager } = await import('./tokenManager');
       tokenManager.setAuthService(this);
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.warn('Failed to initialize tokenManager reference:', error);
       }
     }
@@ -134,7 +134,7 @@ class AuthService {
       return true;
     } catch (error) {
       // Logout should always succeed locally even if API fails
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('Logout API error:', error);
       }
       return true;

@@ -6,7 +6,7 @@
 class SearchFunctionTest {
   constructor() {
     this.testResults = [];
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🔍 Search Function Test Tool initialized');
     }
 
@@ -14,9 +14,9 @@ class SearchFunctionTest {
    * Run comprehensive search function test
    */
   async runTest() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n🔍 SEARCH FUNCTION TEST');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('======================');
     }
 
@@ -39,7 +39,7 @@ class SearchFunctionTest {
       this.showSummary();
 
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('❌ Search test failed:', error);
       }
 
@@ -47,9 +47,9 @@ class SearchFunctionTest {
    * Test basic search functionality
    */
   async testBasicSearch() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n1️⃣ Testing Basic Search Functionality');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('------------------------------------');
     }
 
@@ -58,11 +58,11 @@ class SearchFunctionTest {
       const { SearchService } = await import('../services/api.js');
 
       if (typeof SearchService.search === 'function') {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('✅ SearchService.search method exists');
         this.testResults.push({ test: 'SearchService availability', status: 'PASS' });
       } else {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('❌ SearchService.search method not found');
         this.testResults.push({ test: 'SearchService availability', status: 'FAIL' });
 
@@ -73,12 +73,12 @@ class SearchFunctionTest {
         limit: 20
       };
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('🧪 Testing search parameters:', testParams);
       this.testResults.push({ test: 'Search parameters', status: 'PASS' });
 
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('❌ Basic search test failed:', error);
       this.testResults.push({ test: 'Basic search', status: 'FAIL', error: error.message });
 
@@ -86,9 +86,9 @@ class SearchFunctionTest {
    * Test search API endpoint
    */
   async testSearchAPI() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n2️⃣ Testing Search API Endpoint');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('------------------------------');
     }
 
@@ -98,13 +98,13 @@ class SearchFunctionTest {
       const currentChatId = chatStore?.currentChatId;
 
       if (!currentChatId) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('⚠️ No current chat selected, skipping API test');
         this.testResults.push({ test: 'Search API', status: 'SKIP', reason: 'No current chat' });
         return;
       }
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('🧪 Testing search API with chat:', currentChatId);
       }
 
@@ -118,7 +118,7 @@ class SearchFunctionTest {
         limit: 5
       };
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('📡 Making search API call...');
       const startTime = performance.now();
 
@@ -126,7 +126,7 @@ class SearchFunctionTest {
         const results = await SearchService.search(searchParams);
         const elapsed = performance.now() - startTime;
 
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('✅ Search API call successful:', {
         resultsCount: results.results?.length || 0,
           total: results.total || 0,
@@ -143,13 +143,13 @@ class SearchFunctionTest {
         });
 
       } catch (apiError) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('⚠️ Search API call failed (expected if no search service):', apiError.message);
         }
 
         // Check if it's a service unavailable error (expected)
         if (apiError.response?.status === 503 || apiError.message.includes('Search service')) {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log('ℹ️ This is expected if search service is not configured');
           this.testResults.push({
             test: 'Search API call',
@@ -164,7 +164,7 @@ class SearchFunctionTest {
           });
 
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('❌ Search API test failed:', error);
       this.testResults.push({ test: 'Search API', status: 'FAIL', error: error.message });
 
@@ -172,9 +172,9 @@ class SearchFunctionTest {
    * Test search modal functionality
    */
   async testSearchModal() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n3️⃣ Testing Search Modal Functionality');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('------------------------------------');
     }
 
@@ -183,16 +183,16 @@ class SearchFunctionTest {
       const searchButton = document.querySelector('[title*="Search"]');
 
       if (searchButton) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('✅ Search button found in UI');
         this.testResults.push({ test: 'Search button UI', status: 'PASS' });
       } else {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('❌ Search button not found in UI');
         this.testResults.push({ test: 'Search button UI', status: 'FAIL' });
 
       // Test keyboard shortcut
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('🧪 Testing Ctrl+K keyboard shortcut...');
       }
 
@@ -212,17 +212,17 @@ class SearchFunctionTest {
           document.querySelector('.modal');
 
         if (modal) {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log('✅ Search modal opened via keyboard shortcut');
           this.testResults.push({ test: 'Keyboard shortcut', status: 'PASS' });
         } else {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log('⚠️ Search modal not detected (may be using different selector)');
           this.testResults.push({ test: 'Keyboard shortcut', status: 'PARTIAL' });
       }, 100);
 
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('❌ Search modal test failed:', error);
       this.testResults.push({ test: 'Search modal', status: 'FAIL', error: error.message });
 
@@ -230,9 +230,9 @@ class SearchFunctionTest {
    * Test error handling
    */
   async testErrorHandling() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n4️⃣ Testing Error Handling');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('-------------------------');
     }
 
@@ -240,7 +240,7 @@ class SearchFunctionTest {
       const { SearchService } = await import('../services/api.js');
 
       // Test with invalid parameters
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('🧪 Testing with invalid parameters...');
       }
 
@@ -251,17 +251,17 @@ class SearchFunctionTest {
           limit: 0 // Invalid limit
         });
 
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('⚠️ Expected error not thrown for invalid parameters');
         this.testResults.push({ test: 'Error handling', status: 'PARTIAL' });
 
       } catch (error) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('✅ Error properly handled for invalid parameters:', error.message);
         this.testResults.push({ test: 'Error handling', status: 'PASS' });
 
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('❌ Error handling test failed:', error);
       this.testResults.push({ test: 'Error handling', status: 'FAIL', error: error.message });
 
@@ -279,9 +279,9 @@ class SearchFunctionTest {
    * Show test summary
    */
   showSummary() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n📊 SEARCH FUNCTION TEST SUMMARY');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('===============================');
     }
 
@@ -291,19 +291,19 @@ class SearchFunctionTest {
     const partial = this.testResults.filter(r => r.status === 'PARTIAL').length;
     const expectedFail = this.testResults.filter(r => r.status === 'EXPECTED_FAIL').length;
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`✅ Passed: ${passed}`);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`❌ Failed: ${failed}`);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`⚠️ Partial: ${partial}`);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`⏭️ Skipped: ${skipped}`);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`🔄 Expected Failures: ${expectedFail}`);
     }
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\nDetailed Results:');
     this.testResults.forEach(result => {
       const icon = {
@@ -314,43 +314,43 @@ class SearchFunctionTest {
         'EXPECTED_FAIL': '🔄'
       }[result.status] || '❓';
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`${icon} ${result.test}: ${result.status}`);
       if (result.error) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log(`   Error: ${result.error}`);
       if (result.reason) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log(`   Reason: ${result.reason}`);
       if (result.details) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log(`   Details:`, result.details);
         }
     });
 
     // Overall assessment
     if (failed === 0 && passed > 0) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('\n🎉 Search functionality appears to be working correctly!');
       }
     } else if (failed > 0) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('\n⚠️ Some search functionality issues detected. Check the details above.');
       }
     } else {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('\n❓ Unable to fully test search functionality.');
       }
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n💡 To fix search issues:');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('   1. Check if backend search service is running');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('   2. Verify API endpoints are accessible');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('   3. Check browser console for errors');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('   4. Ensure authentication is working');
     }
 
@@ -366,10 +366,10 @@ if (typeof window !== 'undefined') {
   window.testSearch = () => searchTest.runTest();
 }
 
-if (import.meta.env.DEV) {
+if (true) {
   console.log('🔍 Search Function Test loaded');
-if (import.meta.env.DEV) {
+if (true) {
   console.log('   Commands:');
-if (import.meta.env.DEV) {
+if (true) {
   console.log('   - window.testSearch() - Run search functionality test'); 
 }

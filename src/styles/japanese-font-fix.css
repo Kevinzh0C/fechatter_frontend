@@ -1,0 +1,209 @@
+/* 🇯🇵 Japanese Font Fix - 日语字体显示修复
+ * 解决日语文字显示异常、字符间距和渲染问题
+ * 确保日语在所有组件中正确显示
+ */
+
+:root {
+  /* 🎌 日语优化字体栈 */
+  --font-family-japanese: 
+    'Hiragino Kaku Gothic ProN', 
+    'Hiragino Sans', 
+    'Yu Gothic Medium', 
+    'Yu Gothic', 
+    'Meiryo', 
+    'Noto Sans CJK JP', 
+    'Source Han Sans JP', 
+    'MS PGothic',
+    -apple-system, 
+    BlinkMacSystemFont, 
+    sans-serif;
+
+  /* 📐 日语专用排版参数 */
+  --japanese-letter-spacing: 0.02em;
+  --japanese-line-height: 1.6;
+  --japanese-font-weight-normal: 400;
+  --japanese-font-weight-medium: 500;
+  --japanese-font-weight-bold: 600;
+  
+  /* 🎨 日语文本渲染优化 */
+  --japanese-font-smooth: antialiased;
+  --japanese-text-rendering: optimizeLegibility;
+}
+
+/* 🎯 全局日语字体应用 */
+html[lang="ja"], 
+html[lang^="ja-"],
+body[lang="ja"], 
+body[lang^="ja-"] {
+  font-family: var(--font-family-japanese) !important;
+  letter-spacing: var(--japanese-letter-spacing);
+  line-height: var(--japanese-line-height);
+  -webkit-font-smoothing: var(--japanese-font-smooth);
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: var(--japanese-text-rendering);
+}
+
+/* 🔤 日语内容优化选择器 */
+:lang(ja),
+[lang="ja"],
+[lang^="ja-"],
+.japanese-text,
+.content-japanese {
+  font-family: var(--font-family-japanese) !important;
+  letter-spacing: var(--japanese-letter-spacing) !important;
+  line-height: var(--japanese-line-height) !important;
+  -webkit-font-smoothing: var(--japanese-font-smooth);
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: var(--japanese-text-rendering);
+}
+
+/* 📝 消息组件中的日语优化 */
+.discord-message-item :lang(ja),
+.discord-message-item [lang="ja"],
+.discord-message-item [lang^="ja-"],
+.message-content :lang(ja),
+.message-content [lang="ja"],
+.message-content [lang^="ja-"] {
+  font-family: var(--font-family-japanese) !important;
+  letter-spacing: var(--japanese-letter-spacing) !important;
+  line-height: var(--japanese-line-height) !important;
+  font-weight: var(--japanese-font-weight-normal) !important;
+}
+
+/* 📱 聊天输入框日语优化 */
+.message-input :lang(ja),
+.message-input [lang="ja"],
+.message-input [lang^="ja-"],
+textarea:lang(ja),
+input:lang(ja) {
+  font-family: var(--font-family-japanese) !important;
+  letter-spacing: var(--japanese-letter-spacing) !important;
+  line-height: var(--japanese-line-height) !important;
+}
+
+/* 👤 用户名日语显示优化 */
+.username-button :lang(ja),
+.username-button [lang="ja"],
+.sender-name :lang(ja),
+.sender-name [lang="ja"],
+.user-name :lang(ja),
+.user-name [lang="ja"] {
+  font-family: var(--font-family-japanese) !important;
+  letter-spacing: var(--japanese-letter-spacing) !important;
+  font-weight: var(--japanese-font-weight-medium) !important;
+}
+
+/* 🏷️ 频道名称日语优化 */
+.channel-title :lang(ja),
+.channel-title [lang="ja"],
+.chat-title :lang(ja),
+.chat-title [lang="ja"] {
+  font-family: var(--font-family-japanese) !important;
+  letter-spacing: var(--japanese-letter-spacing) !important;
+  font-weight: var(--japanese-font-weight-medium) !important;
+}
+
+/* 🎨 自动检测日语内容 */
+/* 检测包含日语字符的元素并应用优化 */
+*:not(script):not(style):not(code):not(pre) {
+  /* 使用CSS属性选择器检测日语内容 */
+}
+
+/* 💡 日语特殊字符优化 */
+/* 平假名、片假名、汉字范围 */
+*[data-content*="あ"], *[data-content*="ア"], *[data-content*="一"],
+*:has-text(/[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/) {
+  font-family: var(--font-family-japanese) !important;
+  letter-spacing: var(--japanese-letter-spacing) !important;
+  line-height: var(--japanese-line-height) !important;
+}
+
+/* 🔧 强制日语字体修复（高优先级） */
+.japanese-font-fix,
+.force-japanese-font {
+  font-family: var(--font-family-japanese) !important;
+  letter-spacing: var(--japanese-letter-spacing) !important;
+  line-height: var(--japanese-line-height) !important;
+  -webkit-font-smoothing: var(--japanese-font-smooth) !important;
+  -moz-osx-font-smoothing: grayscale !important;
+  text-rendering: var(--japanese-text-rendering) !important;
+  word-break: keep-all !important;
+  overflow-wrap: break-word !important;
+}
+
+/* 📐 日语文本布局修复 */
+.japanese-text-layout {
+  /* 防止日语文字被压缩 */
+  min-height: 1.6em;
+  white-space: normal;
+  word-spacing: normal;
+  letter-spacing: var(--japanese-letter-spacing) !important;
+  
+  /* 确保日语文字不会重叠 */
+  line-height: var(--japanese-line-height) !important;
+  
+  /* 日语标点符号优化 */
+  hanging-punctuation: allow-end;
+  text-align: left;
+}
+
+/* 🎯 响应式日语字体大小 */
+@media (max-width: 768px) {
+  :lang(ja),
+  [lang="ja"],
+  [lang^="ja-"],
+  .japanese-text {
+    /* 移动端稍微增大字体以提高可读性 */
+    font-size: 1.05em;
+    letter-spacing: 0.03em;
+    line-height: 1.65;
+  }
+}
+
+/* 🌙 暗色主题日语优化 */
+@media (prefers-color-scheme: dark) {
+  :lang(ja),
+  [lang="ja"],
+  [lang^="ja-"],
+  .japanese-text {
+    /* 暗色主题下增强字体渲染 */
+    -webkit-font-smoothing: subpixel-antialiased;
+    font-weight: 450; /* 稍微增加字重以提高可读性 */
+  }
+}
+
+/* 🖨️ 高分辨率屏幕优化 */
+@media (min-resolution: 2dppx) {
+  :lang(ja),
+  [lang="ja"],
+  [lang^="ja-"],
+  .japanese-text {
+    -webkit-font-smoothing: subpixel-antialiased;
+    -moz-osx-font-smoothing: auto;
+  }
+}
+
+/* 🎌 特殊日语元素修复 */
+/* 日语引号和标点符号 */
+.japanese-punctuation {
+  font-feature-settings: "palt" 1, "halt" 1; /* 比例和全角标点 */
+  text-spacing: ideograph-alpha ideograph-numeric;
+}
+
+/* 🔍 日语搜索结果高亮 */
+mark:lang(ja),
+.search-highlight:lang(ja) {
+  font-family: var(--font-family-japanese) !important;
+  letter-spacing: var(--japanese-letter-spacing) !important;
+  background-color: rgba(255, 235, 59, 0.3);
+  padding: 0.1em 0.2em;
+  border-radius: 2px;
+}
+
+/* 📝 日语代码和预格式化文本 */
+code:lang(ja),
+pre:lang(ja),
+.hljs:lang(ja) {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Source Code Pro', 'Menlo', 'Consolas', monospace !important;
+  /* 代码中的日语注释仍使用等宽字体 */
+} 

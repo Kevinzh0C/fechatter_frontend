@@ -9,7 +9,7 @@ import { useAuthStore } from '@/stores/auth';
 let debugMessageFlow = async () => { /* Production stub */ };
 let MessageDebugger = class { /* Production stub */ };
 
-if (import.meta.env.DEV) {
+if (true) {
   /**
    * Message Debugger - Track message flow from frontend to backend
    * 
@@ -33,7 +33,7 @@ if (import.meta.env.DEV) {
         time: new Date().toISOString()
       };
       this.logs.push(entry);
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`[${timestamp}ms] ${stage}:`, data);
       }
     }
@@ -46,12 +46,12 @@ if (import.meta.env.DEV) {
 
       // 1. Check optimistic messages
       console.group('📝 Optimistic Messages');
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('Pending count:', chatStore.pendingOptimisticMessages?.size || 0);
       }
       if (chatStore.pendingOptimisticMessages?.size > 0) {
         chatStore.pendingOptimisticMessages.forEach((msg, tempId) => {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log(`- ${tempId}:`, {
               chatId: msg.chatId,
               content: msg.content.substring(0, 50) + '...',
@@ -66,7 +66,7 @@ if (import.meta.env.DEV) {
       // 2. Check current chat messages
       console.group('💬 Current Chat Messages');
       const currentChatId = chatStore.currentChatId;
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('Current chat ID:', currentChatId);
       }
 
@@ -89,13 +89,13 @@ if (import.meta.env.DEV) {
       try {
         const sseService = await import('@/services/sse');
         const connectionState = sseService.default.getConnectionState();
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('Connected:', connectionState.isConnected);
           console.log('Latency:', connectionState.latency);
           console.log('Reconnect attempts:', connectionState.reconnectAttempts);
         }
       } catch (e) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.error('SSE service not available:', e.message);
         }
       }
@@ -108,7 +108,7 @@ if (import.meta.env.DEV) {
       if (recentErrors.length > 0) {
         console.table(recentErrors.slice(-5));
       } else {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('No recent API errors');
         }
       }
@@ -116,7 +116,7 @@ if (import.meta.env.DEV) {
 
       // 5. Network requests
       console.group('🌐 Recent Network Requests');
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('Check Network tab for:');
         console.log('- POST /api/chat/{id}/messages (message send)');
         console.log('- GET /api/events (SSE connection)');
@@ -177,7 +177,7 @@ if (import.meta.env.DEV) {
     window.debugMessage = debugMessageFlow;
     window.MessageDebugger = MessageDebugger;
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('💡 Message debugger loaded. Use window.debugMessage() to debug message flow');
     }
   }

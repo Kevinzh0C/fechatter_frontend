@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jump Detective - 跳转监控工具</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #1e1e1e; color: #fff; }
+        .control { margin: 10px 0; padding: 10px; background: #333; border-radius: 5px; }
+        button { padding: 8px 16px; margin: 5px; background: #5865f2; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #4752c4; }
+        .log { background: #000; padding: 10px; border-radius: 5px; height: 300px; overflow-y: auto; font-size: 12px; }
+        .error { color: #ff6b6b; }
+        .warning { color: #ffd93d; }
+        .info { color: #6bcf7f; }
+    </style>
+</head>
+<body>
+    <h1>🚨 Jump Detective - 跳转监控工具</h1>
+    <p>这个工具可以监控和阻止历史消息加载时的跳转行为</p>
+    
+    <div class="control">
+        <h3>🔧 跳转控制</h3>
+        <button onclick="enableAllBlocking()">🔴 阻止所有跳转</button>
+        <button onclick="disableAllBlocking()">🟢 允许所有跳转</button>
+        <button onclick="blockScrollTopOnly()">🔴 仅阻止scrollTop</button>
+        <button onclick="blockScrollToOnly()">🔴 仅阻止scrollTo</button>
+        <button onclick="blockScrollIntoViewOnly()">🔴 仅阻止scrollIntoView</button>
+    </div>
+    
+    <div class="control">
+        <h3>📊 监控日志</h3>
+        <button onclick="clearLog()">清空日志</button>
+        <div id="log" class="log"></div>
+    </div>
+    
+    <script>
+        // 全局跳转监控配置
+        window.jumpDetectiveConfig = {
+            blockScrollTop: false,
+            blockScrollTo: false,
+            blockScrollIntoView: false,
+            logEnabled: true
+        };
+        
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = type;
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            logDiv.appendChild(logEntry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(message);
+        }
+        
+        function enableAllBlocking() {
+            window.jumpDetectiveConfig.blockScrollTop = true;
+            window.jumpDetectiveConfig.blockScrollTo = true;
+            window.jumpDetectiveConfig.blockScrollIntoView = true;
+            log('🔴 所有跳转阻止已启用', 'error');
+        }
+        
+        function disableAllBlocking() {
+            window.jumpDetectiveConfig.blockScrollTop = false;
+            window.jumpDetectiveConfig.blockScrollTo = false;
+            window.jumpDetectiveConfig.blockScrollIntoView = false;
+            log('🟢 所有跳转阻止已禁用', 'info');
+        }
+        
+        function blockScrollTopOnly() {
+            window.jumpDetectiveConfig.blockScrollTop = true;
+            log('🔴 scrollTop 阻止已启用', 'warning');
+        }
+        
+        function blockScrollToOnly() {
+            window.jumpDetectiveConfig.blockScrollTo = true;
+            log('🔴 scrollTo 阻止已启用', 'warning');
+        }
+        
+        function blockScrollIntoViewOnly() {
+            window.jumpDetectiveConfig.blockScrollIntoView = true;
+            log('🔴 scrollIntoView 阻止已启用', 'warning');
+        }
+        
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+        
+        // 注入监控代码到主窗口
+        function injectJumpDetection() {
+            if (window.parent && window.parent !== window) {
+                const parentWindow = window.parent;
+                
+                // 监控 scrollTop 设置
+                const originalScrollTopDescriptor = Object.getOwnPropertyDescriptor(Element.prototype, 'scrollTop');
+                
+                // 重写所有可能的滚动容器的scrollTop
+                const containers = parentWindow.document.querySelectorAll('.discord-message-list, [data-chat-id]');
+                containers.forEach(container => {
+                    if (container.scrollTop !== undefined) {
+                        Object.defineProperty(container, 'scrollTop', {
+                            get: originalScrollTopDescriptor.get,
+                            set: function(value) {
+                                if (window.jumpDetectiveConfig?.blockScrollTop && 
+                                    (value === 0 || (this.scrollTop > 200 && value < 100))) {
+                                    log(`🔴 阻止了可疑的scrollTop跳转: ${this.scrollTop} -> ${value}`, 'error');
+                                    return;
+                                }
+                                log(`📝 scrollTop变化: ${this.scrollTop} -> ${value}`, 'info');
+                                return originalScrollTopDescriptor.set.call(this, value);
+                            },
+                            configurable: true
+                        });
+                    }
+                });
+                
+                log('🚨 跳转监控已注入到主窗口', 'info');
+            }
+        }
+        
+        // 页面加载完成后注入监控
+        window.addEventListener('load', injectJumpDetection);
+        
+        log('🚨 Jump Detective 工具已启动', 'info');
+        log('💡 请在主应用中重现跳转问题，这里会显示监控日志', 'info');
+    </script>
+</body>
+</html> 

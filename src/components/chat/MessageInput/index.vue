@@ -250,26 +250,47 @@ const emojiPickerRef = ref(null);
 
 // Computed properties
 const canSend = computed(() => {
-  // 🎯 可以发送如果：有文本内容 或者 有文件 或者 有上传成功的文件URL
+  // 🎯 只有以下情况才可以发送：
+  // 1. 有文本内容
+  // 2. 有已完成上传的文件URL（不是仅仅选择了文件）
   const hasContent = messageContent.value.trim().length > 0;
-  const hasFiles = files.value.length > 0;
   const hasUploadedFile = uploadedFileUrl.value.trim().length > 0;
   const notSending = !isSending.value;
 
-  const result = (hasContent || hasFiles || hasUploadedFile) && notSending;
+  // 🔧 CRITICAL FIX: 移除 hasFiles 检查，只允许有内容或有已上传文件URL时发送
+  // 不再基于 files.value.length，因为那只表示选择了文件，而非上传完成
+  const result = (hasContent || hasUploadedFile) && notSending;
 
-  // 🔍 仅在状态变化时记录关键信息
-  if (hasUploadedFile && result) {
-    console.log('✅ [MessageInput] Send button activated - file ready:', uploadedFileUrl.value);
+  // 🔍 调试日志：状态变化时记录
+  if (import.meta.env.DEV) {
+    const currentState = { hasContent, hasUploadedFile, notSending, result };
+    const prevState = canSend._prevState || {};
+    
+    if (JSON.stringify(currentState) !== JSON.stringify(prevState)) {
+      console.log('🔄 [MessageInput] canSend state changed:', {
+        hasContent,
+        hasUploadedFile: !!hasUploadedFile,
+        uploadedFileUrl: uploadedFileUrl.value ? 'SET' : 'EMPTY',
+        filesSelected: files.value.length,
+        notSending,
+        canSend: result
+      });
+      canSend._prevState = currentState;
+    }
   }
 
   return result;
 });
 
 const placeholderText = computed(() => {
-  // 🎯 如果有上传成功的文件URL，显示简洁提示
+  // 🎯 如果有上传成功的文件URL，显示准备发送提示
   if (uploadedFileUrl.value) {
-    return 'File ready to send...';
+    return 'File ready to send! Add text or send file-only message.';
+  }
+
+  // 🎯 如果选择了文件但未上传完成，显示等待提示
+  if (files.value.length > 0) {
+    return 'Upload file first, then send button will activate...';
   }
 
   if (formatMode.value === 'markdown') {
@@ -870,7 +891,25 @@ const sendMessage = async () => {
 
   try {
     // 🎯 构建消息数据，优先使用上传成功的文件URL
+    const hasUploadedFile = uploadedFileUrl.value.trim().length > 0;
+    
+    // 🔧 BACKEND ALIGNED: 处理内容，有文件时自动补空格
     let content = messageContent.value.trim();
+    if (!content && hasUploadedFile) {
+      content = ' '; // 自动补充空格以满足后端验证（不能再trim）
+      console.log('🔧 [MessageInput] Auto-added space for file-only message (backend requirement)');
+    }
+    
+    if (!content && !hasUploadedFile) {
+      console.error('❌ [MessageInput] Cannot send message: no content and no uploaded file URL');
+      console.log('📊 [MessageInput] Current state:', {
+        hasContent: !!content,
+        hasUploadedFile,
+        filesSelected: files.value.length,
+        uploadedFileUrl: uploadedFileUrl.value
+      });
+      return;
+    }
 
     // 🚀 CRITICAL FIX: Code模式下自动包装为代码块
     if (formatMode.value === 'code' && content) {
@@ -881,24 +920,30 @@ const sendMessage = async () => {
       console.log(`🔧 [MessageInput] Code mode: wrapping content as ${language} code block`);
     }
 
+    console.log('📤 [MessageInput] Preparing to send message:', {
+      content: content,
+      contentLength: content.length,
+      hasUploadedFile: hasUploadedFile,
+      filesSelected: files.value.length,
+      uploadedFileUrl: uploadedFileUrl.value,
+      formatMode: formatMode.value
+    });
+
     const messageData = {
       content: content,
       formatMode: formatMode.value,
       reply_to: props.replyToMessage?.id
     };
 
-    // 🎯 如果有上传成功的文件URL，优先使用它
+    // 🎯 CRITICAL FIX: Send file URLs as string array, not objects
     if (uploadedFileUrl.value) {
-      messageData.files = [uploadedFileInfo.value];
-      console.log('📨 [MessageInput] Sending message with uploaded file URL:', uploadedFileUrl.value);
+      // Backend expects array of URL strings, not file info objects
+      messageData.files = [uploadedFileUrl.value];
+      console.log('📨 [MessageInput] Sending message with uploaded file URL string:', uploadedFileUrl.value);
     } else if (files.value.length > 0) {
-      // 如果没有上传的URL但有文件，使用原来的逻辑
-      messageData.files = files.value.map(file => ({
-        name: file.name,
-        size: file.size,
-        type: file.type
-      }));
-      console.log('📨 [MessageInput] Sending message with local files');
+      // If no uploaded URL but have File objects, pass them for upload
+      messageData.files = files.value;
+      console.log('📨 [MessageInput] Sending message with File objects for upload');
     }
 
     emit('message-sent', messageData);

@@ -41,14 +41,14 @@ export const useUserStore = defineStore('user', {
           this.hasFetchedAllUsers = true;
           this.error = null;
 
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log(`✅ [UserStore] Successfully fetched ${users.length} workspace users`);
           }
 
           return users;
         } catch (error) {
           this.error = error.message;
-          if (import.meta.env.DEV) {
+          if (true) {
             console.error('[UserStore] Failed to fetch users:', error);
           }
           return [];
@@ -71,20 +71,20 @@ export const useUserStore = defineStore('user', {
         while (this.initializationAttempts < this.maxInitializationAttempts) {
           this.initializationAttempts++;
 
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log(`🔄 [UserStore] Initialization attempt ${this.initializationAttempts}/${this.maxInitializationAttempts}`);
           }
 
           try {
             const users = await this.fetchWorkspaceUsers();
             if (users && users.length > 0) {
-              if (import.meta.env.DEV) {
+              if (true) {
                 console.log(`✅ [UserStore] Initialization successful on attempt ${this.initializationAttempts}`);
               }
               return true;
             }
           } catch (error) {
-            if (import.meta.env.DEV) {
+            if (true) {
               console.warn(`⚠️ [UserStore] Attempt ${this.initializationAttempts} failed:`, error.message);
             }
           }
@@ -95,7 +95,7 @@ export const useUserStore = defineStore('user', {
           }
         }
 
-        if (import.meta.env.DEV) {
+        if (true) {
           console.warn(`❌ [UserStore] All ${this.maxInitializationAttempts} initialization attempts failed`);
         }
         return false;
@@ -124,7 +124,7 @@ export const useUserStore = defineStore('user', {
           this.userCache.set(user.id, user);
         });
       } catch (error) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.error('[UserStore] Failed to fetch users by IDs:', error);
         }
       }

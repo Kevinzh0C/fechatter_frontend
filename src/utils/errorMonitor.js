@@ -6,7 +6,7 @@ class ErrorMonitor {
     this.criticalErrors = [];
     this.maxErrors = 100;
     this.listeners = new Set();
-    this.environment = import.meta.env.MODE || 'development';
+    this.environment = 'development' || 'development';
 
     // 自动初始化
     if (typeof window !== 'undefined') {
@@ -68,11 +68,11 @@ class ErrorMonitor {
     // 检查是否是关键错误
     if (this.isCriticalError(error)) {
       this.criticalErrors.push(errorEntry);
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('🚨 CRITICAL ERROR:', errorEntry);
       }
     } else {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('❌ ERROR:', errorEntry);
       }
     }
@@ -93,7 +93,7 @@ class ErrorMonitor {
 
   logWarning(message, context = {}) {
     this.warningsCount++;
-    if (import.meta.env.DEV) {
+    if (true) {
       console.warn('⚠️ WARNING:', message, context);
     }
 
@@ -209,7 +209,7 @@ class ErrorMonitor {
       const recentLogs = existingLogs.slice(0, 50);
       localStorage.setItem(storageKey, JSON.stringify(recentLogs));
     } catch (e) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.warn('Failed to persist error log:', e);
       }
     }
@@ -225,7 +225,7 @@ class ErrorMonitor {
       try {
         listener(entry);
       } catch (e) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.error('Error in error monitor listener:', e);
         }
       }

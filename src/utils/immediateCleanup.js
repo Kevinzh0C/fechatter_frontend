@@ -4,7 +4,7 @@
  */
 
 function immediateCleanup() {
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('🚨 Starting Immediate Cleanup...');
   }
 
@@ -14,7 +14,7 @@ function immediateCleanup() {
       console.clear();
     }
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🧹 Immediate Cleanup Active');
     }
 
@@ -57,22 +57,22 @@ function immediateCleanup() {
         window.logSuppressor.addPattern(pattern);
       });
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('✅ All noise patterns suppressed');
       }
 
     // 3. Show clean status
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('📊 Console Status: CLEAN');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('💡 Use window.quickFix() for comprehensive repair');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('💡 Use window.logStats() to see suppression statistics');
     }
 
     return true;
   } catch (error) {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.error('❌ Immediate cleanup failed:', error);
     return false;
   }
@@ -80,7 +80,7 @@ function immediateCleanup() {
 // Export for global use
 if (typeof window !== 'undefined') {
   window.immediateCleanup = immediateCleanup;
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('🚨 Immediate cleanup available: window.immediateCleanup()');
   }
 

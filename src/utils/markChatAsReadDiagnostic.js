@@ -22,18 +22,18 @@ class MarkChatAsReadDiagnostic {
       const chatStore = useChatStore();
       const route = useRoute();
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('\n1️⃣ Current State:');
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('- Current chat ID:', chatStore.currentChatId);
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('- Route chat ID:', route.params.id);
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('- Messages loaded:', chatStore.messages.length);
       }
 
       if (!chatStore.currentChatId) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.warn('⚠️ No current chat selected. Navigate to a chat first.');
         return;
       }
@@ -41,17 +41,17 @@ class MarkChatAsReadDiagnostic {
       const currentChatId = chatStore.currentChatId;
       const currentChat = chatStore.chats.find(c => c.id === currentChatId);
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('\n2️⃣ Chat Info:');
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('- Chat found:', !!currentChat);
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('- Chat name:', currentChat?.name);
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('- Unread count before:', currentChat?.unread_count);
       }
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('\n3️⃣ Testing markChatAsRead fix...');
       }
 
@@ -60,39 +60,39 @@ class MarkChatAsReadDiagnostic {
         await chatStore.markChatAsRead(currentChatId);
 
         const updatedChat = chatStore.chats.find(c => c.id === currentChatId);
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('✅ markChatAsRead completed successfully');
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('- Unread count after:', updatedChat?.unread_count);
         }
 
         if (updatedChat?.unread_count === 0) {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log('✅ Local unread count properly reset');
           }
         } else {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.warn('⚠️ Unread count not reset, value:', updatedChat?.unread_count);
           }
 
       } catch (error) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.error('❌ markChatAsRead failed:', error);
         }
 
         // Analyze the error
         if (error.response?.status === 404) {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log('📊 404 Error Analysis:');
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log('- URL attempted:', error.config?.url);
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log('- Method:', error.config?.method);
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log('- This should now be handled gracefully');
           }
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('\n4️⃣ Endpoint Test:');
       }
 
@@ -105,7 +105,7 @@ class MarkChatAsReadDiagnostic {
 
       for (const endpoint of testEndpoints) {
         try {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log(`Testing endpoint: ${endpoint}`);
           }
 
@@ -117,34 +117,34 @@ class MarkChatAsReadDiagnostic {
               .slice(0, 5); // Test with first 5 messages
 
             if (messageIds.length > 0) {
-              if (import.meta.env.DEV) {
+              if (true) {
                 console.log(`- Testing with ${messageIds.length} message IDs`);
               }
               // Note: This is just a test, actual request handled by fixed method
             } else {
-              if (import.meta.env.DEV) {
+              if (true) {
                 console.log('- No valid message IDs available for test');
               }
 
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log(`✅ Endpoint ${endpoint} format validated`);
           }
         } catch (error) {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log(`❌ Endpoint ${endpoint} failed:`, error.response?.status);
           }
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('\n5️⃣ Verification:');
       const finalChat = chatStore.chats.find(c => c.id === currentChatId);
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('- Final unread count:', finalChat?.unread_count);
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('- UI should show no unread badge');
       }
 
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('❌ Diagnostic failed:', error);
       }
 
@@ -155,7 +155,7 @@ class MarkChatAsReadDiagnostic {
    * Monitor markChatAsRead calls for debugging
    */
   monitorMarkChatAsReadCalls() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🔍 Starting markChatAsRead monitoring...');
     }
 
@@ -170,11 +170,11 @@ class MarkChatAsReadDiagnostic {
       // Override with monitoring
       chatStore.markChatAsRead = async function (chatId) {
         console.group(`📞 markChatAsRead called for chat: ${chatId}`);
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('- Timestamp:', new Date().toISOString());
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('- Messages count:', this.messages.length);
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('- Current chat ID:', this.currentChatId);
         }
 
@@ -184,13 +184,13 @@ class MarkChatAsReadDiagnostic {
           const result = await originalMarkChatAsRead(chatId);
           const endTime = performance.now();
 
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log(`✅ Success in ${(endTime - startTime).toFixed(2)}ms`);
           return result;
         } catch (error) {
           const endTime = performance.now();
 
-          if (import.meta.env.DEV) {
+          if (true) {
             console.error(`❌ Failed in ${(endTime - startTime).toFixed(2)}ms:`, error.message);
           throw error;
         } finally {
@@ -198,11 +198,11 @@ class MarkChatAsReadDiagnostic {
         }
       };
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('✅ markChatAsRead monitoring active');
       return true;
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('❌ Failed to setup monitoring:', error);
       return false;
     }
@@ -212,7 +212,7 @@ class MarkChatAsReadDiagnostic {
    */
   stopMonitoring() {
     // This would restore original method, but for simplicity we'll just log
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🛑 Monitoring stopped (restart app to restore original method)');
     }
 
@@ -227,11 +227,11 @@ if (typeof window !== 'undefined') {
   window.testMarkChatAsRead = () => markChatAsReadDiagnostic.testMarkChatAsReadFix();
   window.monitorMarkChatAsRead = () => markChatAsReadDiagnostic.monitorMarkChatAsReadCalls();
 
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('🧪 Mark Chat As Read Diagnostic loaded');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('💡 Use window.testMarkChatAsRead() to test the fix');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('💡 Use window.monitorMarkChatAsRead() to monitor calls');
   }
 

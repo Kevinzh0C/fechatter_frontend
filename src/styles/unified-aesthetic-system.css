@@ -1,6 +1,7 @@
 /* 🎨 UNIFIED AESTHETIC SYSTEM - 统一美学设计系统
  * 彻底替代3套冲突的CSS变量系统
  * 恢复原始人体工学认知心理学美学设计
+ * 🎯 仅在指定页面范围内生效，避免全局污染
  */
 
 :root {
@@ -92,9 +93,9 @@
   --text-muted: #9ca3af;
 }
 
-/* ===== 🎯 核心美学恢复 ===== */
+/* ===== 🎯 核心美学恢复 - 仅在聊天页面生效 ===== */
 
-/* 全局字体统一 */
+/* 全局字体统一 - 在所有页面生效 */
 html,
 body,
 #app {
@@ -105,8 +106,11 @@ body,
   background-color: var(--bg-app);
 }
 
-/* Discord消息核心美学恢复 */
-.discord-message {
+/* Discord消息核心美学恢复 - 🎯 仅在聊天相关页面生效 */
+body[data-route*="/chat"] .discord-message,
+body[data-route="/home"] .discord-message,
+body.chat-page .discord-message,
+body.has-discord-messages .discord-message {
   /* 恢复原始精确间距 - 这是关键 */
   padding: var(--message-padding-top) var(--message-padding-right) var(--message-padding-bottom) var(--message-padding-left) !important;
   min-height: var(--message-min-height) !important;
@@ -118,15 +122,24 @@ body,
   position: relative;
 }
 
-.discord-message:hover {
+body[data-route*="/chat"] .discord-message:hover,
+body[data-route="/home"] .discord-message:hover,
+body.chat-page .discord-message:hover,
+body.has-discord-messages .discord-message:hover {
   background-color: var(--bg-message-hover) !important;
   transform: translateY(-1px);
   box-shadow: var(--shadow-sm);
 }
 
-/* 头像精确定位恢复 */
-.message-avatar-slot,
-.discord-message .message-avatar-slot {
+/* 头像精确定位恢复 - 🎯 仅在聊天相关页面生效 */
+body[data-route*="/chat"] .message-avatar-slot,
+body[data-route="/home"] .message-avatar-slot,
+body.chat-page .message-avatar-slot,
+body.has-discord-messages .message-avatar-slot,
+body[data-route*="/chat"] .discord-message .message-avatar-slot,
+body[data-route="/home"] .discord-message .message-avatar-slot,
+body.chat-page .discord-message .message-avatar-slot,
+body.has-discord-messages .discord-message .message-avatar-slot {
   position: absolute !important;
   left: var(--avatar-offset-left) !important;
   top: var(--avatar-offset-top) !important;
@@ -137,9 +150,15 @@ body,
   flex-shrink: 0;
 }
 
-/* 文本层次恢复 */
-.sender-name,
-.discord-message .sender-name {
+/* 文本层次恢复 - 🎯 仅在聊天相关页面生效 */
+body[data-route*="/chat"] .sender-name,
+body[data-route="/home"] .sender-name,
+body.chat-page .sender-name,
+body.has-discord-messages .sender-name,
+body[data-route*="/chat"] .discord-message .sender-name,
+body[data-route="/home"] .discord-message .sender-name,
+body.chat-page .discord-message .sender-name,
+body.has-discord-messages .discord-message .sender-name {
   font-size: var(--font-size-base) !important;
   font-weight: 500 !important;
   color: var(--text-primary) !important;
@@ -147,15 +166,27 @@ body,
   margin-bottom: 2px !important;
 }
 
-.message-timestamp,
-.discord-message .message-timestamp {
+body[data-route*="/chat"] .message-timestamp,
+body[data-route="/home"] .message-timestamp,
+body.chat-page .message-timestamp,
+body.has-discord-messages .message-timestamp,
+body[data-route*="/chat"] .discord-message .message-timestamp,
+body[data-route="/home"] .discord-message .message-timestamp,
+body.chat-page .discord-message .message-timestamp,
+body.has-discord-messages .discord-message .message-timestamp {
   font-size: var(--font-size-sm) !important;
   color: var(--text-muted) !important;
   font-weight: 400 !important;
 }
 
-.message-text,
-.discord-message .message-text {
+body[data-route*="/chat"] .message-text,
+body[data-route="/home"] .message-text,
+body.chat-page .message-text,
+body.has-discord-messages .message-text,
+body[data-route*="/chat"] .discord-message .message-text,
+body[data-route="/home"] .discord-message .message-text,
+body.chat-page .discord-message .message-text,
+body.has-discord-messages .discord-message .message-text {
   font-size: var(--font-size-base) !important;
   color: var(--text-primary) !important;
   line-height: var(--line-height-base) !important;
@@ -163,14 +194,20 @@ body,
   margin: 0;
 }
 
-/* 时间分隔符美学 */
-.time-session-divider {
+/* 时间分隔符美学 - 🎯 仅在聊天相关页面生效 */
+body[data-route*="/chat"] .time-session-divider,
+body[data-route="/home"] .time-session-divider,
+body.chat-page .time-session-divider,
+body.has-discord-messages .time-session-divider {
   margin: 20px 0 !important;
   padding: 12px 16px;
 }
 
-/* 确保消息列表整体美学 */
-.simple-message-list {
+/* 确保消息列表整体美学 - 🎯 仅在聊天相关页面生效 */
+body[data-route*="/chat"] .simple-message-list,
+body[data-route="/home"] .simple-message-list,
+body.chat-page .simple-message-list,
+body.has-discord-messages .simple-message-list {
   padding: 16px 0;
   background-color: var(--bg-primary);
   font-family: var(--font-family-primary);
@@ -195,7 +232,10 @@ body,
     animation: none !important;
   }
 
-  .discord-message:hover {
+  body[data-route*="/chat"] .discord-message:hover,
+  body[data-route="/home"] .discord-message:hover,
+  body.chat-page .discord-message:hover,
+  body.has-discord-messages .discord-message:hover {
     transform: none !important;
   }
 }

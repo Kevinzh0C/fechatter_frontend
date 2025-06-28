@@ -1392,8 +1392,8 @@ class ProgressiveScrollStrategy {
 
       console.log(`📜 [ProgressiveScroll] Attempting progressive loading for message ${messageId}`)
 
-      // Scroll to top and trigger progressive loading
-      scrollContainer.scrollTop = 0
+      // 🔴 DISABLED: Scroll to top and trigger progressive loading (can cause jumping)
+      // scrollContainer.scrollTop = 0
       await new Promise(resolve => setTimeout(resolve, 300))
 
       // Try multiple scroll events to trigger load more
@@ -1407,8 +1407,8 @@ class ProgressiveScrollStrategy {
           return { success: true, attempts: attempt + 1 }
         }
 
-        // Scroll up slightly to trigger more loading
-        scrollContainer.scrollTop = Math.max(0, scrollContainer.scrollTop - 100)
+        // 🔴 DISABLED: Scroll up slightly to trigger more loading (can cause jumping)
+        // scrollContainer.scrollTop = Math.max(0, scrollContainer.scrollTop - 100)
       }
 
       return { success: false, error: 'Message not found after progressive loading' }
@@ -2121,87 +2121,68 @@ export class PerfectNavigationController {
         this.applySearchTermHighlighting(messageElement, params.searchQuery)
       }
 
-      // 🚀 Apply Blue Pulse Beam Effect - 蓝色脉冲光束效果
-      this.applyBluePulseBeamHighlight(messageElement, {
-        fastMode: true, // 🚀 快速模式
-        pulseSpeed: params.pulseSpeed || 'fast', // 🚀 脉冲速度
-        duration: params.highlightDuration || 2000, // 🚀 从3000ms减少到2000ms
-        intensity: params.intensity || 'high', // 光束强度
-        beamEffect: params.beamEffect !== false // 光束特效
+      // 🎯 Apply Search Jump Intense Effect - 强烈搜索跳转特效
+      this.applySearchJumpHighlight(messageElement, {
+        intensity: params.intensity || 'intense', // 使用强烈模式
+        duration: params.highlightDuration || 6000, // 6秒持续时间
+        searchQuery: params.searchQuery,
+        showIndicator: params.showIndicator !== false
       })
 
       return {
         success: true,
         hasSearchHighlight: !!params.searchQuery,
-        effectType: 'blue_pulse_beam', // 🚀 标记为蓝色脉冲光束
-        speed: 'fast'
+        effectType: 'search_jump_intense', // 🎯 标记为强烈搜索跳转
+        intensity: 'intense'
       }
     } catch (error) {
       return { success: false, error: error.message }
     }
   }
 
-  // 🚀 增强：蓝色脉冲光束高亮效果 - 更明显的特效
-  applyBluePulseBeamHighlight(messageElement, options = {}) {
+  // 🎯 新增：强烈搜索跳转高亮效果
+  applySearchJumpHighlight(messageElement, options = {}) {
     // 移除旧的高亮类
-    messageElement.classList.remove('message-navigation-highlight', 'message-navigation-pulse')
+    this.clearAllHighlights()
 
-    console.log(`🔵 [BlueBeam] 🚀 Applying enhanced border rotation effect to message ${messageElement.dataset.messageId}`)
+    console.log(`🎯 [SearchJump] 🚀 Applying intense search jump effect to message ${messageElement.dataset.messageId}`)
 
-    // 🚀 添加蓝色脉冲光束类（边框转动）
-    messageElement.classList.add('blue-pulse-beam-highlight')
-
-    // 🚀 根据速度添加对应的动画类
-    const speedClass = options.pulseSpeed === 'fast' ? 'blue-beam-fast' :
-      options.pulseSpeed === 'ultra' ? 'blue-beam-ultra' : 'blue-beam-normal'
-    messageElement.classList.add(speedClass)
-
-    // 🚀 添加强度类（仅影响边框颜色）
-    const intensityClass = options.intensity === 'high' ? 'blue-beam-intense' :
-      options.intensity === 'low' ? 'blue-beam-soft' : 'blue-beam-medium'
+    // 🎯 根据强度选择CSS类
+    const intensityClass = options.intensity === 'intense' ? 'search-jump-intense' : 'search-jump-highlight'
     messageElement.classList.add(intensityClass)
 
-    // 🔵 ENHANCED: 增加更明显的视觉效果
-    messageElement.style.transform = 'scale(1.02)'
-    messageElement.style.transition = 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)'
-    messageElement.style.zIndex = '100'
+    // 🚀 确保消息在最高层级显示
+    messageElement.style.zIndex = '1000'
     messageElement.style.position = 'relative'
 
-    // 🔵 ENHANCED: 增加背景高亮
-    const originalBackground = messageElement.style.background
-    messageElement.style.background = 'linear-gradient(135deg, rgba(0, 122, 255, 0.08) 0%, rgba(64, 156, 255, 0.05) 100%)'
-    messageElement.style.boxShadow = '0 0 30px rgba(0, 122, 255, 0.2), 0 8px 32px rgba(0, 122, 255, 0.15)'
+    // 🎯 搜索词高亮
+    if (options.searchQuery) {
+      this.applySearchTermHighlighting(messageElement, options.searchQuery)
+    }
 
-    // 🚀 增强持续时间（从2秒增加到6秒）
+    // 🎯 持续时间后自动移除
     const duration = options.duration || 6000
 
     setTimeout(() => {
-      this.removeBlueBeamHighlight(messageElement, originalBackground)
+      this.removeSearchJumpHighlight(messageElement)
     }, duration)
 
-    console.log(`🔵 [BlueBeam] ✅ Enhanced border rotation applied with ${speedClass}, ${intensityClass}, duration: ${duration}ms`)
+    console.log(`🎯 [SearchJump] ✅ ${intensityClass} applied, duration: ${duration}ms`)
   }
 
-  // 🚀 增强：移除蓝色光束高亮
-  removeBlueBeamHighlight(messageElement, originalBackground = '') {
-    messageElement.classList.remove(
-      'blue-pulse-beam-highlight',
-      'blue-beam-fast',
-      'blue-beam-ultra',
-      'blue-beam-normal',
-      'blue-beam-intense',
-      'blue-beam-medium',
-      'blue-beam-soft'
-    )
-
-    // 🔵 ENHANCED: 平滑恢复原始样式
-    messageElement.style.transform = 'scale(1)'
+  // 🎯 移除搜索跳转高亮
+  removeSearchJumpHighlight(messageElement) {
+    messageElement.classList.remove('search-jump-highlight', 'search-jump-intense')
+    
+    // 平滑恢复原始样式
+    messageElement.style.transform = ''
     messageElement.style.zIndex = ''
     messageElement.style.position = ''
-    messageElement.style.background = originalBackground
+    messageElement.style.background = ''
+    messageElement.style.border = ''
     messageElement.style.boxShadow = ''
 
-    console.log(`🔵 [BlueBeam] 🚀 Enhanced border rotation removed from message ${messageElement.dataset.messageId}`)
+    console.log(`🎯 [SearchJump] 🚀 Search jump highlight removed from message ${messageElement.dataset.messageId}`)
   }
 
   applyNavigationHighlight(messageElement, options) {

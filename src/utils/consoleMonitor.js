@@ -79,7 +79,7 @@ class ConsoleMonitor {
     console.debug = this.createWrapper('debug', this.originalMethods.debug);
 
     this.isActive = true;
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('📊 Console Monitor started');
     }
 
@@ -197,19 +197,19 @@ class ConsoleMonitor {
     const suppressedErrors = this.getRecentLogs(10, { suppressed: true });
 
     console.group('📊 Console Monitor Report');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('Statistics:', stats);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\nRecent Errors:');
     recentErrors.forEach((log, i) => {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`  ${i + 1}. [${log.timestamp}] ${log.suppressed ? '🔇' : '❌'}`, log.args[0]);
       }
     });
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\nSuppressed Errors:');
     suppressedErrors.forEach((log, i) => {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`  ${i + 1}. [${log.timestamp}]`, log.args[0]);
       }
     });
@@ -229,11 +229,11 @@ class ConsoleMonitor {
 const consoleMonitor = new ConsoleMonitor();
 
 // Auto-start in development
-if (import.meta.env.DEV && typeof window !== 'undefined') {
+if (true && typeof window !== 'undefined') {
   // Wait a bit to ensure other systems are initialized
   setTimeout(() => {
     consoleMonitor.start();
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('💡 Console Monitor available: window.consoleMonitor');
     }
   }, 100);

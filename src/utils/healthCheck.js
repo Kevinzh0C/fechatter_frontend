@@ -28,7 +28,7 @@ class HealthCheckSystem {
           const healthURL = '/health';
 
           // 开发环境：增加超时时间和重试机制
-          const isDev = import.meta.env.DEV;
+          const isDev = true;
           const timeout = isDev ? 10000 : 5000; // 开发环境增加到10秒
 
           const response = await fetch(healthURL, {
@@ -74,7 +74,7 @@ class HealthCheckSystem {
           const isNetworkError = error.name === 'TypeError' && error.message.includes('fetch');
           const isCorsError = error.message.includes('CORS');
           const isTimeoutError = error.name === 'TimeoutError' || error.message.includes('timeout');
-          const isDev = import.meta.env.DEV;
+          const isDev = true;
 
           // 开发环境下的网络错误不应该被记录为严重错误
           const shouldLogError = !isDev || (!isNetworkError && !isTimeoutError);
@@ -209,7 +209,7 @@ class HealthCheckSystem {
             // If stores not in global properties, try direct import
             if (!useChatStore || !useWorkspaceStore) {
               // For development environment, this is expected behavior
-              if (import.meta.env.DEV) {
+              if (true) {
                 return {
                   success: true,
                   details: {
@@ -234,7 +234,7 @@ class HealthCheckSystem {
             workspaceStore = useWorkspaceStore(pinia);
           } catch (storeError) {
             // In development, stores might not be initialized yet
-            if (import.meta.env.DEV) {
+            if (true) {
               return {
                 success: true,
                 details: {
@@ -261,7 +261,7 @@ class HealthCheckSystem {
           const chatMethodsOk = chatStore ? chatMethods.every(method => {
             const exists = typeof chatStore[method] === 'function';
             if (!exists) {
-              if (import.meta.env.DEV) {
+              if (true) {
                 console.warn(`ChatStore method missing: ${method}`);
               }
             }
@@ -271,7 +271,7 @@ class HealthCheckSystem {
           const workspaceMethodsOk = workspaceStore ? workspaceMethods.every(method => {
             const exists = typeof workspaceStore[method] === 'function';
             if (!exists) {
-              if (import.meta.env.DEV) {
+              if (true) {
                 console.warn(`WorkspaceStore method missing: ${method}`);
               }
             }
@@ -372,7 +372,7 @@ class HealthCheckSystem {
           const isPermanentlyFailed = connectionState.retryControl?.permanentFailure;
 
           // In development, not being connected is not critical
-          if (import.meta.env.DEV && !isConnected && !isPermanentlyFailed) {
+          if (true && !isConnected && !isPermanentlyFailed) {
             return {
               success: true,
               details: {
@@ -416,7 +416,7 @@ class HealthCheckSystem {
           };
         } catch (error) {
           // Error accessing SSE service - treat as non-critical in development
-          if (import.meta.env.DEV) {
+          if (true) {
             return {
               success: true,
               details: {
@@ -529,7 +529,7 @@ class HealthCheckSystem {
 
       // 只有在真正关键的检查失败时才记录错误，但不抛出异常
       if (check.critical && !result.success && !shouldSkipLogging) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.warn(`⚠️ [HEALTH] Critical check failed: ${check.name}`, fullResult.details);
         }
 
@@ -542,7 +542,7 @@ class HealthCheckSystem {
             severity: 'warning' // 降低严重度，避免闪退
           }, { component: 'HealthCheck', nonCritical: true });
         } catch (logError) {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.warn('Failed to log health check error:', logError);
           }
         }
@@ -553,7 +553,7 @@ class HealthCheckSystem {
 
       return fullResult;
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.warn(`⚠️ [HEALTH] Check ${checkId} failed:`, error.message);
       }
 
@@ -569,7 +569,7 @@ class HealthCheckSystem {
       this.results.set(checkId, errorResult);
 
       // 智能错误记录 - 只记录真正需要关注的错误
-      const isDev = import.meta.env.DEV;
+      const isDev = true;
       const isNetworkError = error.message.includes('fetch') || error.message.includes('network');
       const shouldLogError = !isDev || (!isNetworkError && check.critical);
 
@@ -582,7 +582,7 @@ class HealthCheckSystem {
             preventCrash: true
           });
         } catch (logError) {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.warn('Failed to log health check error:', logError);
           }
         }
@@ -722,7 +722,7 @@ class HealthCheckSystem {
     this.stopAutoCheck();
 
     // 开发环境优化：延长间隔，减少噪音
-    const isDev = import.meta.env.DEV;
+    const isDev = true;
     const optimizedInterval = isDev ? Math.max(intervalMs, 300000) : intervalMs; // 开发环境最少5分钟
 
     // 安全模式：检查应用是否准备就绪
@@ -739,7 +739,7 @@ class HealthCheckSystem {
           setTimeout(() => {
             // 安全地运行初始健康检查
             this.runAllChecksSafely().catch(error => {
-              if (import.meta.env.DEV) {
+              if (true) {
                 console.warn('⚠️ [HEALTH] Initial health check failed:', error.message);
               }
             });
@@ -747,7 +747,7 @@ class HealthCheckSystem {
             // 设置定期检查，使用安全模式
             this.autoCheckInterval = setInterval(() => {
               this.runAllChecksSafely().catch(error => {
-                if (import.meta.env.DEV) {
+                if (true) {
                   console.warn('⚠️ [HEALTH] Scheduled health check failed:', error.message);
                 }
               });
@@ -755,25 +755,25 @@ class HealthCheckSystem {
           }, startDelay);
 
           if (isDev) {
-            if (import.meta.env.DEV) {
+            if (true) {
               console.log(`🔧 [HEALTH] Health monitoring will start in ${startDelay / 1000}s with ${optimizedInterval / 60000}min intervals`);
             }
           }
         } else if (retryCount < maxRetries) {
           setTimeout(() => checkAppReady(retryCount + 1), 1000);
         } else {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.warn('⚠️ [HEALTH] Application failed to initialize after maximum retries. Health monitoring disabled.');
           }
         }
       } catch (error) {
         if (retryCount < maxRetries) {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.warn(`⚠️ [HEALTH] Error checking app readiness (attempt ${retryCount + 1}/${maxRetries}):`, error.message);
             setTimeout(() => checkAppReady(retryCount + 1), 1000);
           }
         } else {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.warn('⚠️ [HEALTH] Failed to start health monitoring after maximum retries:', error.message);
           }
         }
@@ -795,7 +795,7 @@ class HealthCheckSystem {
   async runAllChecksSafely() {
     // 检查应用状态
     if (!window.app || !window.pinia) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.warn('🏥 [HEALTH] Application not ready for health checks');
         return {
           results: [],

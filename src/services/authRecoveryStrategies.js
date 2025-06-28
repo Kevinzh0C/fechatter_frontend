@@ -46,7 +46,7 @@ class TokenRefreshStrategy extends RecoveryStrategy {
 
   async execute(context) {
     try {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('🔄 Attempting token refresh...');
       }
 
@@ -93,7 +93,7 @@ class StorageRecoveryStrategy extends RecoveryStrategy {
     try {
       const authData = JSON.parse(localStorage.getItem('auth'));
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('🔄 Recovering from storage...');
       }
 
@@ -129,7 +129,7 @@ class SilentReauthStrategy extends RecoveryStrategy {
 
   async execute(context) {
     try {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('🔄 Attempting silent reauth...');
       }
 
@@ -161,7 +161,7 @@ class GracefulLogoutStrategy extends RecoveryStrategy {
   }
 
   async execute(context) {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🚪 Graceful logout - no recovery possible');
     }
 
@@ -203,7 +203,7 @@ export class AuthRecoveryManager {
 
   // 🔄 执行恢复流程
   async attemptRecovery(context = {}) {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🔧 Starting recovery process with context:', context);
     }
 
@@ -222,7 +222,7 @@ export class AuthRecoveryManager {
           continue;
         }
 
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log(`🔄 Executing strategy: ${strategy.name}`);
         }
 

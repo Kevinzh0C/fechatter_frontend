@@ -10,24 +10,60 @@ import DOMPurify from 'dompurify'
 // 🎨 Configure marked with enhanced code handling
 const renderer = {
   code(code, infostring, escaped) {
-    // 🔍 DEBUG: 添加详细的代码块调试
-    console.group('🎨 [MARKDOWN] Code renderer called')
-    console.log('🔍 [MARKDOWN] Raw code parameter:', code)
-    console.log('🔍 [MARKDOWN] Code type:', typeof code)
-    console.log('🔍 [MARKDOWN] Code constructor:', code?.constructor?.name)
-    console.log('🔍 [MARKDOWN] Infostring:', infostring)
-    console.log('🔍 [MARKDOWN] Escaped flag:', escaped)
+    // 🔍 DEBUG: 仅在开发环境记录调试信息
+    const isDebug = import.meta.env.DEV
+    if (isDebug) {
+      console.group('🎨 [MARKDOWN] Code renderer called')
+      console.log('🔍 [MARKDOWN] Raw code parameter:', code)
+      console.log('🔍 [MARKDOWN] Code type:', typeof code)
+      console.log('🔍 [MARKDOWN] Code constructor:', code?.constructor?.name)
+      console.log('🔍 [MARKDOWN] Infostring:', infostring)
+      console.log('🔍 [MARKDOWN] Escaped flag:', escaped)
+    }
 
-    // 🚨 CRITICAL: 检查code参数是否为对象
-    if (typeof code === 'object') {
+    // 🚨 CRITICAL FIX: Properly handle object code parameters
+    if (typeof code === 'object' && code !== null) {
       console.error('🚨 [MARKDOWN] CRITICAL: Code parameter is object, not string!')
       console.log('🔍 [MARKDOWN] Object keys:', Object.keys(code || {}))
       console.log('🔍 [MARKDOWN] Object values:', code)
 
-      // 尝试从对象中提取代码内容
-      const extractedCode = code?.code || code?.content || code?.text || code?.value || String(code)
-      console.log('🔍 [MARKDOWN] Extracted code:', extractedCode)
-      code = extractedCode
+      // 🔧 ENHANCED: More robust object-to-string conversion
+      let extractedCode = '';
+      
+      // Try common property names for code content
+      if (code.code && typeof code.code === 'string') {
+        extractedCode = code.code;
+      } else if (code.content && typeof code.content === 'string') {
+        extractedCode = code.content;
+      } else if (code.text && typeof code.text === 'string') {
+        extractedCode = code.text;
+      } else if (code.value && typeof code.value === 'string') {
+        extractedCode = code.value;
+      } else if (code.raw && typeof code.raw === 'string') {
+        extractedCode = code.raw;
+      } else {
+        // 🔧 FALLBACK: Try to stringify but avoid [object Object]
+        try {
+          if (Array.isArray(code)) {
+            extractedCode = code.join('\n');
+          } else if (code.toString && code.toString !== Object.prototype.toString) {
+            extractedCode = code.toString();
+          } else {
+            extractedCode = JSON.stringify(code, null, 2);
+          }
+        } catch (e) {
+          extractedCode = String(code || '');
+        }
+      }
+      
+      if (isDebug) console.log('🔧 [MARKDOWN] Extracted code:', extractedCode)
+      code = extractedCode;
+    }
+
+    // 🔧 ADDITIONAL SAFETY: Ensure code is always a string
+    if (typeof code !== 'string') {
+      if (isDebug) console.warn('🚨 [MARKDOWN] Code is still not a string after conversion, forcing string conversion');
+      code = String(code || '');
     }
 
     const lang = (infostring || '').match(/\S*/)
@@ -41,8 +77,10 @@ const renderer = {
     const escapedCode = escaped ? code : escapeHtml(code)
 
     // 🔍 DEBUG: 最终的escaped code
-    console.log('🔍 [MARKDOWN] Final escaped code:', escapedCode)
-    console.log('🔍 [MARKDOWN] Final escaped code type:', typeof escapedCode)
+    if (isDebug) {
+      console.log('🔍 [MARKDOWN] Final escaped code:', escapedCode)
+      console.log('🔍 [MARKDOWN] Final escaped code type:', typeof escapedCode)
+    }
 
     const result = `<div class="code-block-placeholder" 
       data-code="${escapeAttribute(escapedCode)}"
@@ -52,13 +90,25 @@ const renderer = {
       <pre class="loading-code"><code class="language-${language}">${escapedCode}</code></pre>
     </div>`
 
-    console.log('🔍 [MARKDOWN] Final renderer result:', result)
-    console.groupEnd()
+    if (isDebug) {
+      console.log('🔍 [MARKDOWN] Final renderer result:', result)
+      console.groupEnd()
+    }
 
     return result
   },
 
   codespan(code) {
+    // 🔧 SAFETY: Handle object parameters in inline code too
+    if (typeof code === 'object' && code !== null) {
+      console.warn('🚨 [MARKDOWN] Inline code received object, converting to string');
+      code = code.code || code.content || code.text || code.value || String(code);
+    }
+    
+    if (typeof code !== 'string') {
+      code = String(code || '');
+    }
+    
     return `<code class="inline-code">${escapeHtml(code)}</code>`
   }
 }
@@ -102,36 +152,46 @@ const purifyConfig = {
  * @returns {string} HTML string
  */
 export function renderMarkdown(content) {
-  // 🔍 DEBUG: 添加renderMarkdown函数调试
-  console.group('📝 [MARKDOWN] renderMarkdown called')
-  console.log('🔍 [MARKDOWN] Input content:', content)
-  console.log('🔍 [MARKDOWN] Input content type:', typeof content)
-  console.log('🔍 [MARKDOWN] Input content length:', content?.length)
+  // 🔍 DEBUG: 仅在开发环境记录调试信息
+  const isDebug = import.meta.env.DEV
+  
+  if (isDebug) {
+    console.group('📝 [MARKDOWN] renderMarkdown called')
+    console.log('🔍 [MARKDOWN] Input content:', content)
+    console.log('🔍 [MARKDOWN] Input content type:', typeof content)
+    console.log('🔍 [MARKDOWN] Input content length:', content?.length)
+  }
 
   if (!content || typeof content !== 'string') {
-    console.log('🔍 [MARKDOWN] No content or not string, returning empty')
-    console.groupEnd()
+    if (isDebug) {
+      console.log('🔍 [MARKDOWN] No content or not string, returning empty')
+      console.groupEnd()
+    }
     return ''
   }
 
   try {
     // First pass: Convert markdown to HTML using marked v15 API
-    console.log('🔍 [MARKDOWN] About to call marked.parse...')
+    if (isDebug) console.log('🔍 [MARKDOWN] About to call marked.parse...')
     let html = marked.parse(content)
-    console.log('🔍 [MARKDOWN] marked.parse result:', html)
-    console.log('🔍 [MARKDOWN] marked.parse result type:', typeof html)
+    if (isDebug) {
+      console.log('🔍 [MARKDOWN] marked.parse result:', html)
+      console.log('🔍 [MARKDOWN] marked.parse result type:', typeof html)
+    }
 
     // Second pass: Sanitize with DOMPurify
-    console.log('🔍 [MARKDOWN] About to sanitize with DOMPurify...')
+    if (isDebug) console.log('🔍 [MARKDOWN] About to sanitize with DOMPurify...')
     html = DOMPurify.sanitize(html, purifyConfig)
-    console.log('🔍 [MARKDOWN] DOMPurify result:', html)
-    console.log('🔍 [MARKDOWN] Final result contains [object Object]?', html.includes('[object Object]'))
+    if (isDebug) {
+      console.log('🔍 [MARKDOWN] DOMPurify result:', html)
+      console.log('🔍 [MARKDOWN] Final result contains [object Object]?', html.includes('[object Object]'))
+      console.groupEnd()
+    }
 
-    console.groupEnd()
     return html
   } catch (error) {
     console.error('❌ Markdown rendering failed:', error)
-    console.groupEnd()
+    if (isDebug) console.groupEnd()
     // Fallback to escaped plain text
     return `<p>${escapeHtml(content)}</p>`
   }
@@ -146,9 +206,30 @@ function escapeHtml(text) {
   // 🚨 CRITICAL FIX: 处理对象参数防止[object Object]
   if (typeof text === 'object' && text !== null) {
     console.error('🚨 [MARKDOWN] escapeHtml received object:', text)
-    // 尝试提取字符串内容
-    text = text.code || text.content || text.text || text.value || JSON.stringify(text)
-    console.log('🔧 [MARKDOWN] escapeHtml converted object to string:', text)
+    // 🔧 ENHANCED: More robust object handling
+    if (text.code && typeof text.code === 'string') {
+      text = text.code;
+    } else if (text.content && typeof text.content === 'string') {
+      text = text.content;
+    } else if (text.text && typeof text.text === 'string') {
+      text = text.text;
+    } else if (text.value && typeof text.value === 'string') {
+      text = text.value;
+    } else {
+      // Try to convert object to string safely
+      try {
+        if (Array.isArray(text)) {
+          text = text.join('\n');
+        } else if (text.toString && text.toString !== Object.prototype.toString) {
+          text = text.toString();
+        } else {
+          text = JSON.stringify(text, null, 2);
+        }
+      } catch (e) {
+        text = String(text || '');
+      }
+    }
+    if (import.meta.env.DEV) console.log('🔧 [MARKDOWN] escapeHtml converted object to string:', text)
   }
 
   // 确保是字符串
@@ -426,9 +507,30 @@ function escapeAttribute(text) {
   // 🚨 CRITICAL FIX: 处理对象参数防止[object Object]
   if (typeof text === 'object' && text !== null) {
     console.error('🚨 [MARKDOWN] escapeAttribute received object:', text)
-    // 尝试提取字符串内容
-    text = text.code || text.content || text.text || text.value || JSON.stringify(text)
-    console.log('🔧 [MARKDOWN] Converted object to string:', text)
+    // 🔧 ENHANCED: More robust object handling
+    if (text.code && typeof text.code === 'string') {
+      text = text.code;
+    } else if (text.content && typeof text.content === 'string') {
+      text = text.content;
+    } else if (text.text && typeof text.text === 'string') {
+      text = text.text;
+    } else if (text.value && typeof text.value === 'string') {
+      text = text.value;
+    } else {
+      // Try to convert object to string safely
+      try {
+        if (Array.isArray(text)) {
+          text = text.join('\n');
+        } else if (text.toString && text.toString !== Object.prototype.toString) {
+          text = text.toString();
+        } else {
+          text = JSON.stringify(text, null, 2);
+        }
+      } catch (e) {
+        text = String(text || '');
+      }
+    }
+    if (import.meta.env.DEV) console.log('🔧 [MARKDOWN] Converted object to string:', text)
   }
 
   // 确保是字符串

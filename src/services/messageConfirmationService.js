@@ -12,7 +12,7 @@ class MessageConfirmationService {
     this.pendingConfirmations = new Map()
     this.isEnabled = true
     
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('📨 Message Confirmation Service initialized')
     }
   }
@@ -35,7 +35,7 @@ class MessageConfirmationService {
       timestamp: Date.now()
     })
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`📨 Scheduling delivery confirmation for message ${messageId} in ${delay}ms`)
     }
 
@@ -54,7 +54,7 @@ class MessageConfirmationService {
 
     // 避免重复确认
     if (this.confirmedMessages.has(messageId)) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`📨 Message ${messageId} already confirmed, skipping`)
       }
       return
@@ -75,15 +75,15 @@ class MessageConfirmationService {
         this.confirmedMessages.add(messageId)
         this.pendingConfirmations.delete(messageId)
 
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log(`✅ Message ${messageId} delivery confirmed via simulated SSE`)
         }
-      } else if (import.meta.env.DEV) {
+      } else if (true) {
         console.warn(`⚠️ Could not find message ${messageId} to confirm delivery`)
       }
 
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error(`❌ Failed to confirm delivery for message ${messageId}:`, error)
       }
     }
@@ -94,7 +94,7 @@ class MessageConfirmationService {
    * Manually trigger message confirmation (for testing)
    */
   manuallyConfirmMessage(messageId, chatId) {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`🔧 Manually confirming message ${messageId}`)
     }
     this.confirmMessageDelivery(messageId, chatId)
@@ -105,7 +105,7 @@ class MessageConfirmationService {
 const messageConfirmationService = new MessageConfirmationService()
 
 // 暴露到window对象用于调试
-if (typeof window !== 'undefined' && import.meta.env.DEV) {
+if (typeof window !== 'undefined' && true) {
   window.msgConfirm = {
     confirm: (messageId, chatId) => messageConfirmationService.manuallyConfirmMessage(messageId, chatId),
     stats: () => ({ confirmedMessages: messageConfirmationService.confirmedMessages.size })

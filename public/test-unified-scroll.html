@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Unified Scroll Manager - Reading Position</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        #test-container {
+            width: 400px;
+            height: 300px;
+            border: 2px solid #333;
+            overflow-y: auto;
+            padding: 10px;
+            background: #f9f9f9;
+        }
+        .test-message {
+            padding: 12px;
+            margin: 8px 0;
+            background: #e8f4fd;
+            border-radius: 8px;
+            border-left: 4px solid #2563eb;
+        }
+        .historical-message {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+        }
+        .current-reading {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            animation: highlight 2s ease-out;
+        }
+        @keyframes highlight {
+            0% { box-shadow: 0 0 20px rgba(40, 167, 69, 0.6); }
+            100% { box-shadow: none; }
+        }
+        #status {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .primary { background: #007bff; color: white; }
+        .secondary { background: #6c757d; color: white; }
+        .warning { background: #ffc107; color: #212529; }
+        .reading-indicator {
+            position: absolute;
+            right: 10px;
+            top: 33%;
+            width: 4px;
+            height: 40px;
+            background: #ff4757;
+            border-radius: 2px;
+            pointer-events: none;
+        }
+        .container-wrapper {
+            position: relative;
+        }
+    </style>
+</head>
+<body>
+    <h1>Unified Scroll Manager - Reading Position Test</h1>
+    <div id="status">Testing...</div>
+    
+    <div class="container-wrapper">
+        <div id="test-container">
+            <div class="test-message" data-message-id="20">Message 20 (Latest)</div>
+            <div class="test-message" data-message-id="19">Message 19</div>
+            <div class="test-message" data-message-id="18">Message 18</div>
+            <div class="test-message" data-message-id="17">Message 17</div>
+            <div class="test-message" data-message-id="16">Message 16</div>
+            <div class="test-message" data-message-id="15">Message 15</div>
+            <div class="test-message current-reading" data-message-id="14">Message 14 (Reading here)</div>
+            <div class="test-message" data-message-id="13">Message 13</div>
+            <div class="test-message" data-message-id="12">Message 12</div>
+            <div class="test-message" data-message-id="11">Message 11</div>
+            <div class="test-message" data-message-id="10">Message 10</div>
+        </div>
+        <div class="reading-indicator"></div>
+    </div>
+    
+    <div class="controls">
+        <button id="scroll-to-reading" class="primary">Scroll to Reading Position</button>
+        <button id="load-history" class="warning">Load Historical Messages</button>
+        <button id="scroll-bottom" class="secondary">Scroll to Bottom</button>
+        <button id="add-new" class="primary">Add New Message</button>
+    </div>
+
+    <div id="instructions">
+        <h3>Test Instructions:</h3>
+        <ol>
+            <li><strong>Scroll to Reading Position</strong> - Positions Message 14 at the reading line (33% from top)</li>
+            <li><strong>Load Historical Messages</strong> - Simulates loading older messages while preserving reading position</li>
+            <li><strong>Verify</strong> - Message 14 should stay in the same visual position after history loading</li>
+            <li><strong>Scroll Up</strong> - You can now manually scroll to see the newly loaded historical messages</li>
+        </ol>
+    </div>
+
+    <script type="module">
+        try {
+            console.log('Attempting to import UnifiedScrollManager...');
+            
+            const { unifiedScrollManager } = await import('/src/utils/UnifiedScrollManager.js');
+            
+            console.log('UnifiedScrollManager imported successfully:', unifiedScrollManager);
+            
+            const container = document.getElementById('test-container');
+            const statusDiv = document.getElementById('status');
+            
+            let messageCount = 20;
+            let historyMessageCount = 0;
+            
+            // Register the scroll manager
+            const scrollInstance = unifiedScrollManager.registerChat(999, container, {
+                onLoadMore: async () => {
+                    console.log('🔄 Load more triggered - simulating backend call...');
+                    
+                    // Simulate API delay
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    
+                    // Add 5 historical messages at the top
+                    const fragment = document.createDocumentFragment();
+                    for (let i = 5; i >= 1; i--) {
+                        historyMessageCount++;
+                        const newMessage = document.createElement('div');
+                        newMessage.className = 'test-message historical-message';
+                        newMessage.setAttribute('data-message-id', historyMessageCount);
+                        newMessage.textContent = `Historical Message ${historyMessageCount} (Newly loaded)`;
+                        fragment.appendChild(newMessage);
+                    }
+                    
+                    // Insert at the beginning
+                    container.insertBefore(fragment, container.firstChild);
+                    
+                    console.log('✅ Historical messages added');
+                    
+                    return Promise.resolve();
+                }
+            });
+            
+            if (scrollInstance) {
+                statusDiv.textContent = '✅ UnifiedScrollManager initialized successfully! Ready for reading position test.';
+                statusDiv.className = 'success';
+                
+                // Scroll to reading position (Message 14 at 33% line)
+                document.getElementById('scroll-to-reading').addEventListener('click', () => {
+                    const readingMessage = document.querySelector('[data-message-id="14"]');
+                    if (readingMessage) {
+                        const containerRect = container.getBoundingClientRect();
+                        const messageRect = readingMessage.getBoundingClientRect();
+                        
+                        // Calculate scroll needed to put message at 33% line
+                        const readingLine = containerRect.height * 0.33;
+                        const currentOffset = messageRect.top - containerRect.top;
+                        const adjustment = currentOffset - readingLine;
+                        
+                        container.scrollTop += adjustment;
+                        
+                        // Highlight the current reading message
+                        document.querySelectorAll('.current-reading').forEach(el => 
+                            el.classList.remove('current-reading'));
+                        readingMessage.classList.add('current-reading');
+                        
+                        console.log('📖 Positioned Message 14 at reading line');
+                    }
+                });
+                
+                // Load historical messages
+                document.getElementById('load-history').addEventListener('click', async () => {
+                    if (scrollInstance.manager.globalLocks.historyLoading) {
+                        console.log('⏳ History loading already in progress...');
+                        return;
+                    }
+                    
+                    console.log('🔄 Starting history load test...');
+                    statusDiv.textContent = '🔄 Loading historical messages - watch Message 14 stay in position...';
+                    statusDiv.className = 'warning';
+                    
+                    // Trigger history loading
+                    await scrollInstance.triggerHistoryLoad();
+                    
+                    statusDiv.textContent = '✅ History loaded! Message 14 should have maintained its visual position.';
+                    statusDiv.className = 'success';
+                });
+                
+                // Scroll to bottom
+                document.getElementById('scroll-bottom').addEventListener('click', () => {
+                    scrollInstance.scrollToBottom(true);
+                });
+                
+                // Add new message
+                document.getElementById('add-new').addEventListener('click', () => {
+                    messageCount++;
+                    const newMessage = document.createElement('div');
+                    newMessage.className = 'test-message';
+                    newMessage.setAttribute('data-message-id', messageCount);
+                    newMessage.textContent = `Message ${messageCount} (New)`;
+                    container.appendChild(newMessage);
+                    
+                    // Trigger new message handling
+                    scrollInstance.handleNewMessage();
+                    
+                    console.log(`📨 Added new message ${messageCount}`);
+                });
+                
+                console.log('🎯 Test setup complete - ready for reading position preservation test');
+                
+            } else {
+                throw new Error('Failed to register scroll instance');
+            }
+            
+        } catch (error) {
+            console.error('Error testing UnifiedScrollManager:', error);
+            
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = `❌ Error: ${error.message}`;
+            statusDiv.className = 'error';
+        }
+    </script>
+</body>
+</html> 

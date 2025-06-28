@@ -74,7 +74,7 @@ const canSubmit = computed(() => {
 });
 
 const showDebugInfo = computed(() => {
-  return import.meta.env.DEV;
+  return true;
 });
 
 // 🚀 简化的登录逻辑 (乐观更新)

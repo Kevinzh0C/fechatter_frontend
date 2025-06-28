@@ -12,7 +12,7 @@ class LogoutTester {
    * Test the complete logout flow
    */
   async testLogoutFlow() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🧪 [LOGOUT_TEST] Starting logout functionality test...');
     }
 
@@ -31,7 +31,7 @@ class LogoutTester {
         throw new Error('Auth store not available');
       }
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('✅ [LOGOUT_TEST] Auth store is available');
       }
 
@@ -42,12 +42,12 @@ class LogoutTester {
         hasToken: !!authStore.token
       };
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('📊 [LOGOUT_TEST] Initial auth state:', initialState);
       }
 
       // Test 3: Execute logout
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('🚪 [LOGOUT_TEST] Executing logout...');
       await authStore.logout('Test logout');
       results.authStoreLogout = true;
@@ -63,7 +63,7 @@ class LogoutTester {
         hasToken: !!authStore.token
       };
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('📊 [LOGOUT_TEST] Final auth state:', finalState);
       }
 
@@ -76,7 +76,7 @@ class LogoutTester {
         !finalState.isAuthenticated;
 
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('❌ [LOGOUT_TEST] Test failed:', error);
       results.errors.push(error.message);
     }
@@ -90,7 +90,7 @@ class LogoutTester {
    * Test emergency logout (direct method)
    */
   async testEmergencyLogout() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🚨 [LOGOUT_TEST] Testing emergency logout...');
     }
 
@@ -102,11 +102,11 @@ class LogoutTester {
       // Force navigation
       window.location.replace('/login');
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('✅ [LOGOUT_TEST] Emergency logout executed');
       return true;
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('❌ [LOGOUT_TEST] Emergency logout failed:', error);
       return false;
     }
@@ -128,7 +128,7 @@ class LogoutTester {
     });
 
     const clearanceRatio = clearedCount / authKeys.length;
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`🧹 [LOGOUT_TEST] Storage clearance: ${clearedCount}/${authKeys.length} (${(clearanceRatio * 100).toFixed(1)}%)`);
     }
 
@@ -152,7 +152,7 @@ class LogoutTester {
 
       return null;
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('Failed to get auth store:', error);
       return null;
     }
@@ -161,27 +161,27 @@ class LogoutTester {
    * Display test results in a formatted way
    */
   displayTestResults(results) {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n🧪 LOGOUT TEST RESULTS');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('======================');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`Auth Store Logout: ${results.authStoreLogout ? '✅' : '❌'}`);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`Storage Cleared: ${results.storageCleared ? '✅' : '❌'}`);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`Navigation Worked: ${results.navigationWorked ? '✅' : '❌'}`);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`Overall Success: ${results.overallSuccess ? '✅' : '❌'}`);
     }
 
     if (results.errors.length > 0) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('\nErrors:');
       results.errors.forEach(error => console.log(`  ❌ ${error}`));
     }
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n');
     }
 
@@ -189,7 +189,7 @@ class LogoutTester {
    * Quick logout test (simplified)
    */
   async quickTest() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('⚡ [LOGOUT_TEST] Quick logout test...');
     }
 
@@ -197,16 +197,16 @@ class LogoutTester {
       const authStore = this.getAuthStore();
       if (authStore && authStore.logout) {
         await authStore.logout();
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('✅ [LOGOUT_TEST] Quick test passed');
         return true;
       } else {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.error('❌ [LOGOUT_TEST] Auth store or logout method not available');
         return false;
       }
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('❌ [LOGOUT_TEST] Quick test failed:', error);
       return false;
     }
@@ -223,15 +223,15 @@ if (typeof window !== 'undefined') {
     checkStorage: () => logoutTester.checkStorageCleared()
   };
 
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('🧪 Logout testing tools loaded:');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('  window.testLogout.full() - Complete logout test');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('  window.testLogout.quick() - Quick logout test');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('  window.testLogout.emergency() - Emergency logout');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('  window.testLogout.checkStorage() - Check storage clearance');
   }
 

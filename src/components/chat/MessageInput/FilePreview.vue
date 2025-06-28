@@ -232,13 +232,13 @@ const getFilePreviewUrl = () => {
   return localPreviewUrl.value;
 };
 
-// 🚀 上传到远端
+// 🚀 BACKEND-ALIGNED: Upload using ProductionFileService
 const startUpload = async () => {
   if (!props.file || uploadState.value.status === 'uploading') {
     return;
   }
 
-  console.log('📤 [FilePreview] Starting upload:', props.file.name);
+  console.log('📤 [FilePreview] Starting backend-aligned upload:', props.file.name);
 
   uploadState.value = {
     status: 'uploading',
@@ -249,17 +249,17 @@ const startUpload = async () => {
   };
 
   try {
-    // 动态导入ChatService
-    const { default: ChatService } = await import('@/services/ChatService.ts');
+    // Use ProductionFileService for backend alignment
+    const { default: fileService } = await import('@/services/FileService.js');
 
-    // 调用上传API
-    const uploadResult = await ChatService.uploadFile(props.file, (progress) => {
+    // Call backend-aligned upload
+    const uploadResult = await fileService.uploadFile(props.file, (progress) => {
       uploadState.value.progress = progress;
     });
 
-    console.log('✅ [FilePreview] Upload completed:', uploadResult);
+    console.log('✅ [FilePreview] Upload completed via FileService:', uploadResult);
 
-    // 更新状态为成功
+    // Update state to success
     uploadState.value = {
       status: 'completed',
       progress: 100,
@@ -268,13 +268,13 @@ const startUpload = async () => {
       startTime: uploadState.value.startTime
     };
 
-    // 🎯 通知父组件上传成功
+    // Notify parent component of success
     emit('file-uploaded', uploadResult);
 
   } catch (error) {
-    console.error('❌ [FilePreview] Upload failed:', error);
+    console.error('❌ [FilePreview] Upload failed via FileService:', error);
 
-    // 更新状态为失败
+    // Update state to failed
     uploadState.value = {
       status: 'failed',
       progress: 0,
@@ -283,7 +283,7 @@ const startUpload = async () => {
       startTime: uploadState.value.startTime
     };
 
-    // 🎯 通知父组件上传失败
+    // Notify parent component of failure
     emit('upload-error', error);
   }
 };

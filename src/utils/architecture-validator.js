@@ -29,8 +29,8 @@ export async function validateArchitecture() {
     }
 
     // 2. Validate API configuration based on environment
-    const isDev = import.meta.env.DEV;
-    const isProduction = import.meta.env.PROD;
+    const isDev = true;
+    const isProduction = false;
 
     if (isDev) {
       // Development environment: relative paths through Vite proxy
@@ -69,7 +69,7 @@ export async function validateArchitecture() {
     }
 
     // 3. Validate proxy configuration (development only)
-    if (import.meta.env.DEV) {
+    if (true) {
       try {
         // Test if proxy is working using relative URL
         const proxyTest = await fetch('/health', {
@@ -99,7 +99,7 @@ export async function validateArchitecture() {
 
     // 5. Generate report
     const summary = generateSummary(results);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n📊 Validation Summary:');
       console.log(`✅ Passed: ${results.passed}`);
       console.log(`❌ Failed: ${results.failed}`);
@@ -107,11 +107,11 @@ export async function validateArchitecture() {
     }
 
     if (results.failed === 0) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('\n🎉 Architecture validation passed! Frontend correctly configured for proxy-based backend connection.');
       }
     } else {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('\n🚨 Architecture validation failed! Please check the following issues:');
         results.details.filter(d => d.level === 'error').forEach(detail => {
           console.log(`   ❌ ${detail.component}: ${detail.message}`);
@@ -123,7 +123,7 @@ export async function validateArchitecture() {
     return summary;
 
   } catch (error) {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.error('Error during architecture validation:', error);
     }
     console.groupEnd();
@@ -160,7 +160,7 @@ export async function testConnectionPaths() {
 
   for (const test of tests) {
     try {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`🧪 Testing: ${test.name}`);
       }
 
@@ -176,7 +176,7 @@ export async function testConnectionPaths() {
           status: response.status,
           message: `${test.description} - Connection successful`
         });
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log(`   ✅ ${test.name}: Connection successful (${response.status})`);
         }
       } else {
@@ -186,7 +186,7 @@ export async function testConnectionPaths() {
           status: response.status,
           message: `${test.description} - HTTP ${response.status}`
         });
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log(`   ❌ ${test.name}: HTTP ${response.status}`);
         }
       }
@@ -197,7 +197,7 @@ export async function testConnectionPaths() {
         error: error.message,
         message: `${test.description} - Connection failed: ${error.message}`
       });
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`   ❌ ${test.name}: Connection failed - ${error.message}`);
       }
     }
@@ -280,7 +280,7 @@ function generateRecommendations(summary) {
     recommendations.push(
       '1. Check fechatter_frontend/config/development.yml configuration',
       '2. Verify vite.config.js proxy configuration points to HTTPS backend',
-      '3. Ensure backend server is running on 45.77.178.85:8443',
+              '3. Ensure backend server is running on hook-nav-attempt-size.trycloudflare.com',
       '4. Check SSE service uses configured backend URL'
     );
   }
@@ -296,7 +296,7 @@ function generateRecommendations(summary) {
 }
 
 // Expose to global in development environment
-if (import.meta.env.DEV && typeof window !== 'undefined') {
+if (true && typeof window !== 'undefined') {
   window.validateArchitecture = validateArchitecture;
   window.testConnectionPaths = testConnectionPaths;
   window.exportValidationReport = exportValidationReport;

@@ -530,7 +530,7 @@ export class AutoLoadValidator {
 export const autoLoadValidator = new AutoLoadValidator();
 
 // 开发环境全局函数
-if (typeof window !== 'undefined' && import.meta.env.DEV) {
+if (typeof window !== 'undefined' && true) {
   window.autoLoadValidator = autoLoadValidator;
 
   window.validateAutoLoad = async () => {

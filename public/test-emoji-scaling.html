@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emoji Scaling Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #2c2f33;
+            color: #ffffff;
+        }
+        
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #4f545c;
+            border-radius: 8px;
+            background: #36393f;
+        }
+        
+        .test-item {
+            margin: 10px 0;
+            padding: 8px;
+            background: #40444b;
+            border-radius: 4px;
+            font-size: 15px;
+        }
+        
+        /* Import our CSS fixes */
+        @import url('/src/styles/numbers-harmonization.css');
+        @import url('/src/styles/unified-font-size-fix.css');
+        
+        /* Simulate emoji-2x class */
+        .emoji-2x {
+            /* This will be handled by our CSS rules */
+        }
+        
+        .debug-info {
+            font-size: 12px;
+            color: #72767d;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎯 Emoji Scaling Test</h1>
+    
+    <div class="test-section">
+        <h2>Real Emojis (Should be 1.25x)</h2>
+        
+        <div class="test-item">
+            Normal text with <span class="emoji-2x">😀</span> emoji
+            <div class="debug-info">Expected: emoji should be 1.25x larger</div>
+        </div>
+        
+        <div class="test-item">
+            Hearts: <span class="emoji-2x">❤️</span> <span class="emoji-2x">💖</span> <span class="emoji-2x">💕</span>
+            <div class="debug-info">Expected: all hearts should be 1.25x larger</div>
+        </div>
+        
+        <div class="test-item">
+            Animals: <span class="emoji-2x">🐱</span> <span class="emoji-2x">🐶</span> <span class="emoji-2x">🦄</span>
+            <div class="debug-info">Expected: all animals should be 1.25x larger</div>
+        </div>
+        
+        <div class="test-item">
+            Food: <span class="emoji-2x">🍎</span> <span class="emoji-2x">🍕</span> <span class="emoji-2x">🎂</span>
+            <div class="debug-info">Expected: all food should be 1.25x larger</div>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Numbers & Symbols (Should stay normal size)</h2>
+        
+        <div class="test-item">
+            Numbers: <span class="emoji-2x">123</span> <span class="emoji-2x">456</span> <span class="emoji-2x">789</span>
+            <div class="debug-info">Expected: numbers should stay normal size</div>
+        </div>
+        
+        <div class="test-item">
+            Math symbols: <span class="emoji-2x">+</span> <span class="emoji-2x">-</span> <span class="emoji-2x">×</span> <span class="emoji-2x">=</span>
+            <div class="debug-info">Expected: math symbols should stay normal size</div>
+        </div>
+        
+        <div class="test-item">
+            Currency: <span class="emoji-2x">$</span> <span class="emoji-2x">€</span> <span class="emoji-2x">¥</span>
+            <div class="debug-info">Expected: currency symbols should stay normal size</div>
+        </div>
+        
+        <div class="test-item">
+            Punctuation: <span class="emoji-2x">!</span> <span class="emoji-2x">?</span> <span class="emoji-2x">.</span> <span class="emoji-2x">,</span>
+            <div class="debug-info">Expected: punctuation should stay normal size</div>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>CJK Characters (Should stay normal size)</h2>
+        
+        <div class="test-item">
+            Chinese: <span class="emoji-2x">你好</span> <span class="emoji-2x">世界</span>
+            <div class="debug-info">Expected: Chinese characters should stay normal size</div>
+        </div>
+        
+        <div class="test-item">
+            Japanese: <span class="emoji-2x">こんにちは</span> <span class="emoji-2x">カタカナ</span>
+            <div class="debug-info">Expected: Japanese characters should stay normal size</div>
+        </div>
+        
+        <div class="test-item">
+            Korean: <span class="emoji-2x">안녕하세요</span>
+            <div class="debug-info">Expected: Korean characters should stay normal size</div>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Debug Tools</h2>
+        <button onclick="runDebugTools()" style="padding: 10px 20px; background: #7289da; color: white; border: none; border-radius: 4px; cursor: pointer;">
+            Run Debug Analysis
+        </button>
+        <div id="debug-output" style="margin-top: 10px; font-family: monospace; background: #1e2124; padding: 10px; border-radius: 4px; white-space: pre-wrap;"></div>
+    </div>
+
+    <script type="module">
+        // Import the emoji detection fix
+        import('/src/utils/emojiDetectionFix.js').then(module => {
+            console.log('✅ Emoji detection fix loaded');
+            
+            // Wait a bit for processing
+            setTimeout(() => {
+                const debugOutput = document.getElementById('debug-output');
+                debugOutput.textContent = 'Emoji detection fix loaded. Check console for details.\nRun debug analysis button to see current status.';
+            }, 1000);
+        }).catch(err => {
+            console.error('❌ Failed to load emoji detection fix:', err);
+            const debugOutput = document.getElementById('debug-output');
+            debugOutput.textContent = 'Failed to load emoji detection fix. Check console for errors.';
+        });
+        
+        window.runDebugTools = function() {
+            const debugOutput = document.getElementById('debug-output');
+            let output = 'Debug Analysis Results:\n\n';
+            
+            // Check for emoji elements
+            const emojiElements = document.querySelectorAll('.emoji-2x');
+            output += `Found ${emojiElements.length} .emoji-2x elements\n\n`;
+            
+            const realEmojis = document.querySelectorAll('[data-is-emoji="true"]');
+            const nonEmojis = document.querySelectorAll('[data-not-emoji="true"]');
+            
+            output += `Real emojis: ${realEmojis.length}\n`;
+            output += `Non-emojis: ${nonEmojis.length}\n\n`;
+            
+            // Show details
+            if (realEmojis.length > 0) {
+                output += 'Real emojis found:\n';
+                Array.from(realEmojis).forEach((el, i) => {
+                    output += `  ${i+1}. "${el.textContent}" - computed size: ${getComputedStyle(el).fontSize}\n`;
+                });
+                output += '\n';
+            }
+            
+            if (nonEmojis.length > 0) {
+                output += 'Non-emojis found:\n';
+                Array.from(nonEmojis).forEach((el, i) => {
+                    output += `  ${i+1}. "${el.textContent}" - computed size: ${getComputedStyle(el).fontSize}\n`;
+                });
+                output += '\n';
+            }
+            
+            // Run fix if available
+            if (window.fixAllEmojis) {
+                window.fixAllEmojis();
+                output += 'Force-fixed all emojis. Check above for updated results.\n';
+            }
+            
+            debugOutput.textContent = output;
+            
+            // Also show in console
+            if (window.showEmojiStatus) {
+                console.log('=== Emoji Status ===');
+                window.showEmojiStatus();
+            }
+        };
+    </script>
+</body>
+</html> 

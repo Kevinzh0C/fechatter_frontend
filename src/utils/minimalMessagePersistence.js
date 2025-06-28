@@ -49,7 +49,7 @@ class MinimalMessagePersistence {
 
     } catch (error) {
       // 静默失败，不影响正常功能
-      if (import.meta.env.DEV) {
+      if (true) {
         console.warn('Failed to save message to localStorage:', error);
       }
     }
@@ -74,7 +74,7 @@ class MinimalMessagePersistence {
       // console.log(`💾 Saved ${messages.length} messages for chat ${chatId}`);
 
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.warn('Failed to save messages to localStorage:', error);
       }
     }
@@ -97,7 +97,7 @@ class MinimalMessagePersistence {
 
       return messages;
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.warn('Failed to get messages from localStorage:', error);
       }
       return [];
@@ -113,7 +113,7 @@ class MinimalMessagePersistence {
       const stored = localStorage.getItem(this.STORAGE_KEY);
       return stored ? JSON.parse(stored) : {};
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.warn('Failed to parse stored messages:', error);
       }
       return {};
@@ -138,7 +138,7 @@ class MinimalMessagePersistence {
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(allMessages));
 
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.warn('Failed to remove message from localStorage:', error);
       }
     }
@@ -182,7 +182,7 @@ class MinimalMessagePersistence {
       }
 
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.warn('Failed to cleanup message cache:', error);
       }
     }
@@ -197,7 +197,7 @@ class MinimalMessagePersistence {
       localStorage.removeItem(this.STORAGE_KEY);
       // console.log('🗑️ All cached messages cleared');
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.warn('Failed to clear message cache:', error);
       }
     }

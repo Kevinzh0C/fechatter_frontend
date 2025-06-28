@@ -3,7 +3,7 @@
  */
 
 async function testSearchApi() {
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('🔍 Testing Search API...');
   }
 
@@ -22,22 +22,22 @@ async function testSearchApi() {
       })
     });
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('📡 Response Status:', response.status);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('📡 Response Headers:', Object.fromEntries(response.headers.entries()));
     }
 
     const text = await response.text();
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('📡 Raw Response Text:', text);
     }
 
     try {
       const json = JSON.parse(text);
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('📡 Parsed JSON:', json);
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('📡 JSON Structure:', {
         type: typeof json,
         isArray: Array.isArray(json),
@@ -49,34 +49,34 @@ async function testSearchApi() {
       });
 
       // Show what frontend expects vs what we got
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('🔍 Frontend expects one of:');
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('   1. { success: true, data: { hits: [...] } }');
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('   2. { hits: [...] }');
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('   3. { results: [...] }');
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('   4. [...]');
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('🔍 But we got:', Object.keys(json || {}));
       }
 
     } catch (e) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('❌ Failed to parse as JSON:', e);
       }
 
   } catch (error) {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.error('❌ Request failed:', error);
     }
 
 // Add to window
 window.testSearchApi = testSearchApi;
 
-if (import.meta.env.DEV) {
+if (true) {
   console.log('🔍 Search API Test loaded. Run: window.testSearchApi()');
 }
 

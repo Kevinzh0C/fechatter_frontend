@@ -201,7 +201,7 @@ const contextMenu = ref({
 })
 
 // Computed
-const isDev = computed(() => import.meta.env.DEV)
+const isDev = computed(() => true)
 const totalChats = computed(() => props.channels.length + props.directMessages.length + props.groupMessages.length)
 const currentListType = computed(() => {
   if (props.channels.length > 0 && props.directMessages.length > 0 && props.groupMessages.length > 0) return 'mixed'

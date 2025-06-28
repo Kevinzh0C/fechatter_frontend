@@ -34,6 +34,9 @@ class NavigationManager {
     this.router = null;
     this.chatStore = null;
     this.isInitialized = false;
+
+    // 🎯 NEW: Debounce rapid navigation attempts
+    this.lastNavigationTime = null;
   }
 
   /**
@@ -66,49 +69,54 @@ class NavigationManager {
   }
 
   /**
-   * 🔧 CORE FIX: Production-grade navigation with proper concurrency control
+   * 🔧 ENHANCED: Navigate to chat with debouncing and smart cancellation
    */
   async navigateToChat(chatId, options = {}) {
-    if (!this.isInitialized || !this.router || !this.chatStore) {
-      console.error('🧭 Navigation Manager not properly initialized');
-      throw new Error('Navigation Manager not initialized');
-    }
-
     const normalizedId = parseInt(chatId);
+    
+    // 🎯 NEW: Debounce rapid navigation attempts
+    const now = Date.now();
+    if (this.lastNavigationTime && (now - this.lastNavigationTime) < 200) {
+      console.log(`🔄 Debouncing rapid navigation to chat ${normalizedId}`);
+      return { success: false, debounced: true };
+    }
+    this.lastNavigationTime = now;
 
-    // 🔧 BALANCED FIX: Check if we're already in chat AND have messages loaded
-    const currentRoute = this.router.currentRoute.value;
-    const isOnCorrectRoute = currentRoute.params.id && parseInt(currentRoute.params.id) === normalizedId;
-    const hasMessages = unifiedMessageService.getMessagesForChat(normalizedId)?.length > 0;
-    const isCurrentChat = this.chatStore.currentChatId === normalizedId;
-
-    if (isOnCorrectRoute && hasMessages && isCurrentChat) {
+    // 🔧 IMPROVED: Check if we're already in the target chat
+    if (this.activeChatId === normalizedId && !options.force) {
       console.log(`✅ Already in chat ${normalizedId} with messages loaded`);
-      return { success: true, cached: true, duration: 0 };
+      return { success: true, cached: true };
     }
 
-    // 🔧 FIX 2: Cancel any active navigation (only one at a time)
-    if (this.activeNavigation && this.activeChatId !== normalizedId) {
-      console.log(`🚫 Cancelling navigation to chat ${this.activeChatId}, switching to ${normalizedId}`);
-      await this.cancelActiveNavigation();
+    // 🔧 IMPROVED: Smart cancellation - only cancel if switching to different chat
+    if (this.activeChatId && this.activeChatId !== normalizedId) {
+      this._cancelPreviousRequests(`Switching from chat ${this.activeChatId} to ${normalizedId}`);
     }
 
-    // 🔧 FIX 3: If same chat navigation is already in progress, wait for it
-    if (this.activeNavigation && this.activeChatId === normalizedId) {
-      console.log(`🔄 Already navigating to chat ${normalizedId}, waiting...`);
-      return this.activeNavigation;
-    }
-
-    // Start new navigation
+    // Set active chat immediately to prevent duplicate navigation
     this.activeChatId = normalizedId;
-    this.activeNavigation = this._performNavigation(normalizedId, options);
 
     try {
-      const result = await this.activeNavigation;
-      return result;
-    } finally {
-      this.activeNavigation = null;
-      this.activeChatId = null;
+      // Load messages with graceful cancellation
+      const messages = await this._loadMessagesGracefully(normalizedId, options);
+      
+      console.log(`✅ Navigation to chat ${normalizedId} completed`);
+      console.log(`✅ Successfully navigated to chat with messages loaded: ${normalizedId}`);
+      
+      return { 
+        success: true, 
+        chatId: normalizedId, 
+        messageCount: messages.length 
+      };
+
+    } catch (error) {
+      if (this._isCancellationError(error)) {
+        console.log(`🚫 Navigation to chat ${normalizedId} was cancelled`);
+        return { success: false, cancelled: true };
+      }
+
+      console.error(`❌ Navigation to chat ${normalizedId} failed:`, error);
+      throw error;
     }
   }
 
@@ -431,6 +439,35 @@ class NavigationManager {
         console.debug(`Preload failed for chat ${chatId}:`, error);
       }
     }
+  }
+
+  _cancelPreviousRequests(reason) {
+    console.log(`🚫 Cancelling previous requests due to ${reason}`);
+    this.cancelActiveNavigation();
+  }
+
+  /**
+   * 🆕 Clear all active requests and reset state (for logout/cleanup)
+   */
+  clearAllRequests() {
+    // Cancel all active requests
+    for (const [chatId, requestInfo] of this.activeRequests) {
+      try {
+        if (requestInfo.controller && !requestInfo.controller.signal.aborted) {
+          requestInfo.controller.abort('Logout cleanup');
+        }
+      } catch (error) {
+        console.warn(`Failed to abort request for chat ${chatId}:`, error);
+      }
+    }
+    
+    // Clear all tracking
+    this.activeRequests.clear();
+    this.activeChatId = null;
+    this.lastNavigationTime = null;
+    this.activeNavigation = null;
+    
+    console.log('🧹 [NavigationManager] All requests cleared for logout');
   }
 }
 

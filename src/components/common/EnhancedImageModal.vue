@@ -270,14 +270,14 @@ const loadAuthenticatedImage = async (imageUrl) => {
   authenticatedImageUrl.value = ''
 
   try {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🖼️ [EnhancedImageModal] Loading image:', imageUrl)
     }
 
     // 🔧 SMART: Check if URL is already a blob URL (pre-authenticated)
     if (imageUrl.startsWith('blob:')) {
       authenticatedImageUrl.value = imageUrl
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('✅ [EnhancedImageModal] Using pre-authenticated blob URL')
       }
       loading.value = false
@@ -287,7 +287,7 @@ const loadAuthenticatedImage = async (imageUrl) => {
     // 🔧 OPTIMIZATION: Check if we have cached secure URL from message
     if (currentImage.value.secureUrl) {
       authenticatedImageUrl.value = currentImage.value.secureUrl
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('✅ [EnhancedImageModal] Using cached secure URL')
       }
       loading.value = false
@@ -302,7 +302,7 @@ const loadAuthenticatedImage = async (imageUrl) => {
 
       if (cachedImageUrl) {
         authenticatedImageUrl.value = cachedImageUrl
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('✅ [EnhancedImageModal] Authenticated API URL successfully')
         }
       } else {
@@ -311,13 +311,13 @@ const loadAuthenticatedImage = async (imageUrl) => {
     } else {
       // 🔧 DIRECT: Use URL as-is for non-API URLs
       authenticatedImageUrl.value = imageUrl
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('✅ [EnhancedImageModal] Using direct URL')
       }
       loading.value = false
     }
   } catch (error) {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.error('❌ [EnhancedImageModal] Failed to load image:', error)
     }
     error.value = true
@@ -376,11 +376,13 @@ function previous() {
 }
 
 function zoomIn() {
-  zoomLevel.value = Math.min(zoomLevel.value * 1.5, 5)
+  // Reduced button zoom sensitivity from 1.5x to 1.25x for more precise control
+  zoomLevel.value = Math.min(zoomLevel.value * 1.25, 5)
 }
 
 function zoomOut() {
-  zoomLevel.value = Math.max(zoomLevel.value / 1.5, 0.1)
+  // Reduced button zoom sensitivity from 1.5x to 1.25x for more precise control
+  zoomLevel.value = Math.max(zoomLevel.value / 1.25, 0.1)
 }
 
 function resetZoom() {
@@ -414,7 +416,8 @@ function resetView() {
 
 function handleWheel(event) {
   event.preventDefault()
-  const delta = event.deltaY < 0 ? 1.2 : 0.8
+  // Reduced zoom sensitivity from 1.2/0.8 to 1.1/0.9 for smoother control
+  const delta = event.deltaY < 0 ? 1.1 : 0.9
   const newZoom = Math.min(Math.max(zoomLevel.value * delta, 0.1), 5)
 
   // Zoom towards cursor position
@@ -531,7 +534,7 @@ function snapBackIfNeeded() {
     // Smoothly snap back to center with animation
     position.value = { x: 0, y: 0 }
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🎯 [EnhancedImageModal] Snapped image back to center')
     }
   }
@@ -543,7 +546,7 @@ function handleImageLoad(event) {
   const img = event.target
   imageDimensions.value = `${img.naturalWidth} × ${img.naturalHeight}`
 
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('✅ [EnhancedImageModal] Image loaded successfully')
   }
 }
@@ -553,7 +556,7 @@ function handleImageError() {
   error.value = true
   imageDimensions.value = null
 
-  if (import.meta.env.DEV) {
+  if (true) {
     console.error('❌ [EnhancedImageModal] Image load error')
   }
 }
@@ -568,7 +571,7 @@ async function downloadImage() {
   if (!currentImage.value.url) return
 
   try {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('📥 [EnhancedImageModal] Starting download for:', currentImage.value.filename)
     }
 
@@ -587,7 +590,7 @@ async function downloadImage() {
         link.click()
         document.body.removeChild(link)
 
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('✅ [EnhancedImageModal] Authenticated download completed')
         }
       } else {

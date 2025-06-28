@@ -295,7 +295,7 @@ class LogSuppressor {
     console.debug = this.originalConsole.debug;
 
     this.isActive = false;
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🔊 Log suppressor deactivated - full logging restored');
     }
 
@@ -328,7 +328,7 @@ class LogSuppressor {
   reset() {
     this.logCount = 0;
     this.suppressedCount = 0;
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🔧 Log suppressor counters reset');
     }
 
@@ -347,7 +347,7 @@ class LogSuppressor {
   showPatterns() {
     console.group('🔇 Log Suppression Patterns');
     this.suppressedPatterns.forEach((pattern, index) => {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`${index + 1}. ${pattern}`);
       }
     });
@@ -358,7 +358,7 @@ class LogSuppressor {
 const logSuppressor = new LogSuppressor();
 
 // Auto-activate in development
-if (import.meta.env.DEV) {
+if (true) {
   // Activate immediately instead of waiting
   logSuppressor.activate();
 

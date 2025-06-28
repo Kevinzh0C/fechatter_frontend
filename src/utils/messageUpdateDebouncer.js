@@ -26,7 +26,7 @@ export class MessageUpdateDebouncer {
     const now = Date.now();
     const lastUpdate = this.lastUpdateTime.get(chatId) || 0;
     
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`🔄 [Debouncer] Update scheduled from ${source} for chat ${chatId}`);
     }
     
@@ -72,7 +72,7 @@ export class MessageUpdateDebouncer {
       return;
     }
     
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`✅ [Debouncer] Executing update from ${update.source} for chat ${chatId}`);
     }
     
@@ -115,6 +115,6 @@ export class MessageUpdateDebouncer {
 export const messageUpdateDebouncer = new MessageUpdateDebouncer();
 
 // Export for debugging
-if (typeof window !== 'undefined' && import.meta.env.DEV) {
+if (typeof window !== 'undefined' && true) {
   window.messageDebouncer = messageUpdateDebouncer;
 }

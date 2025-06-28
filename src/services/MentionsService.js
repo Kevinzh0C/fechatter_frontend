@@ -15,7 +15,7 @@ class MentionsService {
       const data = response.data?.data || response.data;
       return Array.isArray(data) ? data : [];
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('Failed to fetch unread mentions:', error);
       return [];
     }
@@ -31,7 +31,7 @@ class MentionsService {
       const data = response.data?.data || response.data;
       return Array.isArray(data) ? data : [];
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('Failed to fetch message mentions:', error);
       return [];
     }

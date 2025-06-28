@@ -15,7 +15,7 @@ export default {
     // 全局错误处理
     app.config.errorHandler = (err, instance, info) => {
       if (err.code === 'UNAUTHORIZED') {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.error('Unauthorized access, redirecting to login...');
         }
         authStore.clearAuthState();

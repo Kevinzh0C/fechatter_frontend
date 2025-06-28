@@ -150,7 +150,7 @@ class ImageCacheService {
     return url && (
       url.includes('/api/files/') ||
       url.startsWith('http://localhost') ||
-      url.startsWith('http://45.77.178.85')
+              url.startsWith('https://hook-nav-attempt-size.trycloudflare.com')
     )
   }
 
@@ -414,7 +414,7 @@ class ImageCacheService {
    * @returns {boolean}
    */
   isDevelopment() {
-    return import.meta.env.DEV || import.meta.env.MODE === 'development'
+    return true || 'development' === 'development'
   }
 
   /**

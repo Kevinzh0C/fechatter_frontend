@@ -26,7 +26,7 @@ class MessageFlowDebugger {
     };
 
     this.flows.set(flowId, flow);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`🚀 [FLOW_DEBUG] Started flow: ${flowId}`, context);
     }
 
@@ -51,7 +51,7 @@ class MessageFlowDebugger {
     };
 
     flow.steps.push(step);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`📍 [FLOW_DEBUG][${targetFlowId}] Step: ${stepName}`, {
         elapsed: `${step.elapsed}ms`,
         data: step.data
@@ -71,7 +71,7 @@ class MessageFlowDebugger {
     flow.endTime = Date.now();
     const totalTime = flow.endTime - flow.startTime;
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`✅ [FLOW_DEBUG] Completed flow: ${targetFlowId} in ${totalTime}ms`);
       this.printFlowSummary(flow);
     }
@@ -79,7 +79,7 @@ class MessageFlowDebugger {
 
   printFlowSummary(flow) {
     console.group(`📊 Flow Summary: ${flow.id}`);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`Type: ${flow.type}`);
       console.log(`Total Time: ${flow.endTime - flow.startTime}ms`);
       console.log(`Steps: ${flow.steps.length}`);
@@ -87,7 +87,7 @@ class MessageFlowDebugger {
 
     console.group('Step Details:');
     flow.steps.forEach((step, index) => {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`${index + 1}. ${step.name} (+${step.elapsed}ms)`);
         if (step.data && Object.keys(step.data).length > 0) {
           console.log('   Data:', step.data);
@@ -161,7 +161,7 @@ class MessageFlowDebugger {
     });
 
     if (duplicates.length > 0) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.warn(`🔴 [FLOW_DEBUG] Found ${duplicates.length} duplicate messages:`, duplicates);
       }
     }
@@ -186,7 +186,7 @@ class MessageFlowDebugger {
       });
     });
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`Found in ${relevantFlows.length} flows:`, relevantFlows);
     }
     console.groupEnd();
@@ -213,7 +213,7 @@ if (typeof window !== 'undefined') {
   window.messageFlowDebugger = messageFlowDebugger;
   window.debugMessageFlow = (enabled = true) => {
     messageFlowDebugger.enabled = enabled;
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`Message flow debugging ${enabled ? 'enabled' : 'disabled'}`);
     }
   };

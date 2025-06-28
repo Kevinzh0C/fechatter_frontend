@@ -75,7 +75,7 @@ class AdvancedSearchService {
       enableAutoComplete: true
     };
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🔍 AdvancedSearchService initialized');
     }
   }
@@ -685,7 +685,7 @@ class AdvancedSearchService {
     const { chatId, query, limit = 20, offset = 0 } = params
     const startTime = Date.now()
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`🔍 [SearchService] Starting BACKEND-FIRST search in chat ${chatId} for: "${query}"`)
     }
 
@@ -694,7 +694,7 @@ class AdvancedSearchService {
       // Strategy 1: Try ChatService backend API
       const ChatService = (await import('@/services/ChatService')).default
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`🎯 [SearchService] Attempting backend API search via ChatService`)
       }
 
@@ -704,7 +704,7 @@ class AdvancedSearchService {
         sort: 'relevance'
       })
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`✅ [SearchService] Backend search successful: ${backendResults.hits.length} results`)
       }
 
@@ -729,13 +729,13 @@ class AdvancedSearchService {
       }
 
     } catch (backendError) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.warn(`⚠️ [SearchService] Backend API failed: ${backendError.message}`)
       }
 
       // Strategy 2: Try direct API call
       try {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log(`🎯 [SearchService] Attempting direct API call`)
         }
 
@@ -750,7 +750,7 @@ class AdvancedSearchService {
 
         const apiData = response.data?.data || response.data || {}
 
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log(`✅ [SearchService] Direct API search successful: ${apiData.hits?.length || 0} results`)
         }
 
@@ -775,7 +775,7 @@ class AdvancedSearchService {
         }
 
       } catch (directApiError) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.error(`❌ [SearchService] Direct API also failed: ${directApiError.message}`)
           console.error(`❌ [SearchService] CRITICAL: Backend search completely unavailable!`)
           console.error(`❌ [SearchService] This indicates a serious backend connectivity issue`)
@@ -805,7 +805,7 @@ class AdvancedSearchService {
     const { query, limit = 50, offset = 0 } = params
     const startTime = Date.now()
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`🌍 [SearchService] Starting GLOBAL backend search for: "${query}"`)
     }
 
@@ -820,7 +820,7 @@ class AdvancedSearchService {
 
       const apiData = response.data?.data || response.data || {}
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`✅ [SearchService] Global search successful: ${apiData.hits?.length || 0} results`)
       }
 
@@ -845,7 +845,7 @@ class AdvancedSearchService {
       }
 
     } catch (globalError) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error(`❌ [SearchService] Global search failed: ${globalError.message}`)
       }
 

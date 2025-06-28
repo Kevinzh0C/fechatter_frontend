@@ -24,7 +24,7 @@ class UnifiedErrorHandler {
    */
   initialize() {
     if (this.initialized) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.warn('[UnifiedErrorHandler] Already initialized, skipping');
       return;
     }
@@ -38,7 +38,7 @@ class UnifiedErrorHandler {
     window.addEventListener('unhandledrejection', this.handleUnhandledRejection.bind(this));
 
     this.initialized = true;
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🛡️ Unified Error Handler initialized (transparent mode)');
     }
 
@@ -101,7 +101,7 @@ class UnifiedErrorHandler {
         const handler = handlerData.handler;
 
         if (typeof handler !== 'function') {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.error(`[UnifiedErrorHandler] Handler '${name}' is not a function:`, typeof handler);
           continue;
         }
@@ -117,7 +117,7 @@ class UnifiedErrorHandler {
           return true; // Suppress this error
         }
       } catch (handlerError) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.error(`[UnifiedErrorHandler] Handler '${name}' failed:`, handlerError);
         }
 
@@ -143,13 +143,13 @@ class UnifiedErrorHandler {
    */
   registerHandler(name, handler, priority = 100) {
     if (this.handlers.has(name)) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.warn(`[UnifiedErrorHandler] Handler '${name}' already registered, replacing`);
       }
 
     // Validate handler function
     if (typeof handler !== 'function') {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error(`[UnifiedErrorHandler] Handler '${name}' must be a function, got:`, typeof handler);
       return;
     }
@@ -178,7 +178,7 @@ class UnifiedErrorHandler {
       this.handlers.set(handlerName, handlerData);
     }
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`[UnifiedErrorHandler] Registered handler: ${name} (priority: ${priority})`);
     }
 
@@ -187,7 +187,7 @@ class UnifiedErrorHandler {
    */
   unregisterHandler(name) {
     if (this.handlers.delete(name)) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`[UnifiedErrorHandler] Unregistered handler: ${name}`);
       }
 
@@ -232,20 +232,20 @@ class UnifiedErrorHandler {
    */
   showSuppressedErrors() {
     console.group('🔇 Suppressed Errors (Transparent Mode)');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`Total: ${this.getStats().totalSuppressed}`);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`Unique: ${this.suppressedErrors.size}`);
     }
 
     this.suppressedErrors.forEach((record, key) => {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`\n"${key}..." (×${record.count})`);
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`  Handlers: ${Array.from(record.handlers).join(', ')}`);
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`  First: ${new Date(record.firstSeen).toLocaleTimeString()}`);
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`  Last: ${new Date(record.lastSeen).toLocaleTimeString()}`);
       }
     });
@@ -267,7 +267,7 @@ class UnifiedErrorHandler {
       }
 
       this.initialized = false;
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('🔄 Restored original error handlers (transparent mode)');
       }
 

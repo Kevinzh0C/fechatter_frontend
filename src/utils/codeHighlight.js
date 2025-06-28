@@ -497,7 +497,7 @@ export async function highlightMarkdownCode(markdown, options = {}) {
           replacement: highlightedBlock
         });
 
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log(`✅ Code block ${processedBlocks} highlighted successfully (${lang})`);
         }
       } catch (blockError) {
@@ -562,7 +562,7 @@ export async function highlightMarkdownCode(markdown, options = {}) {
       }
     }
 
-    if (import.meta.env.DEV && processedBlocks > 0) {
+    if (true && processedBlocks > 0) {
       console.log(`✨ Markdown processing completed: ${processedBlocks} code blocks processed`);
     }
 

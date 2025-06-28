@@ -111,7 +111,7 @@ const highlightCode = async () => {
 
     highlightedCode.value = result
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`✨ Code highlighted: ${props.language}`)
     }
   } catch (error) {

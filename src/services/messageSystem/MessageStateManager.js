@@ -140,7 +140,7 @@ class CompleteMessage {
 
     // If it's an object, extract content safely
     if (typeof rawContent === 'object' && rawContent !== null) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.warn('[MessageStateManager] Message content is object, extracting safely:', rawContent);
       }
 
@@ -280,7 +280,7 @@ export class MessageStateManager {
     // Update statistics
     this.updateStats(message, 'add');
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`📝 Created message: ${clientId} (chat: ${chatId})`);
       return message;
     }
@@ -291,7 +291,7 @@ export class MessageStateManager {
     updateMessageState(clientId, newState, additionalData = {}) {
       const message = this.messages.get(clientId);
       if (!message) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.warn(`❌ Message not found: ${clientId}`);
           return false;
         }
@@ -300,7 +300,7 @@ export class MessageStateManager {
 
         // Validate state transition
         if (!this.isValidStateTransition(oldState, newState)) {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.warn(`❌ Invalid state transition: ${oldState} → ${newState} for message ${clientId}`);
             return false;
           }
@@ -317,7 +317,7 @@ export class MessageStateManager {
           // Handle state-specific logic
           this.handleStateChange(message, oldState, newState);
 
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log(`🔄 Updated message state: ${clientId} (${oldState} → ${newState})`);
             return true;
           }
@@ -423,7 +423,7 @@ export class MessageStateManager {
                 updateFromServerResponse(clientId, serverResponse) {
                   const message = this.messages.get(clientId);
                   if (!message) {
-                    if (import.meta.env.DEV) {
+                    if (true) {
                       console.warn(`❌ Message not found for server response: ${clientId}`);
                       return false;
                     }
@@ -444,7 +444,7 @@ export class MessageStateManager {
                       sentAt: serverResponse.created_at || new Date().toISOString()
                     });
 
-                    if (import.meta.env.DEV) {
+                    if (true) {
                       console.log(`📨 Updated message from server: ${clientId} → ${serverResponse.id}`);
                       return true;
                     }
@@ -487,7 +487,7 @@ export class MessageStateManager {
                               deliveredAt: sseMessage.created_at || new Date().toISOString()
                             });
 
-                            if (import.meta.env.DEV) {
+                            if (true) {
                               console.log(`🔗 Matched SSE message: ${message.metadata.clientId} ↔ ${sseMessage.id}`);
                               return message;
                             }
@@ -516,7 +516,7 @@ export class MessageStateManager {
                             // Remove from storage
                             this.messages.delete(clientId);
 
-                            if (import.meta.env.DEV) {
+                            if (true) {
                               console.log(`🗑️ Removed message: ${clientId}`);
                               return true;
                             }
@@ -635,7 +635,7 @@ export class MessageStateManager {
                                               toRemove.forEach(clientId => this.removeMessage(clientId));
 
                                               if (toRemove.length > 0) {
-                                                if (import.meta.env.DEV) {
+                                                if (true) {
                                                   console.log(`🧹 Cleaned up ${toRemove.length} old messages`);
                                                 }
 

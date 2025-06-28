@@ -40,7 +40,7 @@
       <div class="message-status-icon">
         <span v-if="messageStatus === 'sending'">📨</span>
         <span v-else-if="messageStatus === 'sent'">✅</span>
-        <span v-else-if="messageStatus === 'delivered'">✅✅</span>
+        <span v-else-if="messageStatus === 'delivered'">✅</span>
         <span v-else-if="messageStatus === 'failed'">❌</span>
       </div>
       <div class="message-status-text">
@@ -70,7 +70,7 @@ const getMessageStatusText = (status) => {
     'file_uploaded': '✅ 文件已上传',
     'sending': '📨 正在发送...',
     'sent': '✅ 已发送',
-    'delivered': '✅ 已送达',
+    'delivered': '✅',
     'failed': '❌ 发送失败'
   };
 

@@ -23,7 +23,7 @@ export class LoginFlowDebugger {
     };
 
     this.logs.push(logEntry);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`🔍 [${timestamp}ms] ${message}`, data || '');
     return logEntry;
   }
@@ -158,11 +158,11 @@ export class LoginFlowDebugger {
     };
 
     console.group('🔍 Login Flow Debug Report');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('📋 Summary:', report.summary);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('📊 Final State:', report.finalState);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('💡 Recommendations:', report.recommendations);
     console.groupEnd();
 

@@ -1,0 +1,401 @@
+/* 🌏 Unified CJK Font System - 统一中日韩字体系统
+ * 解决中文、日语、韩语字体显示问题
+ * 确保全部消息字体风格统一
+ * 基于系统字体优化，提供最佳阅读体验
+ */
+
+:root {
+  /* 🎯 统一CJK字体族定义 */
+  
+  /* 中文优化字体栈 - 简体中文 */
+  --font-family-chinese-simplified: 
+    'PingFang SC', 
+    'Hiragino Sans GB', 
+    'Source Han Sans SC', 
+    'Source Han Sans CN', 
+    'Microsoft YaHei', 
+    'WenQuanYi Micro Hei', 
+    'Noto Sans CJK SC', 
+    'Droid Sans Fallback', 
+    -apple-system, 
+    BlinkMacSystemFont, 
+    sans-serif;
+
+  /* 中文优化字体栈 - 繁体中文 */
+  --font-family-chinese-traditional: 
+    'PingFang TC', 
+    'Hiragino Sans CNS', 
+    'Source Han Sans TC', 
+    'Source Han Sans TW', 
+    'Microsoft JhengHei', 
+    'Noto Sans CJK TC', 
+    -apple-system, 
+    BlinkMacSystemFont, 
+    sans-serif;
+
+  /* 日语优化字体栈 */
+  --font-family-japanese: 
+    'Hiragino Kaku Gothic ProN', 
+    'Hiragino Sans', 
+    'Yu Gothic Medium', 
+    'Yu Gothic', 
+    'Meiryo', 
+    'Source Han Sans JP', 
+    'Noto Sans CJK JP', 
+    'MS PGothic',
+    -apple-system, 
+    BlinkMacSystemFont, 
+    sans-serif;
+
+  /* 韩语优化字体栈 */
+  --font-family-korean: 
+    'Apple SD Gothic Neo', 
+    'Malgun Gothic', 
+    'Source Han Sans KR', 
+    'Noto Sans CJK KR', 
+    'Nanum Gothic', 
+    'Dotum', 
+    'Gulim',
+    -apple-system, 
+    BlinkMacSystemFont, 
+    sans-serif;
+
+  /* 🎨 统一混合字体栈 - 智能CJK支持 */
+  --font-family-unified-cjk: 
+    /* 系统字体优先 */
+    -apple-system, 
+    BlinkMacSystemFont, 
+    'Segoe UI',
+    /* 中文字体 */
+    'PingFang SC', 
+    'PingFang TC', 
+    'Hiragino Sans GB', 
+    'Source Han Sans SC', 
+    'Microsoft YaHei',
+    /* 日语字体 */
+    'Hiragino Kaku Gothic ProN', 
+    'Yu Gothic Medium',
+    'Source Han Sans JP',
+    /* 韩语字体 */
+    'Apple SD Gothic Neo', 
+    'Malgun Gothic',
+    'Source Han Sans KR',
+    /* 通用CJK字体 */
+    'Noto Sans CJK SC', 
+    'Noto Sans CJK JP', 
+    'Noto Sans CJK KR',
+    /* 西文字体后备 */
+    'Helvetica Neue', 
+    Arial, 
+    sans-serif,
+    /* Emoji支持 */
+    'Apple Color Emoji', 
+    'Segoe UI Emoji', 
+    'Noto Color Emoji';
+
+  /* 📐 CJK专用排版参数 */
+  --cjk-letter-spacing: 0.015em;
+  --cjk-line-height: 1.6;
+  --cjk-font-weight-normal: 400;
+  --cjk-font-weight-medium: 500;
+  --cjk-font-weight-bold: 600;
+  
+  /* 🎨 CJK文本渲染优化 */
+  --cjk-font-smooth: antialiased;
+  --cjk-text-rendering: optimizeLegibility;
+  --cjk-font-feature-settings: 'liga' 1, 'kern' 1, 'palt' 1;
+}
+
+/* 🌍 全局CJK字体应用 */
+html, body, #app {
+  font-family: var(--font-family-unified-cjk) !important;
+  letter-spacing: var(--cjk-letter-spacing);
+  line-height: var(--cjk-line-height);
+  -webkit-font-smoothing: var(--cjk-font-smooth);
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: var(--cjk-text-rendering);
+  font-feature-settings: var(--cjk-font-feature-settings);
+}
+
+/* 🎯 消息组件统一字体 */
+.discord-message-item,
+.message-item,
+.chat-message,
+.message-content,
+.message-text,
+.content-wrapper {
+  font-family: var(--font-family-unified-cjk) !important;
+  letter-spacing: var(--cjk-letter-spacing) !important;
+  line-height: var(--cjk-line-height) !important;
+  font-weight: var(--cjk-font-weight-normal) !important;
+  -webkit-font-smoothing: var(--cjk-font-smooth);
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: var(--cjk-text-rendering);
+  font-feature-settings: var(--cjk-font-feature-settings);
+}
+
+/* 👤 用户名统一字体 */
+.username-button,
+.sender-name,
+.user-name,
+.author-name {
+  font-family: var(--font-family-unified-cjk) !important;
+  letter-spacing: var(--cjk-letter-spacing) !important;
+  font-weight: var(--cjk-font-weight-medium) !important;
+  -webkit-font-smoothing: var(--cjk-font-smooth);
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: var(--cjk-text-rendering);
+}
+
+/* 🏷️ 频道和标题统一字体 */
+.channel-title,
+.chat-title,
+.channel-name,
+.workspace-name {
+  font-family: var(--font-family-unified-cjk) !important;
+  letter-spacing: var(--cjk-letter-spacing) !important;
+  font-weight: var(--cjk-font-weight-medium) !important;
+  -webkit-font-smoothing: var(--cjk-font-smooth);
+  text-rendering: var(--cjk-text-rendering);
+}
+
+/* 📱 输入框统一字体 */
+.message-input,
+.chat-input,
+textarea,
+input[type="text"],
+input[type="search"] {
+  font-family: var(--font-family-unified-cjk) !important;
+  letter-spacing: var(--cjk-letter-spacing) !important;
+  line-height: var(--cjk-line-height) !important;
+  -webkit-font-smoothing: var(--cjk-font-smooth);
+  text-rendering: var(--cjk-text-rendering);
+}
+
+/* 🔤 特定语言优化 */
+
+/* 中文字体专项优化 */
+:lang(zh),
+[lang="zh"],
+[lang="zh-CN"],
+[lang="zh-Hans"],
+.chinese-text,
+.content-chinese {
+  font-family: var(--font-family-chinese-simplified) !important;
+  letter-spacing: 0.01em !important;
+  line-height: 1.65 !important;
+  font-weight: var(--cjk-font-weight-normal) !important;
+}
+
+/* 繁体中文优化 */
+:lang(zh-TW),
+:lang(zh-HK),
+[lang="zh-TW"],
+[lang="zh-HK"],
+[lang="zh-Hant"] {
+  font-family: var(--font-family-chinese-traditional) !important;
+  letter-spacing: 0.01em !important;
+  line-height: 1.65 !important;
+}
+
+/* 日语字体专项优化 */
+:lang(ja),
+[lang="ja"],
+[lang^="ja-"],
+.japanese-text,
+.content-japanese {
+  font-family: var(--font-family-japanese) !important;
+  letter-spacing: 0.02em !important;
+  line-height: 1.6 !important;
+  font-weight: var(--cjk-font-weight-normal) !important;
+  word-break: keep-all !important;
+  overflow-wrap: break-word !important;
+}
+
+/* 韩语字体专项优化 */
+:lang(ko),
+[lang="ko"],
+[lang^="ko-"],
+.korean-text,
+.content-korean {
+  font-family: var(--font-family-korean) !important;
+  letter-spacing: 0.015em !important;
+  line-height: 1.6 !important;
+  font-weight: var(--cjk-font-weight-normal) !important;
+}
+
+/* 🔧 强制统一字体修复类 */
+.unified-cjk-font,
+.force-unified-font {
+  font-family: var(--font-family-unified-cjk) !important;
+  letter-spacing: var(--cjk-letter-spacing) !important;
+  line-height: var(--cjk-line-height) !important;
+  -webkit-font-smoothing: var(--cjk-font-smooth) !important;
+  -moz-osx-font-smoothing: grayscale !important;
+  text-rendering: var(--cjk-text-rendering) !important;
+  font-feature-settings: var(--cjk-font-feature-settings) !important;
+}
+
+/* 📝 深度样式选择器 - 确保Vue组件内部也应用 */
+* :deep(.message-content),
+* :deep(.content-wrapper),
+* :deep(.message-text),
+* :deep(.sender-name),
+* :deep(.username-button),
+* :deep(.chat-message),
+* :deep(.discord-message) {
+  font-family: var(--font-family-unified-cjk) !important;
+  letter-spacing: var(--cjk-letter-spacing) !important;
+  line-height: var(--cjk-line-height) !important;
+}
+
+/* 🎨 Markdown内容优化 */
+.content-wrapper :deep(p),
+.content-wrapper :deep(div),
+.content-wrapper :deep(span),
+.message-content p,
+.message-content div,
+.message-content span {
+  font-family: var(--font-family-unified-cjk) !important;
+  letter-spacing: var(--cjk-letter-spacing) !important;
+  line-height: var(--cjk-line-height) !important;
+  font-weight: var(--cjk-font-weight-normal) !important;
+}
+
+/* 🔗 链接和强调文本 */
+.content-wrapper :deep(a),
+.content-wrapper :deep(strong),
+.content-wrapper :deep(em) {
+  font-family: inherit !important;
+  letter-spacing: inherit !important;
+}
+
+/* 📱 响应式CJK字体调整 */
+@media (max-width: 768px) {
+  :root {
+    --cjk-letter-spacing: 0.02em;
+    --cjk-line-height: 1.65;
+  }
+  
+  /* 字体大小由unified-font-size-fix.css统一控制 */
+}
+
+@media (max-width: 480px) {
+  :root {
+    --cjk-letter-spacing: 0.025em;
+    --cjk-line-height: 1.7;
+  }
+  
+  /* 字体大小由unified-font-size-fix.css统一控制 */
+}
+
+/* 🌙 暗色主题CJK优化 */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --cjk-font-smooth: subpixel-antialiased;
+    --cjk-font-weight-normal: 450; /* 稍微增加字重提高可读性 */
+    --cjk-font-weight-medium: 550;
+  }
+}
+
+/* 🖨️ 高分辨率屏幕优化 */
+@media (min-resolution: 2dppx) {
+  :root {
+    --cjk-font-smooth: subpixel-antialiased;
+  }
+}
+
+/* 🎯 高对比度模式 */
+@media (prefers-contrast: high) {
+  :root {
+    --cjk-font-weight-normal: 500;
+    --cjk-font-weight-medium: 600;
+    --cjk-font-weight-bold: 700;
+  }
+}
+
+/* 🔍 搜索高亮CJK文本 */
+mark,
+.search-highlight,
+.highlighted-text {
+  font-family: inherit !important;
+  letter-spacing: inherit !important;
+  background-color: rgba(255, 235, 59, 0.3);
+  padding: 0.1em 0.2em;
+  border-radius: 2px;
+}
+
+/* 💬 引用和代码块中的CJK文本 */
+blockquote,
+.quote-block {
+  font-family: var(--font-family-unified-cjk) !important;
+  letter-spacing: var(--cjk-letter-spacing) !important;
+  line-height: var(--cjk-line-height) !important;
+}
+
+/* 📋 列表项CJK文本 */
+li,
+.list-item {
+  font-family: var(--font-family-unified-cjk) !important;
+  letter-spacing: var(--cjk-letter-spacing) !important;
+  line-height: var(--cjk-line-height) !important;
+}
+
+/* 🏷️ 标签和徽章 */
+.tag,
+.badge,
+.label {
+  font-family: var(--font-family-unified-cjk) !important;
+  letter-spacing: var(--cjk-letter-spacing) !important;
+}
+
+/* 🔲 按钮文本 */
+button,
+.button,
+.btn {
+  font-family: var(--font-family-unified-cjk) !important;
+  letter-spacing: var(--cjk-letter-spacing) !important;
+  -webkit-font-smoothing: var(--cjk-font-smooth);
+}
+
+/* 📊 表格内容 */
+table,
+td,
+th {
+  font-family: var(--font-family-unified-cjk) !important;
+  letter-spacing: var(--cjk-letter-spacing) !important;
+  line-height: var(--cjk-line-height) !important;
+}
+
+/* 🎪 模态框和弹窗 */
+.modal,
+.popup,
+.dialog {
+  font-family: var(--font-family-unified-cjk) !important;
+  letter-spacing: var(--cjk-letter-spacing) !important;
+  line-height: var(--cjk-line-height) !important;
+}
+
+/* 🚨 重要：覆盖其他字体设置 */
+* {
+  /* 使用更高优先级确保CJK字体应用 */
+}
+
+/* 📝 特殊元素排除 */
+code,
+pre,
+.hljs,
+.code-block,
+.monospace {
+  /* 代码块保持等宽字体 */
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, monospace !important;
+  letter-spacing: normal !important;
+}
+
+/* 🎵 保持等宽字体的元素 */
+.timestamp,
+.time,
+.duration {
+  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace !important;
+  letter-spacing: normal !important;
+} 

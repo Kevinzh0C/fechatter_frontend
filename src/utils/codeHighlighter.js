@@ -51,11 +51,11 @@ class CodeHighlighterManager {
         langs: ['javascript', 'typescript', 'python', 'sql', 'json', 'bash'], // Common languages only
       });
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('✅ Code highlighter initialized as singleton');
       return this.highlighter;
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('Failed to initialize code highlighter:', error);
       this.initPromise = null;
       throw error;
@@ -85,7 +85,7 @@ class CodeHighlighterManager {
       this.highlighter = null;
       this.initPromise = null;
       this.disposed = true;
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('🧹 Code highlighter disposed');
       }
 

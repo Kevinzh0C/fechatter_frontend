@@ -1,0 +1,387 @@
+/* 🔢 Numbers & Symbols Protection Fix - 数字和符号保护修复
+ * 确保数字、数学符号、标点符号不受CJK字体优化影响
+ * 解决数字显示异常、符号字体不一致等问题
+ */
+
+:root {
+  /* 🎯 数字和符号专用字体变量 */
+  --numbers-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'SF Pro Text', 
+                         'Helvetica Neue', Arial, 'Liberation Sans', sans-serif;
+  --numbers-font-size: inherit;
+  --numbers-line-height: inherit;
+  --numbers-letter-spacing: normal;
+  --numbers-font-weight: normal;
+}
+
+/* 🔢 数字字符保护 (0-9) */
+.emoji-2x:contains('0'),
+.emoji-2x:contains('1'),
+.emoji-2x:contains('2'),
+.emoji-2x:contains('3'),
+.emoji-2x:contains('4'),
+.emoji-2x:contains('5'),
+.emoji-2x:contains('6'),
+.emoji-2x:contains('7'),
+.emoji-2x:contains('8'),
+.emoji-2x:contains('9'),
+*[class*="emoji"]:contains('0'),
+*[class*="emoji"]:contains('1'),
+*[class*="emoji"]:contains('2'),
+*[class*="emoji"]:contains('3'),
+*[class*="emoji"]:contains('4'),
+*[class*="emoji"]:contains('5'),
+*[class*="emoji"]:contains('6'),
+*[class*="emoji"]:contains('7'),
+*[class*="emoji"]:contains('8'),
+*[class*="emoji"]:contains('9') {
+  font-family: var(--numbers-font-family) !important;
+  font-size: var(--numbers-font-size) !important;
+  line-height: var(--numbers-line-height) !important;
+  letter-spacing: var(--numbers-letter-spacing) !important;
+  font-weight: var(--numbers-font-weight) !important;
+  margin: 0 !important;
+  display: inline !important;
+  vertical-align: baseline !important;
+}
+
+/* 📊 数学符号保护 */
+.emoji-2x:contains('+'),
+.emoji-2x:contains('-'),
+.emoji-2x:contains('×'),
+.emoji-2x:contains('÷'),
+.emoji-2x:contains('='),
+.emoji-2x:contains('≠'),
+.emoji-2x:contains('≤'),
+.emoji-2x:contains('≥'),
+.emoji-2x:contains('<'),
+.emoji-2x:contains('>'),
+.emoji-2x:contains('±'),
+.emoji-2x:contains('∞'),
+.emoji-2x:contains('√'),
+.emoji-2x:contains('∑'),
+.emoji-2x:contains('∏'),
+.emoji-2x:contains('∫'),
+.emoji-2x:contains('%'),
+.emoji-2x:contains('‰'),
+.emoji-2x:contains('°'),
+*[class*="emoji"]:contains('+'),
+*[class*="emoji"]:contains('-'),
+*[class*="emoji"]:contains('×'),
+*[class*="emoji"]:contains('÷'),
+*[class*="emoji"]:contains('='),
+*[class*="emoji"]:contains('≠'),
+*[class*="emoji"]:contains('≤'),
+*[class*="emoji"]:contains('≥'),
+*[class*="emoji"]:contains('<'),
+*[class*="emoji"]:contains('>'),
+*[class*="emoji"]:contains('±'),
+*[class*="emoji"]:contains('∞'),
+*[class*="emoji"]:contains('√'),
+*[class*="emoji"]:contains('∑'),
+*[class*="emoji"]:contains('∏'),
+*[class*="emoji"]:contains('∫'),
+*[class*="emoji"]:contains('%'),
+*[class*="emoji"]:contains('‰'),
+*[class*="emoji"]:contains('°') {
+  font-family: var(--numbers-font-family) !important;
+  font-size: var(--numbers-font-size) !important;
+  line-height: var(--numbers-line-height) !important;
+  letter-spacing: var(--numbers-letter-spacing) !important;
+  margin: 0 !important;
+  display: inline !important;
+  vertical-align: baseline !important;
+}
+
+/* 💰 货币符号保护 */
+.emoji-2x:contains('$'),
+.emoji-2x:contains('€'),
+.emoji-2x:contains('£'),
+.emoji-2x:contains('¥'),
+.emoji-2x:contains('₹'),
+.emoji-2x:contains('₩'),
+.emoji-2x:contains('₽'),
+.emoji-2x:contains('¢'),
+.emoji-2x:contains('₡'),
+.emoji-2x:contains('₨'),
+*[class*="emoji"]:contains('$'),
+*[class*="emoji"]:contains('€'),
+*[class*="emoji"]:contains('£'),
+*[class*="emoji"]:contains('¥'),
+*[class*="emoji"]:contains('₹'),
+*[class*="emoji"]:contains('₩'),
+*[class*="emoji"]:contains('₽'),
+*[class*="emoji"]:contains('¢'),
+*[class*="emoji"]:contains('₡'),
+*[class*="emoji"]:contains('₨') {
+  font-family: var(--numbers-font-family) !important;
+  font-size: var(--numbers-font-size) !important;
+  line-height: var(--numbers-line-height) !important;
+  margin: 0 !important;
+  display: inline !important;
+  vertical-align: baseline !important;
+}
+
+/* 📝 标点符号保护 */
+.emoji-2x:contains('.'),
+.emoji-2x:contains(','),
+.emoji-2x:contains(';'),
+.emoji-2x:contains(':'),
+.emoji-2x:contains('!'),
+.emoji-2x:contains('?'),
+.emoji-2x:contains('('),
+.emoji-2x:contains(')'),
+.emoji-2x:contains('['),
+.emoji-2x:contains(']'),
+.emoji-2x:contains('{'),
+.emoji-2x:contains('}'),
+.emoji-2x:contains('"'),
+.emoji-2x:contains("'"),
+.emoji-2x:contains('`'),
+.emoji-2x:contains('~'),
+.emoji-2x:contains('|'),
+.emoji-2x:contains('\\'),
+.emoji-2x:contains('/'),
+.emoji-2x:contains('_'),
+.emoji-2x:contains('—'),
+.emoji-2x:contains('–'),
+.emoji-2x:contains('…'),
+*[class*="emoji"]:contains('.'),
+*[class*="emoji"]:contains(','),
+*[class*="emoji"]:contains(';'),
+*[class*="emoji"]:contains(':'),
+*[class*="emoji"]:contains('!'),
+*[class*="emoji"]:contains('?'),
+*[class*="emoji"]:contains('('),
+*[class*="emoji"]:contains(')'),
+*[class*="emoji"]:contains('['),
+*[class*="emoji"]:contains(']'),
+*[class*="emoji"]:contains('{'),
+*[class*="emoji"]:contains('}'),
+*[class*="emoji"]:contains('"'),
+*[class*="emoji"]:contains("'"),
+*[class*="emoji"]:contains('`'),
+*[class*="emoji"]:contains('~'),
+*[class*="emoji"]:contains('|'),
+*[class*="emoji"]:contains('\\'),
+*[class*="emoji"]:contains('/'),
+*[class*="emoji"]:contains('_'),
+*[class*="emoji"]:contains('—'),
+*[class*="emoji"]:contains('–'),
+*[class*="emoji"]:contains('…') {
+  font-family: var(--numbers-font-family) !important;
+  font-size: var(--numbers-font-size) !important;
+  line-height: var(--numbers-line-height) !important;
+  margin: 0 !important;
+  display: inline !important;
+  vertical-align: baseline !important;
+}
+
+/* 🔤 ASCII字符保护 (a-z, A-Z) */
+.emoji-2x:contains('a'),
+.emoji-2x:contains('b'),
+.emoji-2x:contains('c'),
+.emoji-2x:contains('d'),
+.emoji-2x:contains('e'),
+.emoji-2x:contains('f'),
+.emoji-2x:contains('g'),
+.emoji-2x:contains('h'),
+.emoji-2x:contains('i'),
+.emoji-2x:contains('j'),
+.emoji-2x:contains('k'),
+.emoji-2x:contains('l'),
+.emoji-2x:contains('m'),
+.emoji-2x:contains('n'),
+.emoji-2x:contains('o'),
+.emoji-2x:contains('p'),
+.emoji-2x:contains('q'),
+.emoji-2x:contains('r'),
+.emoji-2x:contains('s'),
+.emoji-2x:contains('t'),
+.emoji-2x:contains('u'),
+.emoji-2x:contains('v'),
+.emoji-2x:contains('w'),
+.emoji-2x:contains('x'),
+.emoji-2x:contains('y'),
+.emoji-2x:contains('z'),
+*[class*="emoji"]:contains('a'),
+*[class*="emoji"]:contains('b'),
+*[class*="emoji"]:contains('c'),
+*[class*="emoji"]:contains('d'),
+*[class*="emoji"]:contains('e'),
+*[class*="emoji"]:contains('f'),
+*[class*="emoji"]:contains('g'),
+*[class*="emoji"]:contains('h'),
+*[class*="emoji"]:contains('i'),
+*[class*="emoji"]:contains('j'),
+*[class*="emoji"]:contains('k'),
+*[class*="emoji"]:contains('l'),
+*[class*="emoji"]:contains('m'),
+*[class*="emoji"]:contains('n'),
+*[class*="emoji"]:contains('o'),
+*[class*="emoji"]:contains('p'),
+*[class*="emoji"]:contains('q'),
+*[class*="emoji"]:contains('r'),
+*[class*="emoji"]:contains('s'),
+*[class*="emoji"]:contains('t'),
+*[class*="emoji"]:contains('u'),
+*[class*="emoji"]:contains('v'),
+*[class*="emoji"]:contains('w'),
+*[class*="emoji"]:contains('x'),
+*[class*="emoji"]:contains('y'),
+*[class*="emoji"]:contains('z') {
+  font-family: var(--numbers-font-family) !important;
+  font-size: var(--numbers-font-size) !important;
+  line-height: var(--numbers-line-height) !important;
+  letter-spacing: var(--numbers-letter-spacing) !important;
+  margin: 0 !important;
+  display: inline !important;
+  vertical-align: baseline !important;
+}
+
+/* 🔢 特殊数字格式保护 */
+.emoji-2x[data-number],
+.emoji-2x[data-percentage],
+.emoji-2x[data-currency],
+.emoji-2x[data-math],
+*[class*="emoji"][data-number],
+*[class*="emoji"][data-percentage],
+*[class*="emoji"][data-currency],
+*[class*="emoji"][data-math] {
+  font-family: var(--numbers-font-family) !important;
+  font-size: var(--numbers-font-size) !important;
+  line-height: var(--numbers-line-height) !important;
+  letter-spacing: var(--numbers-letter-spacing) !important;
+  margin: 0 !important;
+  display: inline !important;
+  vertical-align: baseline !important;
+}
+
+/* 🚨 强制类保护 */
+.numbers-not-emoji,
+.symbols-not-emoji,
+.ascii-not-emoji,
+.math-not-emoji,
+.currency-not-emoji,
+.punctuation-not-emoji {
+  font-family: var(--numbers-font-family) !important;
+  font-size: var(--numbers-font-size) !important;
+  line-height: var(--numbers-line-height) !important;
+  letter-spacing: var(--numbers-letter-spacing) !important;
+  font-weight: var(--numbers-font-weight) !important;
+  margin: 0 !important;
+  display: inline !important;
+  vertical-align: baseline !important;
+}
+
+/* 🎯 基于正则表达式的保护类 */
+.contains-numbers {
+  font-family: var(--numbers-font-family) !important;
+}
+
+.contains-symbols {
+  font-family: var(--numbers-font-family) !important;
+}
+
+.contains-ascii {
+  font-family: var(--numbers-font-family) !important;
+}
+
+/* 🔧 CJK字体优化中的数字符号保护 */
+*[lang="ja"] .numbers-not-emoji,
+*[lang="zh"] .numbers-not-emoji,
+*[lang="ko"] .numbers-not-emoji,
+*[class*="cjk"] .numbers-not-emoji,
+*[class*="japanese"] .numbers-not-emoji,
+*[class*="chinese"] .numbers-not-emoji,
+*[class*="korean"] .numbers-not-emoji {
+  font-family: var(--numbers-font-family) !important;
+  font-size: var(--numbers-font-size) !important;
+  line-height: var(--numbers-line-height) !important;
+  letter-spacing: var(--numbers-letter-spacing) !important;
+  margin: 0 !important;
+  display: inline !important;
+  vertical-align: baseline !important;
+}
+
+/* 🏷️ 频道列表中的数字保护 */
+.channel-list .numbers-not-emoji,
+.channel-item .numbers-not-emoji,
+.dm-item .numbers-not-emoji,
+.group-item .numbers-not-emoji,
+.last-message .numbers-not-emoji,
+.message-sender .numbers-not-emoji {
+  font-family: var(--numbers-font-family) !important;
+  font-size: var(--numbers-font-size) !important;
+  line-height: var(--numbers-line-height) !important;
+  letter-spacing: var(--numbers-letter-spacing) !important;
+}
+
+/* 💬 消息内容中的数字符号保护 */
+.message-content .numbers-not-emoji,
+.message-content .symbols-not-emoji,
+.message-content .ascii-not-emoji,
+.discord-message-item .numbers-not-emoji,
+.discord-message-item .symbols-not-emoji,
+.discord-message-item .ascii-not-emoji {
+  font-family: var(--numbers-font-family) !important;
+  font-size: var(--numbers-font-size) !important;
+  line-height: var(--numbers-line-height) !important;
+  letter-spacing: var(--numbers-letter-spacing) !important;
+}
+
+/* 📱 响应式数字符号优化 */
+@media (max-width: 768px) {
+  :root {
+    --numbers-font-size: 15px;
+    --numbers-line-height: 1.5;
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --numbers-font-size: 16px;
+    --numbers-line-height: 1.6;
+  }
+}
+
+/* 🌙 暗色主题数字符号优化 */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --numbers-font-weight: 400; /* 暗色主题下保持正常字重 */
+  }
+}
+
+/* 🖨️ 高分辨率屏幕优化 */
+@media (min-resolution: 2dppx) {
+  .numbers-not-emoji,
+  .symbols-not-emoji,
+  .ascii-not-emoji {
+    -webkit-font-smoothing: subpixel-antialiased !important;
+    text-rendering: geometricPrecision !important;
+  }
+}
+
+/* 🎯 高对比度模式 */
+@media (prefers-contrast: high) {
+  :root {
+    --numbers-font-weight: 500;
+  }
+}
+
+/* 🔍 调试辅助 - 开发环境可视化 */
+@media screen and (min-width: 0) {
+  .debug-numbers-protection .numbers-not-emoji {
+    outline: 2px solid #00ff00 !important;
+    background: rgba(0, 255, 0, 0.1) !important;
+  }
+  
+  .debug-numbers-protection .symbols-not-emoji {
+    outline: 2px solid #0000ff !important;
+    background: rgba(0, 0, 255, 0.1) !important;
+  }
+  
+  .debug-numbers-protection .ascii-not-emoji {
+    outline: 2px solid #ff8800 !important;
+    background: rgba(255, 136, 0, 0.1) !important;
+  }
+} 

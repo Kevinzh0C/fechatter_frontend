@@ -74,7 +74,7 @@ export default {
       return this.code || this.route.params.code || '500';
     },
     showDebugInfo() {
-      return import.meta.env.DEV;
+      return true;
     },
     errorTitle() {
       switch (this.errorCode) {

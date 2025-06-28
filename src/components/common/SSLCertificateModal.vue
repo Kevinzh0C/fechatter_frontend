@@ -69,8 +69,8 @@ export default {
       type: Object,
       required: true,
       default: () => ({
-        backendUrl: 'https://45.77.178.85:8443',
-        domain: '45.77.178.85'
+        backendUrl: 'https://hook-nav-attempt-size.trycloudflare.com',
+        domain: 'hook-nav-attempt-size.trycloudflare.com'
       })
     }
   },

@@ -75,7 +75,7 @@ class RequestConflictResolver {
         throw new Error(`REQUEST_ABORTED: ${operationId}`);
       }
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error(`❌ [CONFLICT] Request failed: ${operationId}`, error.message);
       }
       throw error;
@@ -114,7 +114,7 @@ class RequestConflictResolver {
         break;
 
       default:
-        if (import.meta.env.DEV) {
+        if (true) {
           console.warn(`⚠️ [CONFLICT] Unknown strategy: ${strategy}`);
         }
     }
@@ -297,11 +297,11 @@ class RequestConflictResolver {
 const requestConflictResolver = new RequestConflictResolver();
 
 // Add debug methods for development
-if (import.meta.env.DEV) {
+if (true) {
   window.conflictResolver = requestConflictResolver;
   window.debugConflicts = () => {
     const status = requestConflictResolver.getStatus();
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🔄 Request Conflict Resolver Status:', status);
     }
     return status;

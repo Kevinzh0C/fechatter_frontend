@@ -6,7 +6,7 @@
 
 class ExtensionErrorSuppressor {
   constructor() {
-    this.environment = import.meta.env.MODE || 'development';
+    this.environment = 'development' || 'development';
     this.isProduction = this.environment === 'production';
     this.isDevelopment = this.environment === 'development';
 
@@ -81,11 +81,11 @@ class ExtensionErrorSuppressor {
       // Intercept console errors
       this.interceptConsoleError();
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('🛡️ Extension Error Suppressor initialized (Production Mode)');
       }
     } else {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('🔧 Extension Error Suppressor disabled (Development Mode)');
       }
 
@@ -118,7 +118,7 @@ class ExtensionErrorSuppressor {
       if (self.isExtensionError({ message: errorMessage })) {
         console.debug('🔌 [EXT] Extension Error (Dev Mode):', errorMessage.substring(0, 100));
       } else if (self.isSecurityError(errorMessage)) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.warn('🚨 [SECURITY] Security-related error detected:', errorMessage);
         }
         self.recordSecurityError(errorMessage);
@@ -140,7 +140,7 @@ class ExtensionErrorSuppressor {
 
       // Never suppress security-related errors
       if (self.isSecurityError(errorMessage)) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.warn('🚨 [SECURITY] Security error preserved:', errorMessage);
         }
         self.recordSecurityError(errorMessage);
@@ -170,7 +170,7 @@ class ExtensionErrorSuppressor {
 
     // Never suppress security errors
     if (this.isSecurityError(errorMessage)) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.warn('🚨 [SECURITY] Security error preserved in global handler:', errorMessage);
       }
       this.recordSecurityError(errorMessage);
@@ -190,7 +190,7 @@ class ExtensionErrorSuppressor {
 
     // Never suppress security errors
     if (this.isSecurityError(errorMessage)) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.warn('🚨 [SECURITY] Security error preserved in promise rejection:', errorMessage);
       }
       this.recordSecurityError(errorMessage);
@@ -322,7 +322,7 @@ class ExtensionErrorSuppressor {
     const recent = this.sessionStats.recentErrors.slice(-limit);
     console.group('🛡️ Recent Suppressed Extension Errors');
     recent.forEach((error, index) => {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`${index + 1}. [${error.source}] ${error.message}`);
       }
     });
@@ -334,7 +334,7 @@ class ExtensionErrorSuppressor {
   showSecurityErrors() {
     console.group('🚨 Security Errors (Preserved)');
     this.sessionStats.securityErrors.forEach((error, index) => {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.warn(`${index + 1}. ${error.message}`);
       }
     });

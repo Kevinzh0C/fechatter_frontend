@@ -13,19 +13,19 @@ frontend:
   host: "localhost"
   hmr_port: 1421
 
-# API配置 - 开发环境通过Vite代理访问HTTPS后端
+# API配置 - 直接连接 ngrok 后端
 api:
-  # 开发环境使用相对路径，通过Vite代理到HTTPS后端
-  gateway_url: "http://localhost:5173"
+  # 直接连接 ngrok，避免 Vercel 代理限制
+  gateway_url: "https://hook-nav-attempt-size.trycloudflare.com"
 
-  # 使用相对路径，让Vite代理处理SSL证书问题（与生产环境路径保持一致）
-  base_url: "/api"
-  file_url: "/files"
-  sse_url: "/events"
-  notify_url: "/notify"
+  # 直接 Cloudflare Tunnel URLs - 所有环境统一策略
+  base_url: "https://hook-nav-attempt-size.trycloudflare.com/api"
+  file_url: "https://hook-nav-attempt-size.trycloudflare.com/files"
+  sse_url: "https://hook-nav-attempt-size.trycloudflare.com/events"
+  notify_url: "https://hook-nav-attempt-size.trycloudflare.com/notify"
 
   # 请求配置
-  timeout: 15000
+  timeout: 30000
   max_retries: 3
   retry_delay: 1000
 
@@ -68,3 +68,161 @@ test_accounts:
   password: "admin123"
   name: "Admin User"
   description: "管理员测试账户"
+
+# 🔧 SSE Configuration
+sse:
+  base_url: "https://hook-nav-attempt-size.trycloudflare.com"
+  endpoint: "/events"
+  reconnect_interval: 3000
+  max_reconnect_attempts: 5
+  timeout: 30000
+  heartbeat_interval: 30000
+
+# 🎯 File Service Configuration  
+files:
+  base_url: "https://hook-nav-attempt-size.trycloudflare.com"
+  upload_endpoint: "/api/files/single"
+  download_endpoint: "/api/files/download"
+  static_endpoint: "/files"
+  max_file_size: 10485760 # 10MB
+  allowed_types: [ "image/*", "application/pdf", "text/*" ]
+
+# 🔐 Authentication Configuration
+auth:
+  token_refresh_threshold: 300000 # 5 minutes
+  auto_refresh: true
+  storage_key: "fechatter_auth_token"
+
+# 🚀 Analytics Configuration
+analytics:
+  enabled: true
+  endpoint: "https://hook-nav-attempt-size.trycloudflare.com/analytics"
+  batch_size: 10
+  flush_interval: 5000
+
+# 🔧 Feature Flags
+features:
+  enhanced_search: true
+  file_preview: true
+  markdown_support: true
+  code_highlighting: true
+  emoji_reactions: true
+  typing_indicators: true
+  message_threading: false
+  voice_messages: false
+
+# 🎨 UI Configuration
+ui:
+  theme: "light"
+  compact_mode: false
+  show_timestamps: true
+  show_avatars: true
+  enable_animations: true
+  sidebar_collapsed: false
+
+# 🐛 Debug Configuration
+debug:
+  enabled: true
+  log_level: "info"
+  show_network_logs: true
+  show_state_changes: false
+  performance_monitoring: true
+
+# 🔄 Cache Configuration
+cache:
+  api_cache_duration: 300000 # 5 minutes
+  image_cache_duration: 3600000 # 1 hour
+  user_cache_duration: 1800000 # 30 minutes
+  enable_offline_cache: true
+
+development:
+  # 🚀 PRODUCTION-ALIGNED: Direct Cloudflare Tunnel connection for all environments
+  api:
+    base_url: "https://hook-nav-attempt-size.trycloudflare.com/api"
+    file_url: "https://hook-nav-attempt-size.trycloudflare.com/files"
+    sse_url: "https://hook-nav-attempt-size.trycloudflare.com/events"
+    notify_url: "https://hook-nav-attempt-size.trycloudflare.com/notify"
+    timeout: 30000
+    max_retries: 3
+    retry_delay: 1000
+    retry_attempts: 3
+
+  # 🔧 SSE Configuration
+  sse:
+    base_url: "https://hook-nav-attempt-size.trycloudflare.com"
+    endpoint: "/events"
+    reconnect_interval: 3000
+    max_reconnect_attempts: 5
+    timeout: 30000
+    heartbeat_interval: 30000
+
+  # 🎯 File Service Configuration  
+  files:
+    base_url: "https://hook-nav-attempt-size.trycloudflare.com"
+    upload_endpoint: "/api/files/single"
+    download_endpoint: "/api/files/download"
+    static_endpoint: "/files"
+    max_file_size: 10485760 # 10MB
+    allowed_types: [ "image/*", "application/pdf", "text/*" ]
+
+  # 🔐 Authentication Configuration
+  auth:
+    token_refresh_threshold: 300000 # 5 minutes
+    auto_refresh: true
+    storage_key: "fechatter_auth_token"
+
+  # 🚀 Analytics Configuration
+  analytics:
+    enabled: true
+    endpoint: "https://hook-nav-attempt-size.trycloudflare.com/analytics"
+    batch_size: 10
+    flush_interval: 5000
+
+  # 🔧 Feature Flags
+  features:
+    enhanced_search: true
+    file_preview: true
+    markdown_support: true
+    code_highlighting: true
+    emoji_reactions: true
+    typing_indicators: true
+    message_threading: false
+    voice_messages: false
+
+  # 🎨 UI Configuration
+  ui:
+    theme: "light"
+    compact_mode: false
+    show_timestamps: true
+    show_avatars: true
+    enable_animations: true
+    sidebar_collapsed: false
+
+  # 🐛 Debug Configuration
+  debug:
+    enabled: true
+    log_level: "info"
+    show_network_logs: true
+    show_state_changes: false
+    performance_monitoring: true
+
+  # 🔄 Cache Configuration
+  cache:
+    api_cache_duration: 300000 # 5 minutes
+    image_cache_duration: 3600000 # 1 hour
+    user_cache_duration: 1800000 # 30 minutes
+    enable_offline_cache: true
+
+  # 测试账户配置
+  test_accounts:
+    super_user:
+      email: "super@test.com"
+      password: "password"
+      name: "Super User"
+      description: "超级管理员测试账户"
+
+    admin_user:
+      email: "admin@test.com"
+      password: "password"
+      name: "Admin User"
+      description: "管理员测试账户"

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SSE Direct Test</title>
+    <style>
+        body { font-family: monospace; margin: 20px; }
+        .log { border: 1px solid #ccc; height: 400px; overflow-y: auto; padding: 10px; margin: 10px 0; }
+        .test-btn { padding: 10px; margin: 5px; font-size: 16px; }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+    </style>
+</head>
+<body>
+    <h1>SSE Direct Connection Test</h1>
+    
+    <div>
+        <button class="test-btn" onclick="testViteProxy()">Test Vite Proxy (/events)</button>
+        <button class="test-btn" onclick="testDirect()">Test Direct Cloudflare</button>
+        <button class="test-btn" onclick="clearLog()">Clear Log</button>
+    </div>
+    
+    <div class="log" id="log"></div>
+    
+    <script>
+        const log = document.getElementById('log');
+        let eventSource = null;
+        
+        // Token from our curl test
+        const TEST_TOKEN = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJFZERTQSJ9.eyJzdWIiOiIyIiwiZXhwIjoxNzUwOTkyOTYwLCJpYXQiOjE3NTA5OTExNjAsImF1ZCI6ImZlY2hhdHRlci13ZWIiLCJpc3MiOiJmZWNoYXR0ZXItc2VydmVyIiwidXNlciI6eyJpZCI6Miwid29ya3NwYWNlX2lkIjoyLCJmdWxsbmFtZSI6IlN1cGVyIFVzZXIiLCJlbWFpbCI6InN1cGVyQHRlc3QuY29tIiwic3RhdHVzIjoiQWN0aXZlIiwiY3JlYXRlZF9hdCI6IjIwMjUtMDYtMTRUMDg6MDU6MDEuOTA2NDMyWiJ9fQ.sa1DgoNFFM5V5F7SGYt1otrMqRTWa5luINTOR_c45VmFcQSBw6DglX7jafng4UnwzmwquU9gXQaUq68Hgx8sBA';
+        
+        function addLog(message, type = 'info') {
+            const time = new Date().toLocaleTimeString();
+            const div = document.createElement('div');
+            div.className = type;
+            div.textContent = `[${time}] ${message}`;
+            log.appendChild(div);
+            log.scrollTop = log.scrollHeight;
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+        
+        function closeExisting() {
+            if (eventSource) {
+                eventSource.close();
+                eventSource = null;
+                addLog('Closed existing connection');
+            }
+        }
+        
+        function testViteProxy() {
+            closeExisting();
+            addLog('🔧 Testing Vite Proxy: /events', 'info');
+            
+            const url = `/events?access_token=${encodeURIComponent(TEST_TOKEN)}`;
+            addLog(`URL: ${url}`);
+            
+            try {
+                eventSource = new EventSource(url);
+                setupHandlers('Vite Proxy');
+            } catch (error) {
+                addLog(`Failed to create EventSource: ${error.message}`, 'error');
+            }
+        }
+        
+        function testDirect() {
+            closeExisting();
+            addLog('🚀 Testing Direct Cloudflare', 'info');
+            
+            const url = `https://hook-nav-attempt-size.trycloudflare.com/events?access_token=${encodeURIComponent(TEST_TOKEN)}`;
+            addLog(`URL: ${url.substring(0, 100)}...`);
+            
+            try {
+                eventSource = new EventSource(url);
+                setupHandlers('Direct Cloudflare');
+            } catch (error) {
+                addLog(`Failed to create EventSource: ${error.message}`, 'error');
+            }
+        }
+        
+        function setupHandlers(testType) {
+            if (!eventSource) return;
+            
+            eventSource.onopen = function(event) {
+                addLog(`✅ ${testType} - Connection opened!`, 'success');
+                addLog(`ReadyState: ${eventSource.readyState} (1=OPEN)`);
+                addLog(`URL: ${eventSource.url.substring(0, 100)}...`);
+            };
+            
+            eventSource.onmessage = function(event) {
+                addLog(`📨 ${testType} - Message received: ${event.data}`, 'success');
+            };
+            
+            eventSource.onerror = function(error) {
+                addLog(`❌ ${testType} - Error occurred`, 'error');
+                addLog(`ReadyState: ${eventSource.readyState} (0=CONNECTING, 1=OPEN, 2=CLOSED)`);
+                
+                if (eventSource.readyState === 0) {
+                    addLog('Connection failed immediately - likely auth or CORS issue', 'error');
+                } else if (eventSource.readyState === 2) {
+                    addLog('Connection closed - server closed connection', 'error');
+                }
+            };
+            
+            // Test timeout
+            setTimeout(() => {
+                if (eventSource && eventSource.readyState === 0) {
+                    addLog(`⏰ ${testType} - Connection timeout (still CONNECTING after 10s)`, 'error');
+                }
+            }, 10000);
+        }
+        
+        function clearLog() {
+            log.innerHTML = '';
+        }
+        
+        // Initial log
+        addLog('SSE Direct Test Ready', 'info');
+        addLog(`Current location: ${window.location.href}`);
+        addLog(`Test token available: ${TEST_TOKEN ? 'Yes' : 'No'}`);
+    </script>
+</body>
+</html> 

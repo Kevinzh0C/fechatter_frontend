@@ -185,7 +185,7 @@ export class MessageOfflineQueue {
       this.startSyncTimer();
 
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('Failed to initialize offline queue:', error);
       }
 
@@ -217,7 +217,7 @@ export class MessageOfflineQueue {
       // console.log(`📦 Loaded ${storedMessages.length} offline messages from storage`);
 
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('Failed to load offline messages:', error);
       }
 
@@ -245,7 +245,7 @@ export class MessageOfflineQueue {
    */
   async queueOfflineMessage(message) {
     if (this.stats.offlineMessages >= this.config.maxOfflineMessages) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.warn('⚠️ Offline queue is full, removing oldest messages');
       await this.purgeOldestMessages(100); // Remove 100 oldest messages
     }
@@ -261,7 +261,7 @@ export class MessageOfflineQueue {
       // console.log(`🔒 Queued message offline: ${message.metadata.clientId}`);
 
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('Failed to queue message offline:', error);
       throw error;
     }
@@ -306,7 +306,7 @@ export class MessageOfflineQueue {
           await new Promise(resolve => setTimeout(resolve, 500));
 
         } catch (error) {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.error('Batch sync failed:', error);
           errorCount += batch.length;
         }
@@ -320,7 +320,7 @@ export class MessageOfflineQueue {
       // console.log(`✅ Sync completed: ${syncedCount} successful, ${errorCount} failed`);
 
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('Failed to sync offline messages:', error);
       }
     } finally {
@@ -349,7 +349,7 @@ export class MessageOfflineQueue {
         // Recreate message object
         const message = messageStateManager.getMessage(messageData.clientId);
         if (!message) {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.warn(`Message not found in state manager: ${messageData.clientId}`);
           return { success: false, clientId: messageData.clientId };
         }
@@ -366,7 +366,7 @@ export class MessageOfflineQueue {
         return { success: true, clientId: messageData.clientId };
 
       } catch (error) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.error(`Failed to sync message ${messageData.clientId}:`, error);
         return { success: false, clientId: messageData.clientId, error };
       }
@@ -406,7 +406,7 @@ export class MessageOfflineQueue {
       // console.log(`🧹 Purged ${toRemove.length} oldest offline messages`);
 
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('Failed to purge old messages:', error);
       }
 
@@ -443,7 +443,7 @@ export class MessageOfflineQueue {
       this.stats.pendingSyncMessages = 0;
       // console.log('🧹 Cleared all offline messages');
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('Failed to clear offline messages:', error);
       throw error;
     }
@@ -483,7 +483,7 @@ export class MessageOfflineQueue {
         createdAt: msg.createdAt
       }));
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('Failed to export offline messages:', error);
       return [];
     }

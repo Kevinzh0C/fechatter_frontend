@@ -11,7 +11,7 @@ class PerformanceBottleneckAnalysis {
     this.networkTimes = [];
     this.storeTimes = [];
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🔍 Performance Bottleneck Analysis initialized');
     }
 
@@ -20,9 +20,9 @@ class PerformanceBottleneckAnalysis {
    * 启动综合性能分析
    */
   async analyzeFullChain() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n🔍 COMPREHENSIVE PERFORMANCE BOTTLENECK ANALYSIS');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('================================================\n');
     }
 
@@ -49,22 +49,22 @@ class PerformanceBottleneckAnalysis {
    * Analyze current message system performance
    */
   async analyzeCurrentSystem() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('1️⃣ CURRENT SYSTEM ANALYSIS');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('==========================');
     }
 
     const chatStore = this.getChatStore();
     if (!chatStore) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('❌ Chat store not available');
       return;
     }
 
     // Test current sendMessage performance
     if (chatStore.currentChatId) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('🧪 Testing current sendMessage performance...');
       }
 
@@ -105,7 +105,7 @@ class PerformanceBottleneckAnalysis {
           // Remove test message
           chatStore.messages.pop();
 
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log(`📊 UI Update Time: ${uiTime.toFixed(2)}ms`);
           this.measurements.push({
             component: 'UI Update',
@@ -113,7 +113,7 @@ class PerformanceBottleneckAnalysis {
             status: uiTime < 10 ? 'GOOD' : 'SLOW'
           });
       } catch (error) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.error('Error testing current system:', error);
         }
 
@@ -125,9 +125,9 @@ class PerformanceBottleneckAnalysis {
    * Analyze API performance with detailed timing
    */
   async analyzeAPIPerformance() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n2️⃣ API PERFORMANCE ANALYSIS');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('============================');
     }
 
@@ -161,7 +161,7 @@ class PerformanceBottleneckAnalysis {
    * Test individual API endpoint performance
    */
   async testAPIEndpoint(api) {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`🧪 Testing ${api.name}...`);
     }
 
@@ -186,13 +186,13 @@ class PerformanceBottleneckAnalysis {
 
         times.push(responseTime);
 
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log(`   Attempt ${i + 1}: ${responseTime.toFixed(2)}ms (${response.status})`);
         }
 
       } catch (error) {
         errors.push(error);
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log(`   Attempt ${i + 1}: ERROR - ${error.message}`);
         }
 
@@ -201,11 +201,11 @@ class PerformanceBottleneckAnalysis {
       const maxTime = Math.max(...times);
       const minTime = Math.min(...times);
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`📊 ${api.name} Performance:`);
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`   Average: ${avgTime.toFixed(2)}ms`);
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`   Range: ${minTime.toFixed(2)}ms - ${maxTime.toFixed(2)}ms`);
       }
 
@@ -213,7 +213,7 @@ class PerformanceBottleneckAnalysis {
         avgTime < 500 ? 'GOOD' :
           avgTime < 2000 ? 'SLOW' : 'CRITICAL';
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`   Status: ${status}`);
       }
 
@@ -226,7 +226,7 @@ class PerformanceBottleneckAnalysis {
       });
 
     if (errors.length > 0) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`❌ ${errors.length} errors encountered`);
       }
 
@@ -234,15 +234,15 @@ class PerformanceBottleneckAnalysis {
    * Analyze Pinia store performance
    */
   analyzeStorePerformance() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n3️⃣ STORE PERFORMANCE ANALYSIS');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('==============================');
     }
 
     const chatStore = this.getChatStore();
     if (!chatStore) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('❌ Chat store not available');
       return;
     }
@@ -255,7 +255,7 @@ class PerformanceBottleneckAnalysis {
       return { currentChatId, messages: messages?.length || 0, loading };
     });
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`📊 Store State Access: ${stateAccessTime.toFixed(2)}ms`);
     }
 
@@ -270,13 +270,13 @@ class PerformanceBottleneckAnalysis {
         return chatStore.normalizeMessage(testMessage);
       });
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`📊 Message Normalization: ${normalizeTime.toFixed(2)}ms`);
       }
 
     // Analyze store size
     const storeSize = this.getObjectSize(chatStore);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`📊 Store Memory Size: ${storeSize}KB`);
     }
 
@@ -289,9 +289,9 @@ class PerformanceBottleneckAnalysis {
    * Analyze rendering and DOM performance
    */
   analyzeRenderingPerformance() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n4️⃣ RENDERING PERFORMANCE ANALYSIS');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('==================================');
     }
 
@@ -307,7 +307,7 @@ class PerformanceBottleneckAnalysis {
       };
     });
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`📊 DOM Query Time: ${domQueryTime.toFixed(2)}ms`);
     }
 
@@ -321,13 +321,13 @@ class PerformanceBottleneckAnalysis {
         scrollContainer.scrollTop = scrollContainer.scrollHeight;
       });
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`📊 Scroll Performance: ${scrollTime.toFixed(2)}ms`);
       }
 
     // Analyze message count impact
     const messageElements = document.querySelectorAll('[class*="message"]');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`📊 Current Message Elements: ${messageElements.length}`);
     }
 
@@ -340,21 +340,21 @@ class PerformanceBottleneckAnalysis {
    * Analyze network stack performance
    */
   async analyzeNetworkStack() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n5️⃣ NETWORK STACK ANALYSIS');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('==========================');
     }
 
     // DNS resolution test
     const dnsTime = await this.testDNSResolution();
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`📊 DNS Resolution: ${dnsTime.toFixed(2)}ms`);
     }
 
     // Connection establishment
     const connectionTime = await this.testConnectionTime();
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`📊 Connection Time: ${connectionTime.toFixed(2)}ms`);
     }
 
@@ -381,7 +381,7 @@ class PerformanceBottleneckAnalysis {
 
       return performance.now() - startTime;
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.warn('DNS test failed:', error);
       return -1;
     }
@@ -403,7 +403,7 @@ class PerformanceBottleneckAnalysis {
 
         times.push(performance.now() - startTime);
       } catch (error) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.warn(`Connection test ${i + 1} failed:`, error);
         }
 
@@ -432,12 +432,12 @@ class PerformanceBottleneckAnalysis {
         });
 
         const time = performance.now() - startTime;
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log(`📊 ${test.name} Request: ${time.toFixed(2)}ms`);
         }
 
       } catch (error) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log(`📊 ${test.name} Request: FAILED (${error.message})`);
         }
 
@@ -445,9 +445,9 @@ class PerformanceBottleneckAnalysis {
    * Generate comprehensive bottleneck report
    */
   generateBottleneckReport() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n📊 BOTTLENECK ANALYSIS REPORT');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('==============================\n');
     }
 
@@ -504,11 +504,11 @@ class PerformanceBottleneckAnalysis {
 
     // Display bottlenecks
     if (bottlenecks.length === 0) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('✅ No significant bottlenecks detected');
       }
     } else {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('🔍 Identified Bottlenecks:');
       }
 
@@ -524,21 +524,21 @@ class PerformanceBottleneckAnalysis {
             MEDIUM: '⚡'
           }[bottleneck.severity];
 
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log(`\n${index + 1}. ${emoji} ${bottleneck.component}`);
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log(`   Severity: ${bottleneck.severity}`);
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log(`   Impact: ${bottleneck.time.toFixed(2)}ms`);
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log(`   Fix: ${bottleneck.recommendation}`);
           }
         });
 
     // Performance summary
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n📈 PERFORMANCE SUMMARY');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('======================');
     }
 
@@ -546,77 +546,77 @@ class PerformanceBottleneckAnalysis {
     const totalStoreTime = this.storeTimes.reduce((sum, store) => sum + store.stateAccess, 0);
     const totalRenderTime = this.renderTimes.reduce((sum, render) => sum + render.domQuery, 0);
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`🌐 Total API Time: ${totalAPITime.toFixed(2)}ms`);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`🏪 Total Store Time: ${totalStoreTime.toFixed(2)}ms`);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`🎨 Total Render Time: ${totalRenderTime.toFixed(2)}ms`);
     }
 
     const estimatedTotal = totalAPITime + totalStoreTime + totalRenderTime;
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`⏱️ Estimated Total Chain: ${estimatedTotal.toFixed(2)}ms`);
     }
 
     // Root cause analysis for 12.7s delay
     if (estimatedTotal > 5000) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('\n🚨 ROOT CAUSE OF 12.7s DELAY IDENTIFIED:');
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('=========================================');
       }
 
       if (totalAPITime > 5000) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('🎯 PRIMARY CAUSE: Backend API Response Time');
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('   - Backend is taking >5 seconds to respond');
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('   - Immediate fix: Implement ultra-fast optimistic updates');
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('   - Long-term fix: Backend optimization required');
         }
 
       if (totalStoreTime > 1000) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('🎯 SECONDARY CAUSE: Store Processing Overhead');
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('   - Store operations are taking >1 second');
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('   - Fix: Bypass store for immediate UI updates');
         }
 
       if (totalRenderTime > 500) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('🎯 TERTIARY CAUSE: DOM Rendering Bottleneck');
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('   - DOM operations are taking >500ms');
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('   - Fix: Implement virtual scrolling or message windowing');
         }
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n💡 IMMEDIATE SOLUTION:');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('======================');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🚀 Activate Ultra-Fast Message System:');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('   window.ultraFast.init()');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('   window.ultraFast.replace()');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('✅ This will bypass ALL bottlenecks with:');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('   - Instant optimistic updates (0ms UI delay)');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('   - Direct API calls (bypass middleware)');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('   - Memory + localStorage dual cache');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('   - Background sync without blocking');
     }
 
@@ -674,15 +674,15 @@ if (typeof window !== 'undefined') {
     network: () => bottleneckAnalyzer.analyzeNetworkStack()
   };
 
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('🔍 Performance Bottleneck Analyzer loaded');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('   Commands:');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('   - window.analyzeBottlenecks.run() - Full analysis');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('   - window.analyzeBottlenecks.api() - API analysis');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('   - window.analyzeBottlenecks.store() - Store analysis');
   }
 

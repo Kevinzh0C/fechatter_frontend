@@ -20,36 +20,38 @@ const routes = [
   {
     path: '/',
     redirect: (to) => {
-      if (import.meta.env.DEV) {
-        console.log('🔍 [ROUTER] Root redirect triggered, checking auth state...');
+      console.log('🔍 [ROUTER] Root redirect triggered, checking auth state...');
+
+      // 🔧 CRITICAL FIX: 简化认证检查，不依赖复杂的过期时间逻辑
+      // 检查核心认证数据存在性，而不是复杂的过期时间验证
+      const token = localStorage.getItem('auth_token') || localStorage.getItem('fechatter_access_token');
+      const user = localStorage.getItem('auth_user');
+      
+      // 🔧 SIMPLIFIED: 基本token格式检查
+      const hasValidToken = token && token.length > 20;
+      const hasValidUser = user && user.length > 10;
+
+      // 🔧 ROBUST: 检查authStateManager状态作为主要依据
+      let authStateValid = false;
+      try {
+        if (window.authStateManager) {
+          const authState = window.authStateManager.getAuthState();
+          authStateValid = authState.isAuthenticated;
+        }
+      } catch (error) {
+        console.warn('🔍 [ROUTER] AuthStateManager check failed:', error);
       }
 
-      // 避免在路由初始化时调用 store，直接检查 localStorage
-      // 检查两种可能的键名（兼容性）
-      const token = localStorage.getItem('auth_token') || localStorage.getItem('fechatter_access_token');
-      const tokenExpiry = localStorage.getItem('token_expires_at') || localStorage.getItem('fechatter_token_expiry');
-      const rememberMe = localStorage.getItem('remember_me') === 'true';
+      // 🔧 TOLERANT: 多重检查，任一条件满足即认为已认证
+      const isAuthenticated = authStateValid || (hasValidToken && hasValidUser);
 
-      // 如果没有勾选记住我，检查 sessionStorage
-      const sessionToken = !rememberMe ? sessionStorage.getItem('auth_token') : null;
-      const sessionExpiry = !rememberMe ? sessionStorage.getItem('token_expires_at') : null;
+      const redirectTarget = isAuthenticated ? '/home' : '/login';
 
-      const finalToken = token || sessionToken;
-      const finalExpiry = tokenExpiry || sessionExpiry;
-
-      // 检查 token 是否存在且未过期
-      const isTokenValid = finalToken && finalExpiry && new Date().getTime() < parseInt(finalExpiry);
-
-      const redirectTarget = isTokenValid ? '/home' : '/login';
-
-      console.log('🔍 [ROUTER] Root redirect decision:', {
-        hasLocalToken: !!token,
-        hasSessionToken: !!sessionToken,
-        hasExpiry: !!finalExpiry,
-        rememberMe,
-        isValid: isTokenValid,
-        currentTime: new Date().getTime(),
-        expiryTime: finalExpiry ? parseInt(finalExpiry) : null,
+      console.log('🔍 [ROUTER] Simplified root redirect decision:', {
+        hasValidToken,
+        hasValidUser,
+        authStateValid,
+        isAuthenticated,
         redirectTo: redirectTarget
       });
 
@@ -71,35 +73,28 @@ const routes = [
     meta: { requiresGuest: true }
   },
 
-  // 主应用布局 (Slack-like layout with sidebar)
+  // 主应用页面 (带全局侧边栏)
   {
     path: '/home',
     name: 'Home',
     component: Home,
-    meta: { requiresAuth: true },
-    children: [
-      // 欢迎页面 (默认右侧内容)
-      {
-        path: '',
-        name: 'Welcome',
-        component: () => import('../components/common/WelcomeContent.vue'),
-        meta: { requiresAuth: true }
-      },
-      // 聊天页面 (嵌套在Home布局内)
-      {
-        path: '/chat/:id',
-        name: 'Chat',
-        component: Chat,
-        meta: { requiresAuth: true }
-      },
-      // 管理员页面 (嵌套在Home布局内)
-      {
-        path: '/admin',
-        name: 'Admin',
-        component: () => import('../components/admin/AdminDashboard.vue'),
-        meta: { requiresAuth: true, requiresAdmin: true }
-      }
-    ]
+    meta: { requiresAuth: true }
+  },
+
+  // 聊天页面 (独立路由，带全局侧边栏)
+  {
+    path: '/chat/:id',
+    name: 'Chat',
+    component: Chat,
+    meta: { requiresAuth: true }
+  },
+
+  // 管理员页面 (独立路由，带全局侧边栏)
+  {
+    path: '/admin',
+    name: 'Admin',
+    component: () => import('../components/admin/AdminDashboard.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true }
   },
 
   // 独立功能页面 (不需要侧边栏)
@@ -156,10 +151,8 @@ const router = createRouter({
   routes,
 });
 
-// 路由初始化日志
-if (import.meta.env.DEV) {
-  console.log('🔍 [ROUTER] Router initialized with routes:', routes.length);
-}
+// 路由初始化日志 - always enabled
+console.log('🔍 [ROUTER] Router initialized with routes:', routes.length);
 
 // Global navigation guard
 // 存储导航开始时间
@@ -173,18 +166,14 @@ router.beforeEach(async (to, from, next) => {
   // 记录导航开始时间
   navigationStartTime = Date.now();
 
-  if (import.meta.env.DEV) {
-    console.log('🔍 [ROUTER] Navigation:', { from: from.path, to: to.path });
-  }
+  console.log('🔍 [ROUTER] Navigation:', { from: from.path, to: to.path });
 
   // 🔧 PERFORMANCE: 公开路由快速通道
   const publicRoutes = ['/login', '/register', '/demo', '/test', '/error', '/debug', '/simple-login'];
   const isPublicRoute = publicRoutes.some(route => to.path.startsWith(route));
 
   if (isPublicRoute) {
-    if (import.meta.env.DEV) {
-      console.log('🔍 [ROUTER] Public route, allowing access');
-    }
+    console.log('🔍 [ROUTER] Public route, allowing access');
     return next();
   }
 
@@ -192,21 +181,15 @@ router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore();
 
   if (!isAuthInitialized && !authInitPromise) {
-    if (import.meta.env.DEV) {
-      console.log('🔍 [ROUTER] Initializing auth store...');
-    }
+    console.log('🔍 [ROUTER] Initializing auth store...');
 
     authInitPromise = authStore.initialize()
       .then(() => {
         isAuthInitialized = true;
-        if (import.meta.env.DEV) {
-          console.log('🔍 [ROUTER] ✅ Auth store initialized');
-        }
+        console.log('🔍 [ROUTER] ✅ Auth store initialized');
       })
       .catch(error => {
-        if (import.meta.env.DEV) {
-          console.error('🔍 [ROUTER] ❌ Auth store initialization failed:', error);
-        }
+        console.error('🔍 [ROUTER] ❌ Auth store initialization failed:', error);
         isAuthInitialized = false; // 允许重试
         throw error;
       })
@@ -220,9 +203,7 @@ router.beforeEach(async (to, from, next) => {
     try {
       await authInitPromise;
     } catch (error) {
-      if (import.meta.env.DEV) {
-        console.error('🔍 [ROUTER] Auth initialization failed, redirecting to login');
-      }
+      console.error('🔍 [ROUTER] Auth initialization failed, redirecting to login');
       return next('/login');
     }
   }
@@ -256,19 +237,17 @@ router.beforeEach(async (to, from, next) => {
     const isAuthenticated = hasFunctionalAuth || authState || hasStorageBackup;
 
     if (!isAuthenticated) {
-      if (import.meta.env.DEV) {
-        console.warn('🔍 [ROUTER] Access denied - redirecting to login');
-        console.warn('🔍 [ROUTER] Auth state:', {
-          authState,
-          hasToken,
-          hasUser,
-          isTokenExpired,
-          hasFunctionalAuth,
-          hasStorageBackup,
-          finalDecision: isAuthenticated,
-          route: to.path
-        });
-      }
+      console.warn('🔍 [ROUTER] Access denied - redirecting to login');
+      console.warn('🔍 [ROUTER] Auth state:', {
+        authState,
+        hasToken,
+        hasUser,
+        isTokenExpired,
+        hasFunctionalAuth,
+        hasStorageBackup,
+        finalDecision: isAuthenticated,
+        route: to.path
+      });
 
       // 🔧 ENHANCED: Prevent redirect loops and save target path
       if (to.path !== '/login') {
@@ -279,33 +258,25 @@ router.beforeEach(async (to, from, next) => {
         return next();
       }
     } else {
-      if (import.meta.env.DEV) {
-        console.log('✅ [ROUTER] Authentication verified successfully');
-      }
+      console.log('✅ [ROUTER] Authentication verified successfully');
     }
   }
 
   // 🔧 SIMPLIFIED: 管理员权限检查
   const requiresAdmin = to.matched.some(record => record.meta.requiresAdmin);
   if (requiresAdmin && !authStore.isAuthenticated) {
-    if (import.meta.env.DEV) {
-      console.warn('🔍 [ROUTER] Admin access denied - not authenticated');
-    }
+    console.warn('🔍 [ROUTER] Admin access denied - not authenticated');
     return next('/login');
   }
 
   // 🔧 SIMPLIFIED: 访客路由检查
   const requiresGuest = to.matched.some(record => record.meta.requiresGuest);
   if (requiresGuest && authStore.isAuthenticated) {
-    if (import.meta.env.DEV) {
-      console.log('🔍 [ROUTER] Guest route but user is authenticated, redirecting to home');
-    }
+    console.log('🔍 [ROUTER] Guest route but user is authenticated, redirecting to home');
     return next('/home');
   }
 
-  if (import.meta.env.DEV) {
-    console.log('🔍 [ROUTER] ✅ Navigation allowed');
-  }
+  console.log('🔍 [ROUTER] ✅ Navigation allowed');
 
   next();
 });
@@ -313,19 +284,24 @@ router.beforeEach(async (to, from, next) => {
 // 导航完成后的处理
 router.afterEach((to, from, failure) => {
   if (failure) {
-    if (import.meta.env.DEV) {
-      console.error('Navigation failed:', failure);
-    }
+    console.error('Navigation failed:', failure);
   } else {
-    if (import.meta.env.VITE_DEBUG === 'true') {
+    // Debug logging always enabled (removed VITE_DEBUG check)
+    console.log('🔍 [ROUTER] Navigation completed:', { from: from.path, to: to.path });
+
+    // 🎯 更新body的data-route属性，用于CSS选择器
+    document.body.setAttribute('data-route', to.path);
+    
+    // 添加页面类名用于样式隔离
+    document.body.className = document.body.className.replace(/page-\w+/g, '');
+    if (to.name) {
+      document.body.classList.add(`page-${to.name.toLowerCase()}`);
     }
 
     // 跟踪导航事件
     if (navigationStartTime && from.path !== to.path) {
       analytics.trackNavigation(from.path, to.path, navigationStartTime).catch(err => {
-        if (import.meta.env.DEV) {
-          console.warn('Failed to track navigation:', err);
-        }
+        console.warn('Failed to track navigation:', err);
       });
     }
   }
@@ -333,9 +309,7 @@ router.afterEach((to, from, failure) => {
 
 // 全局错误处理
 router.onError((error) => {
-  if (import.meta.env.DEV) {
-    console.error('Router error:', error);
-  }
+  console.error('Router error:', error);
   // 避免无限重定向
   if (window.location.pathname !== '/error/500') {
     router.push('/error/500');

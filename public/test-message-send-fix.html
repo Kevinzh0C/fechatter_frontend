@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Message Send Fix Verification</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { border: 1px solid #ddd; padding: 15px; margin: 10px 0; }
+        .success { color: green; }
+        .error { color: red; }
+        .warning { color: orange; }
+        .info { color: blue; }
+        pre { background: #f5f5f5; padding: 10px; border-radius: 4px; }
+        button { padding: 8px 16px; margin: 5px; cursor: pointer; }
+        input, textarea { padding: 8px; margin: 5px; width: 300px; }
+        .test-status { font-weight: bold; padding: 5px; border-radius: 4px; margin: 5px 0; }
+        .test-status.pass { background: #d4edda; color: #155724; }
+        .test-status.fail { background: #f8d7da; color: #721c24; }
+        .test-status.pending { background: #fff3cd; color: #856404; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Message Send Fix Verification</h1>
+    <p>This page tests the enhanced message sending validation and error handling.</p>
+
+    <div class="test-section">
+        <h2>🔑 Step 1: Authentication Status</h2>
+        <div id="auth-status" class="test-status pending">Checking auth status...</div>
+        <pre id="auth-details"></pre>
+        <button onclick="checkAuthStatus()">🔄 Check Auth Status</button>
+    </div>
+
+    <div class="test-section">
+        <h2>📝 Step 2: Message Content Validation</h2>
+        <div id="validation-status" class="test-status pending">Ready to test...</div>
+        
+        <div>
+            <h4>Test Empty Message:</h4>
+            <input type="text" id="emptyMessage" placeholder="(leave empty)" readonly>
+            <button onclick="testEmptyMessage()">🧪 Test Empty Message</button>
+        </div>
+        
+        <div>
+            <h4>Test Valid Message:</h4>
+            <input type="text" id="validMessage" placeholder="Enter test message" value="Hello, world!">
+            <button onclick="testValidMessage()">✅ Test Valid Message</button>
+        </div>
+        
+        <div>
+            <h4>Test Long Message:</h4>
+            <textarea id="longMessage" placeholder="Enter long message (>4000 chars)"></textarea>
+            <button onclick="generateLongMessage()">📏 Generate Long Message</button>
+            <button onclick="testLongMessage()">⚠️ Test Long Message</button>
+        </div>
+        
+        <pre id="validation-logs"></pre>
+    </div>
+
+    <div class="test-section">
+        <h2>📤 Step 3: Actual Message Sending</h2>
+        <div id="send-status" class="test-status pending">Ready to test...</div>
+        
+        <div>
+            <input type="number" id="chatIdInput" placeholder="Chat ID" value="2">
+            <input type="text" id="testMessageContent" placeholder="Test message content" value="Test message from fix verification">
+            <button onclick="sendTestMessage()">📤 Send Test Message</button>
+        </div>
+        
+        <pre id="send-logs"></pre>
+    </div>
+
+    <div class="test-section">
+        <h2>🔍 Step 4: Error Handling Verification</h2>
+        <div id="error-status" class="test-status pending">Ready to test...</div>
+        <button onclick="testErrorHandling()">🧪 Test Error Scenarios</button>
+        <pre id="error-logs"></pre>
+    </div>
+
+    <script>
+        // Utility functions
+        function log(message, type = 'info', targetId = null) {
+            const timestamp = new Date().toLocaleTimeString();
+            const logMessage = `[${timestamp}] ${message}`;
+            console.log(logMessage);
+            
+            if (targetId) {
+                const element = document.getElementById(targetId);
+                if (element) {
+                    element.textContent += logMessage + '\n';
+                    element.scrollTop = element.scrollHeight;
+                }
+            }
+        }
+
+        function updateStatus(elementId, message, status) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.textContent = message;
+                element.className = `test-status ${status}`;
+            }
+        }
+
+        // Step 1: Check authentication status
+        async function checkAuthStatus() {
+            updateStatus('auth-status', '🔄 Checking authentication...', 'pending');
+            
+            try {
+                const token = localStorage.getItem('auth_token');
+                const authData = localStorage.getItem('auth');
+                
+                if (!token) {
+                    updateStatus('auth-status', '❌ No auth token found', 'fail');
+                    document.getElementById('auth-details').textContent = 'Please login first to test message sending';
+                    return false;
+                }
+
+                // Decode JWT token
+                const parts = token.split('.');
+                if (parts.length !== 3) {
+                    updateStatus('auth-status', '❌ Invalid token format', 'fail');
+                    return false;
+                }
+
+                const payload = JSON.parse(atob(parts[1]));
+                const now = Math.floor(Date.now() / 1000);
+                const isExpired = payload.exp <= now;
+
+                const details = `Auth Status:
+Token: ${token.substring(0, 30)}...
+User ID: ${payload.sub}
+Email: ${payload.user?.email}
+Expires: ${new Date(payload.exp * 1000).toISOString()}
+Is Expired: ${isExpired}
+Time Remaining: ${payload.exp - now} seconds`;
+
+                document.getElementById('auth-details').textContent = details;
+
+                if (isExpired) {
+                    updateStatus('auth-status', '❌ Token is expired', 'fail');
+                    return false;
+                } else {
+                    updateStatus('auth-status', '✅ Authentication valid', 'pass');
+                    return true;
+                }
+
+            } catch (error) {
+                updateStatus('auth-status', '❌ Auth check failed', 'fail');
+                document.getElementById('auth-details').textContent = 'Error: ' + error.message;
+                return false;
+            }
+        }
+
+        // Step 2: Content validation tests
+        function testEmptyMessage() {
+            updateStatus('validation-status', '🧪 Testing empty message validation...', 'pending');
+            log('Testing empty message validation', 'info', 'validation-logs');
+            
+            const emptyContent = document.getElementById('emptyMessage').value;
+            const trimmed = emptyContent.trim();
+            
+            if (trimmed.length === 0) {
+                log('✅ Empty message validation passed - content is empty as expected', 'success', 'validation-logs');
+                updateStatus('validation-status', '✅ Empty message validation working', 'pass');
+            } else {
+                log('❌ Empty message validation failed - content not empty', 'error', 'validation-logs');
+                updateStatus('validation-status', '❌ Empty message validation failed', 'fail');
+            }
+        }
+
+        function testValidMessage() {
+            updateStatus('validation-status', '🧪 Testing valid message...', 'pending');
+            log('Testing valid message validation', 'info', 'validation-logs');
+            
+            const validContent = document.getElementById('validMessage').value;
+            const trimmed = validContent.trim();
+            
+            if (trimmed.length > 0 && trimmed.length <= 4000) {
+                log(`✅ Valid message validation passed - content length: ${trimmed.length}`, 'success', 'validation-logs');
+                updateStatus('validation-status', '✅ Valid message validation working', 'pass');
+            } else {
+                log(`❌ Valid message validation failed - content length: ${trimmed.length}`, 'error', 'validation-logs');
+                updateStatus('validation-status', '❌ Valid message validation failed', 'fail');
+            }
+        }
+
+        function generateLongMessage() {
+            const longText = 'A'.repeat(4500); // Generate 4500 characters
+            document.getElementById('longMessage').value = longText;
+            log('Generated long message with 4500 characters', 'info', 'validation-logs');
+        }
+
+        function testLongMessage() {
+            updateStatus('validation-status', '🧪 Testing long message validation...', 'pending');
+            log('Testing long message validation', 'info', 'validation-logs');
+            
+            const longContent = document.getElementById('longMessage').value;
+            const trimmed = longContent.trim();
+            
+            if (trimmed.length > 4000) {
+                log(`✅ Long message validation working - content length: ${trimmed.length} (should be rejected)`, 'success', 'validation-logs');
+                updateStatus('validation-status', '✅ Long message validation working', 'pass');
+            } else {
+                log(`❌ Long message validation failed - content length: ${trimmed.length}`, 'error', 'validation-logs');
+                updateStatus('validation-status', '❌ Long message validation failed', 'fail');
+            }
+        }
+
+        // Step 3: Actual message sending
+        async function sendTestMessage() {
+            updateStatus('send-status', '🔄 Sending test message...', 'pending');
+            
+            const isAuthValid = await checkAuthStatus();
+            if (!isAuthValid) {
+                updateStatus('send-status', '❌ Cannot send - auth invalid', 'fail');
+                return;
+            }
+
+            const chatId = document.getElementById('chatIdInput').value;
+            const content = document.getElementById('testMessageContent').value;
+            
+            log(`Attempting to send message: "${content}" to chat ${chatId}`, 'info', 'send-logs');
+
+            try {
+                const token = localStorage.getItem('auth_token');
+                const response = await fetch(`/api/chat/${chatId}/messages`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                        'ngrok-skip-browser-warning': 'true'
+                    },
+                    body: JSON.stringify({
+                        content: content.trim(),
+                        files: [],
+                        mentions: [],
+                        reply_to: null,
+                        idempotency_key: crypto.randomUUID()
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    log('✅ Message sent successfully', 'success', 'send-logs');
+                    log('Response: ' + JSON.stringify(data, null, 2), 'info', 'send-logs');
+                    updateStatus('send-status', '✅ Message sent successfully', 'pass');
+                } else {
+                    const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+                    log(`❌ Message send failed: ${response.status} ${response.statusText}`, 'error', 'send-logs');
+                    log('Error details: ' + JSON.stringify(errorData, null, 2), 'error', 'send-logs');
+                    updateStatus('send-status', '❌ Message send failed', 'fail');
+                }
+
+            } catch (error) {
+                log(`❌ Network error: ${error.message}`, 'error', 'send-logs');
+                updateStatus('send-status', '❌ Network error', 'fail');
+            }
+        }
+
+        // Step 4: Error handling tests
+        async function testErrorHandling() {
+            updateStatus('error-status', '🧪 Testing error scenarios...', 'pending');
+            log('Testing various error scenarios', 'info', 'error-logs');
+
+            const tests = [
+                { name: 'Empty content', content: '', expectError: true },
+                { name: 'Whitespace only', content: '   \n\t   ', expectError: true },
+                { name: 'Very long content', content: 'A'.repeat(5000), expectError: true },
+                { name: 'Valid content', content: 'Test message', expectError: false }
+            ];
+
+            let passedTests = 0;
+            
+            for (const test of tests) {
+                try {
+                    const token = localStorage.getItem('auth_token');
+                    const response = await fetch('/api/chat/2/messages', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`,
+                            'ngrok-skip-browser-warning': 'true'
+                        },
+                        body: JSON.stringify({
+                            content: test.content,
+                            files: [],
+                            idempotency_key: crypto.randomUUID()
+                        })
+                    });
+
+                    const success = response.ok;
+                    const shouldSucceed = !test.expectError;
+
+                    if (success === shouldSucceed) {
+                        log(`✅ ${test.name}: Expected behavior (${success ? 'success' : 'error'})`, 'success', 'error-logs');
+                        passedTests++;
+                    } else {
+                        log(`❌ ${test.name}: Unexpected behavior (${success ? 'success' : 'error'})`, 'error', 'error-logs');
+                    }
+
+                    if (!success) {
+                        const errorData = await response.json().catch(() => ({ message: 'Unknown' }));
+                        log(`   Error details: ${errorData.message}`, 'info', 'error-logs');
+                    }
+
+                } catch (error) {
+                    log(`❌ ${test.name}: Network error - ${error.message}`, 'error', 'error-logs');
+                }
+
+                // Wait between tests
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+
+            if (passedTests === tests.length) {
+                updateStatus('error-status', '✅ All error handling tests passed', 'pass');
+            } else {
+                updateStatus('error-status', `❌ ${passedTests}/${tests.length} tests passed`, 'fail');
+            }
+        }
+
+        // Initialize on page load
+        window.addEventListener('load', async () => {
+            log('Message Send Fix Verification loaded');
+            await checkAuthStatus();
+        });
+    </script>
+</body>
+</html> 

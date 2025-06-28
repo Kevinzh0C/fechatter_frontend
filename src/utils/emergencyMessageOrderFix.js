@@ -6,7 +6,7 @@
 class EmergencyMessageOrderFix {
   constructor() {
     this.hasAppliedFix = false;
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🚨 Emergency Message Order Fix initialized');
     }
 
@@ -15,9 +15,9 @@ class EmergencyMessageOrderFix {
    * 完整的紧急消息排序修复
    */
   applyCompleteFix() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n🚨 APPLYING EMERGENCY MESSAGE ORDER FIX');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('========================================');
     }
 
@@ -38,9 +38,9 @@ class EmergencyMessageOrderFix {
     // Fix 5: Fix Current DOM
     fixCount += this.fixCurrentDOM();
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`\n✅ Applied ${fixCount} emergency fixes`);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🔄 Refresh the page to see all fixes applied');
     }
 
@@ -52,14 +52,14 @@ class EmergencyMessageOrderFix {
    * Fix chat store messages
    */
   fixChatStoreMessages() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🔧 Fixing Chat Store messages...');
     }
 
     try {
       const chatStore = this.getChatStore();
       if (!chatStore) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('⚠️ Chat store not found');
         return 0;
       }
@@ -78,9 +78,9 @@ class EmergencyMessageOrderFix {
 
         const newOrder = chatStore.messages.map(m => this.formatTime(m.created_at)).join(' → ');
 
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log(`   Original: ${originalOrder}`);
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log(`   Fixed:    ${newOrder}`);
         fixCount++;
       }
@@ -98,16 +98,16 @@ class EmergencyMessageOrderFix {
             fixCount++;
           }
         });
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log(`   Fixed ${Object.keys(chatStore.messageCache).length} cached chats`);
         }
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`✅ Chat store: ${fixCount} fixes applied`);
       return fixCount;
 
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('❌ Error fixing chat store:', error);
       return 0;
     }
@@ -116,7 +116,7 @@ class EmergencyMessageOrderFix {
    * Fix localStorage cache
    */
   fixLocalStorageCache() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🔧 Fixing localStorage cache...');
     }
 
@@ -148,12 +148,12 @@ class EmergencyMessageOrderFix {
         }
       });
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`✅ localStorage: ${fixCount} caches fixed`);
       return fixCount;
 
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('❌ Error fixing localStorage:', error);
       return 0;
     }
@@ -162,7 +162,7 @@ class EmergencyMessageOrderFix {
    * Fix sessionStorage
    */
   fixSessionStorage() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🔧 Fixing sessionStorage...');
     }
 
@@ -184,12 +184,12 @@ class EmergencyMessageOrderFix {
             // Ignore individual key errors
           }
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`✅ sessionStorage: ${fixCount} caches fixed`);
       return fixCount;
 
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('❌ Error fixing sessionStorage:', error);
       return 0;
     }
@@ -208,7 +208,7 @@ class EmergencyMessageOrderFix {
           const timeB = new Date(b.created_at).getTime();
           return timeA - timeB;
         });
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log(`   Fixed array in ${key}: ${data.length} messages`);
         fixed = true;
       }
@@ -221,7 +221,7 @@ class EmergencyMessageOrderFix {
             const timeB = new Date(b.created_at).getTime();
             return timeA - timeB;
           });
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log(`   Fixed ${prop} in ${key}: ${data[prop].length} messages`);
           fixed = true;
         }
@@ -234,7 +234,7 @@ class EmergencyMessageOrderFix {
    * Install permanent interceptors
    */
   installPermanentInterceptors() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🔧 Installing permanent sorting interceptors...');
     }
 
@@ -253,7 +253,7 @@ class EmergencyMessageOrderFix {
             try {
               result = await originalFetch.apply(this, args);
             } catch (error) {
-              if (import.meta.env.DEV) {
+              if (true) {
                 console.log('🚨 API fetch failed, using emergency fallback');
               result = this.messages || [];
             }
@@ -265,7 +265,7 @@ class EmergencyMessageOrderFix {
                 const timeB = new Date(b.created_at).getTime();
                 return timeA - timeB;
               });
-              if (import.meta.env.DEV) {
+              if (true) {
                 console.log(`🔧 Auto-sorted ${result.length} messages chronologically`);
               }
 
@@ -281,12 +281,12 @@ class EmergencyMessageOrderFix {
         fixCount++;
       }
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`✅ Interceptors: ${fixCount} installed`);
       return fixCount;
 
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('❌ Error installing interceptors:', error);
       return 0;
     }
@@ -311,7 +311,7 @@ class EmergencyMessageOrderFix {
             const timeB = new Date(b.created_at).getTime();
             return timeA - timeB;
           });
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log('🔧 Auto-sorted messages on setter');
         internalMessages = newMessages;
       },
@@ -326,7 +326,7 @@ class EmergencyMessageOrderFix {
    * Fix current DOM
    */
   fixCurrentDOM() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🔧 Analyzing current DOM...');
     }
 
@@ -334,12 +334,12 @@ class EmergencyMessageOrderFix {
       const messageElements = document.querySelectorAll('[data-message-id], .message-item, .message');
 
       if (messageElements.length === 0) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('   No message elements found in DOM');
         return 0;
       }
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`   Found ${messageElements.length} message elements`);
       }
 
@@ -359,20 +359,20 @@ class EmergencyMessageOrderFix {
       });
 
       if (domMessages.length > 0) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('   Current DOM order:');
         domMessages.forEach((msg, i) => {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log(`     [${i}] ${msg.timestamp} - "${msg.content}..."`);
           }
         });
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('✅ DOM: Analysis complete (no direct DOM manipulation)');
       return 1;
 
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('❌ Error analyzing DOM:', error);
       return 0;
     }
@@ -381,16 +381,16 @@ class EmergencyMessageOrderFix {
    * Quick diagnostic
    */
   diagnose() {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n🔍 EMERGENCY DIAGNOSTIC');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('=======================');
     }
 
     // Check Chat Store
     const chatStore = this.getChatStore();
     if (chatStore && chatStore.messages) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`📊 Chat Store: ${chatStore.messages.length} messages`);
       }
 
@@ -401,33 +401,33 @@ class EmergencyMessageOrderFix {
         const lastTime = new Date(last.created_at).getTime();
 
         if (firstTime < lastTime) {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log('✅ Store order: CORRECT (oldest→newest)');
           }
         } else {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.log('❌ Store order: WRONG (newest→oldest)');
           }
     } else {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('⚠️ Chat Store: No messages found');
       }
 
     // Check localStorage
     const hasLocalStorage = localStorage.length > 0;
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`📦 localStorage: ${hasLocalStorage ? 'Has data' : 'Empty'}`);
     }
 
     // Check API connectivity
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🌐 API Status: Checking...');
     fetch('/api/health').then(response => {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`✅ API: Connected (${response.status})`);
       }
     }).catch(error => {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('❌ API: Connection failed (using cached data)');
       }
     });
@@ -474,15 +474,15 @@ if (typeof window !== 'undefined') {
     }
   };
 
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('🚨 Emergency Message Order Fix loaded');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('   Commands:');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('   - window.emergencyFix.run() - Full diagnostic + fix');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('   - window.emergencyFix.fix() - Apply all fixes');
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('   - window.emergencyFix.diagnose() - Check current state');
   }
 } 

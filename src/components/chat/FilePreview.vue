@@ -62,7 +62,7 @@
 <script setup>
 import { computed, ref } from 'vue';
 import Icon from '@/components/ui/Icon.vue';
-import { getStandardFileUrl } from '@/utils/fileUrlHandler';
+import { getStandardFileUrl } from '@/utils/fileUrlHandler.js';
 import EnhancedImageThumbnail from './EnhancedImageThumbnail.vue';
 import api from '@/services/api';
 import { useAuthStore } from '@/stores/auth';
@@ -169,72 +169,63 @@ const getFileIcon = computed(() => {
 const getFileUrl = (file) => {
   // 🔧 Use unified file URL handler to automatically handle all formats
   return getStandardFileUrl(file, {
-    workspaceId: props.workspaceId || authStore.user?.workspace_id || 2
+    workspaceId: props.workspaceId || authStore.user?.workspace_id || 2,
+    preferAuth: false // Prefer static URLs for better performance
   });
 };
 
-// 🔐 Enhanced download with authentication
+// ✅ BACKEND-ALIGNED: Download using proper file service
 const downloadFile = async () => {
   const fileName = props.file.filename || props.file.file_name || props.file.name || 'file';
 
   try {
-    const fileUrl = getFileUrl(props.file);
-    if (!fileUrl) {
-      console.error('❌ No URL available for file download:', fileName);
-      return;
-    }
-
-    console.log('📥 [FilePreview] Starting download:', fileName, 'URL:', fileUrl);
-
-    // 🔐 For API URLs, download using authenticated fetch
-    if (fileUrl.startsWith('/api/')) {
-      // Remove /api/ prefix since api client adds it automatically
-      let apiPath = fileUrl.substring(5);
-
-      // Use authenticated API client
-      const response = await api.get(apiPath, {
-        responseType: 'blob',
-        skipAuthRefresh: false
-      });
-
-      if (response.data) {
-        // Create blob URL and trigger download
-        const blob = response.data;
-        const url = URL.createObjectURL(blob);
-
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = fileName;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-
-        // Clean up the blob URL
-        setTimeout(() => URL.revokeObjectURL(url), 1000);
-
-        console.log('✅ [FilePreview] Downloaded authenticated file:', fileName);
-      } else {
-        throw new Error('No file data received');
-      }
-    } else {
-      // 🔗 For direct URLs, use standard download
+    // Try static URL first (faster, no auth required)
+    const staticUrl = getFileUrl(props.file);
+    
+    if (staticUrl && !staticUrl.startsWith('/api/')) {
+      console.log('📥 [FilePreview] Using static URL for download:', fileName);
+      
       const link = document.createElement('a');
-      link.href = fileUrl;
+      link.href = staticUrl;
       link.download = fileName;
       link.target = '_blank';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-
-      console.log('✅ [FilePreview] Downloaded file:', fileName);
+      
+      console.log('✅ [FilePreview] Downloaded via static URL:', fileName);
+      return;
     }
+    
+    // Fallback to authenticated download
+    console.log('📥 [FilePreview] Using authenticated download for:', fileName);
+    
+    const { default: fileService } = await import('@/services/FileService.js');
+    const { extractFileId } = await import('@/utils/fileUrlHandler.js');
+    
+    const fileId = extractFileId(props.file.url || props.file.file_url || props.file.id);
+    if (!fileId) {
+      throw new Error('No valid file ID found');
+    }
+    
+    const downloadResult = await fileService.downloadFile(fileId);
+    
+    // Create download link with blob
+    const link = document.createElement('a');
+    link.href = downloadResult.url;
+    link.download = downloadResult.filename || fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // Clean up blob URL
+    setTimeout(() => URL.revokeObjectURL(downloadResult.url), 1000);
+    
+    console.log('✅ [FilePreview] Downloaded via authenticated API:', fileName);
+    
   } catch (error) {
     console.error('❌ [FilePreview] Download failed for file:', fileName, error);
-
-    // Show user-friendly error message
-    if (typeof window !== 'undefined' && window.alert) {
-      alert(`Failed to download ${fileName}. Please try again.`);
-    }
+    alert(`Failed to download ${fileName}. Please try again.`);
   }
 };
 

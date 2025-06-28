@@ -100,7 +100,7 @@ export function useShikiMarkdown(options = {}) {
         await originalRender.call(markdownRenderer, id, highlightedContent);
       }
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('Shiki highlighting error:', error);
       }
       highlightError.value = error;
@@ -162,7 +162,7 @@ export function useShikiMarkdown(options = {}) {
         pre.parentNode.replaceChild(highlightedElement, pre);
       }
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.warn(`Failed to highlight ${lang} code block:`, error);
       }
       // Keep original block on error

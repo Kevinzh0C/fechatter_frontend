@@ -1,4 +1,3 @@
-
 import { nextTick } from 'vue'
 
 class MessageNavigationManager {
@@ -309,8 +308,8 @@ class MessageNavigationManager {
 
       console.log('📜 [ScrollingStrategy] Attempting to load historical messages by scrolling')
 
-      // Scroll to top and trigger load more
-      scrollContainer.scrollTop = 0
+      // 🔴 DISABLED: Scroll to top and trigger load more (can cause jumping)
+      // scrollContainer.scrollTop = 0
 
       // Wait for load more to trigger
       await new Promise(resolve => setTimeout(resolve, 500))
@@ -327,8 +326,8 @@ class MessageNavigationManager {
           return { success: true, attempts: attempt + 1 }
         }
 
-        // Scroll to top again
-        scrollContainer.scrollTop = 0
+        // 🔴 DISABLED: Scroll to top again (can cause jumping)
+        // scrollContainer.scrollTop = 0
         await new Promise(resolve => setTimeout(resolve, 200))
       }
 

@@ -192,7 +192,7 @@ if (typeof window !== 'undefined') {
   window.testSSEDirect = () => sseDebugger.testDirectEventSource();
 
   // Auto-run diagnosis in development
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('🚀 SSE Debugger loaded - use debugSSE(), forceSSE(), or testSSEDirect()');
 
     // Auto-diagnose after app loads

@@ -8,7 +8,7 @@ async function quickMarkChatAsReadTest() {
 
   try {
     // Test if the API endpoint mapping is correct
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('1️⃣ Testing API endpoint patterns...');
     }
 
@@ -19,12 +19,12 @@ async function quickMarkChatAsReadTest() {
     ];
 
     endpointTests.forEach(test => {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`  - ${test.pattern}: ${test.status}`);
       }
     });
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n2️⃣ Testing error handling...');
     }
 
@@ -35,30 +35,30 @@ async function quickMarkChatAsReadTest() {
       { id: 2, content: 'test message 2' }
     ];
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('  Testing with mock data:');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`  - Chat ID: ${mockChatId}`);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`  - Messages: ${mockMessages.length}`);
     }
 
     // Test the new logic
     if (mockMessages.length > 0) {
       const messageIds = mockMessages.map(msg => msg.id).filter(id => id && !String(id).startsWith('temp_'));
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`  ✅ Would call: POST /chat/${mockChatId}/messages/read`);
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`  ✅ With payload: { message_ids: [${messageIds.join(', ')}] }`);
       }
     } else {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`  ✅ Would call: POST /chat/${mockChatId}/mark-read`);
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`  ✅ With empty payload for fallback`);
       }
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n3️⃣ Error handling test...');
     }
 
@@ -68,50 +68,50 @@ async function quickMarkChatAsReadTest() {
       config: { url: '/chat/1/read', method: 'POST' }
     };
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('  Simulating 404 error...');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`  - URL: ${mock404Error.config.url}`);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`  - Status: ${mock404Error.response.status}`);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('  ✅ Should now be handled gracefully (no error notification)');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('  ✅ Local unread count should still be reset');
     }
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n4️⃣ Implementation Status:');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('  ✅ Fixed API endpoint mapping');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('  ✅ Added 404 error handling');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('  ✅ Maintained local state consistency');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('  ✅ Added success logging');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('  ✅ Preserves UI functionality');
     }
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n5️⃣ Expected Results:');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('  🎯 No more 404 errors in console');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('  🎯 Unread badges still work correctly');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('  🎯 Chat switching remains smooth');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('  🎯 Background mark-as-read still functions');
     }
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('\n✅ Fix implementation verified successfully!');
     }
 
   } catch (error) {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.error('❌ Test failed:', error);
     }
 
@@ -129,9 +129,9 @@ if (typeof window !== 'undefined') {
       const chatStore = useChatStore();
 
       if (chatStore) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('🧪 Mark Chat As Read fix loaded and verified');
-        if (import.meta.env.DEV) {
+        if (true) {
           console.log('💡 Use window.quickMarkChatAsReadTest() for detailed verification');
         }
     } catch (error) {

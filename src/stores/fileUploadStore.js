@@ -119,7 +119,7 @@ export const useFileUploadStore = defineStore('fileUpload', () => {
       try {
         fileEntry.preview = URL.createObjectURL(file);
       } catch (error) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.warn('Failed to create preview URL:', error);
         }
       }
@@ -135,7 +135,7 @@ export const useFileUploadStore = defineStore('fileUpload', () => {
 
     try {
       fileEntry.status = 'compressing';
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`🗜️ Compressing ${fileEntry.name}...`);
       }
 
@@ -154,12 +154,12 @@ export const useFileUploadStore = defineStore('fileUpload', () => {
       }
       fileEntry.preview = URL.createObjectURL(compressedFile);
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`✅ Compression successful: ${fileEntry.name} (${Math.round(fileEntry.size / 1024)}KB)`);
       }
       return compressedFile;
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error(`❌ Compression failed for ${fileEntry.name}:`, error);
       }
       fileEntry.status = 'error';
@@ -217,7 +217,7 @@ export const useFileUploadStore = defineStore('fileUpload', () => {
 
       globalError.value = errorMessages;
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.warn('File validation errors:', errorMessages);
       }
 
@@ -252,7 +252,7 @@ export const useFileUploadStore = defineStore('fileUpload', () => {
       warnings: allWarnings
     };
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log(`📁 File upload result:`, result);
     }
 
@@ -274,7 +274,7 @@ export const useFileUploadStore = defineStore('fileUpload', () => {
       }
 
       pendingFiles.value.splice(index, 1);
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log(`🗑️ Removed file: ${file.name}`);
       }
     }
@@ -294,7 +294,7 @@ export const useFileUploadStore = defineStore('fileUpload', () => {
     pendingFiles.value = [];
     globalError.value = null;
     isUploading.value = false;
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🧹 Cleared all files');
     }
   };
@@ -324,15 +324,13 @@ export const useFileUploadStore = defineStore('fileUpload', () => {
   };
 
   /**
-   * Upload all ready files to server - Enhanced with better error handling
+   * Upload all ready files to server - Simplified version
    * @returns {Promise<string[]>} Array of uploaded file URLs
    */
   const uploadAll = async () => {
     const readyFiles = getFilesByStatus('pending_upload');
     if (readyFiles.length === 0) {
-      if (import.meta.env.DEV) {
-        console.warn('No files ready for upload');
-      }
+      console.warn('No files ready for upload');
       return [];
     }
 
@@ -343,30 +341,22 @@ export const useFileUploadStore = defineStore('fileUpload', () => {
     isUploading.value = true;
     globalError.value = null;
     const uploadedUrls = [];
-    const failedUploads = [];
 
     try {
-      if (import.meta.env.DEV) {
-        console.log(`📤 Starting upload of ${readyFiles.length} files...`);
-      }
+      console.log(`📤 Starting upload of ${readyFiles.length} files...`);
 
-      // 🔧 Enhanced Upload Notification
-      if (typeof window !== 'undefined' && window.showFileUploadNotification) {
-        window.showFileUploadNotification(`Uploading ${readyFiles.length} file(s)...`, 'info');
-      }
+      // Import ChatService
+      const { default: ChatService } = await import('../services/ChatService.ts');
 
-      // Upload files in parallel with controlled concurrency
-      const uploadPromises = readyFiles.map(async (file, index) => {
+      // Upload files sequentially to avoid overwhelming the server
+      for (const file of readyFiles) {
         try {
           file.status = 'uploading';
           file.progress = 0;
 
-          // 动态导入ChatService以避免循环依赖
-          const { default: ChatService } = await import('../services/ChatService.ts');
-
           // Upload with progress tracking
           const uploadedFile = await ChatService.uploadFile(file.rawFile, (progress) => {
-            file.progress = Math.min(progress, 99); // Keep at 99% until complete
+            file.progress = Math.min(progress, 99);
           });
 
           // Mark as completed
@@ -375,116 +365,33 @@ export const useFileUploadStore = defineStore('fileUpload', () => {
           file.uploadedFile = uploadedFile;
           file.error = null;
 
-          // 🔧 CRITICAL FIX: Map file_url to url for consistent interface
-          const fileUrl = uploadedFile.file_url || uploadedFile.url;
-          uploadedUrls.push(fileUrl);
-          if (import.meta.env.DEV) {
-            console.log(`✅ Uploaded: ${file.name} -> ${fileUrl}`);
-          }
-
-          // 🔧 Individual file success notification
-          if (typeof window !== 'undefined' && window.showFileUploadNotification) {
-            window.showFileUploadNotification(`✅ ${file.name} uploaded successfully`, 'success');
-          }
+          // Add to successful uploads
+          uploadedUrls.push(uploadedFile.url);
+          
+          console.log(`✅ Uploaded: ${file.name} -> ${uploadedFile.url}`);
 
         } catch (error) {
           file.status = 'error';
           file.progress = 0;
-          failedUploads.push({ file, error });
+          file.error = error.message || 'Upload failed';
 
-          // 🔧 Enhanced error handling with specific error types
-          let errorMessage = 'Upload failed';
-          let errorType = 'error';
-
-          if (error.code === 'NETWORK_ERROR') {
-            errorMessage = `❌ ${file.name}: Server connection failed. Please check your internet connection.`;
-            errorType = 'network';
-            file.error = 'Network connection failed. Server may be down.';
-          } else if (error.message?.includes('exceeds')) {
-            errorMessage = `❌ ${file.name}: File too large (max 2MB)`;
-            errorType = 'size';
-            file.error = 'File size exceeds 2MB limit';
-          } else if (error.message?.includes('type')) {
-            errorMessage = `❌ ${file.name}: File type not supported`;
-            errorType = 'type';
-            file.error = 'File type not supported';
-          } else {
-            errorMessage = `❌ ${file.name}: ${error.message || 'Unknown error'}`;
-            file.error = error.message || 'Upload failed';
-          }
-
-          // 🔧 User-friendly error notifications
-          if (typeof window !== 'undefined' && window.showFileUploadNotification) {
-            window.showFileUploadNotification(errorMessage, errorType);
-          }
-
-          if (import.meta.env.DEV) {
-            console.error(`❌ Upload failed: ${file.name}:`, error);
-          }
-        }
-      });
-
-      // Wait for all uploads to complete
-      await Promise.allSettled(uploadPromises);
-
-      // 🔧 Enhanced results handling
-      if (failedUploads.length > 0) {
-        const networkErrors = failedUploads.filter(f => f.error.code === 'NETWORK_ERROR');
-        const sizeErrors = failedUploads.filter(f => f.error.message?.includes('exceeds'));
-        const otherErrors = failedUploads.filter(f => !networkErrors.includes(f) && !sizeErrors.includes(f));
-
-        let errorMsg = `${failedUploads.length} file(s) failed to upload`;
-        let suggestions = [];
-
-        // 🔧 Provide specific suggestions based on error types
-        if (networkErrors.length > 0) {
-          suggestions.push('📡 Check your internet connection and try again');
-          suggestions.push('🔄 Server may be temporarily down - please retry later');
-        }
-        if (sizeErrors.length > 0) {
-          suggestions.push('📏 Compress large files or use files under 2MB');
-        }
-        if (otherErrors.length > 0) {
-          suggestions.push('🔧 Check file format and try again');
-        }
-
-        globalError.value = errorMsg;
-
-        // 🔧 Enhanced user feedback with suggestions
-        if (typeof window !== 'undefined' && window.showFileUploadError) {
-          window.showFileUploadError(
-            `${errorMsg}:\n${suggestions.join('\n')}`,
-            failedUploads.length,
-            suggestions
-          );
-        }
-
-        // Only throw if ALL uploads failed
-        if (failedUploads.length === readyFiles.length) {
-          throw new Error(`${errorMsg}. ${suggestions.join(' ')}`);
-        } else {
-          if (import.meta.env.DEV) {
-            console.warn(`⚠️ Partial upload failure: ${uploadedUrls.length} succeeded, ${failedUploads.length} failed`);
-          }
+          console.error(`❌ Upload failed: ${file.name}:`, error);
         }
       }
 
-      // Remove successfully uploaded files from pending list
+      // Remove successfully uploaded files
       const successfulFiles = readyFiles.filter(f => f.status === 'completed');
       successfulFiles.forEach(file => removeFile(file.id));
 
-      // 🔧 Success notification
-      if (uploadedUrls.length > 0 && typeof window !== 'undefined' && window.showFileUploadNotification) {
-        window.showFileUploadNotification(
-          `🎉 ${uploadedUrls.length} file(s) uploaded successfully!`,
-          'success'
-        );
+      const failedCount = readyFiles.length - successfulFiles.length;
+      if (failedCount > 0) {
+        globalError.value = `${failedCount} file(s) failed to upload`;
+        console.warn(`⚠️ ${failedCount} files failed, ${uploadedUrls.length} succeeded`);
       }
 
-      if (import.meta.env.DEV) {
-        console.log(`🎉 Upload completed: ${uploadedUrls.length} files uploaded successfully`);
-      }
+      console.log(`🎉 Upload completed: ${uploadedUrls.length} files uploaded successfully`);
       return uploadedUrls;
+
     } finally {
       isUploading.value = false;
     }

@@ -4,7 +4,7 @@
  */
 
 function emergencyCleanup() {
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('🚨 Starting emergency cleanup...');
   }
 
@@ -18,14 +18,14 @@ function emergencyCleanup() {
       console.debug = console._originalConsole.debug;
       delete console._logManagerOverridden;
       delete console._originalConsole;
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('✅ Console methods restored');
       }
 
     // 2. Clear navigation fix state
     if (window.navigationFix) {
       window.navigationFix.resetLogCounts();
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('✅ Navigation fix state reset');
       }
 
@@ -39,41 +39,41 @@ function emergencyCleanup() {
     for (let i = 0; i < highestIntervalId; i++) {
       clearInterval(i);
     clearInterval(highestIntervalId);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('✅ Timers and intervals cleared');
     }
 
     // 4. Force garbage collection if available
     if (window.gc) {
       window.gc();
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('✅ Garbage collection triggered');
       }
 
     // 5. Reset any global error handlers
     window.onerror = null;
     window.onunhandledrejection = null;
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('✅ Error handlers reset');
     }
 
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('🎉 Emergency cleanup completed successfully!');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('💡 You may want to refresh the page for a clean start');
     }
 
   } catch (error) {
-    if (import.meta.env.DEV) {
+    if (true) {
       console.error('❌ Emergency cleanup failed:', error);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('💡 Try refreshing the page manually');
     }
 
 // Export for global use
 if (typeof window !== 'undefined') {
   window.emergencyCleanup = emergencyCleanup;
-  if (import.meta.env.DEV) {
+  if (true) {
     console.log('🚨 Emergency cleanup loaded - use window.emergencyCleanup()');
   }
 

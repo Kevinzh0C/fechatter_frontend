@@ -35,21 +35,11 @@ function isSimpleFilename(str) {
 }
 
 /**
- * 构造哈希URL
+ * 构造文件URL - 返回完整文件名格式
  */
 function constructHashUrl(filename, workspaceId) {
-  if (isHashPath(filename)) {
-    return `/files/${workspaceId}/${filename}`;
-  }
-
   const cleanFilename = filename.replace(/^.*\//, '');
-
-  if (cleanFilename.length >= 10) {
-    const hash1 = cleanFilename.substring(0, 3);
-    const hash2 = cleanFilename.substring(3, 6);
-    return `/files/${workspaceId}/${hash1}/${hash2}/${cleanFilename}`;
-  }
-
+  // Return flat structure since backend expects full filename
   return `/files/${workspaceId}/${cleanFilename}`;
 }
 

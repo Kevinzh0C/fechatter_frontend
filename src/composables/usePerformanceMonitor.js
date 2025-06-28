@@ -133,7 +133,7 @@ export function usePerformanceMonitor() {
         entryTypes: ['paint', 'largest-contentful-paint', 'first-input', 'layout-shift', 'measure', 'navigation']
       });
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.warn('Performance Observer not supported:', error);
       }
   };
@@ -341,23 +341,23 @@ export function usePerformanceMonitor() {
     const suggestions = getOptimizationSuggestions();
 
     console.group('📊 Performance Metrics');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('Overall Score:', score?.overall || 'N/A', `(Grade: ${score?.grade || 'N/A'})`);
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('Core Web Vitals:', {
         FCP: metrics.value.fcp ? `${Math.round(metrics.value.fcp)}ms` : 'N/A',
       LCP: metrics.value.lcp ? `${Math.round(metrics.value.lcp)}ms` : 'N/A',
       FID: metrics.value.fid ? `${Math.round(metrics.value.fid)}ms` : 'N/A',
       CLS: metrics.value.cls ? metrics.value.cls.toFixed(3) : 'N/A',
     });
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('Memory Usage:', metrics.value.memoryUsage?.percentage ? `${metrics.value.memoryUsage.percentage}%` : 'N/A');
-    if (import.meta.env.DEV) {
+    if (true) {
       console.log('Network:', metrics.value.connectionInfo?.effectiveType || 'N/A');
     }
 
     if (suggestions.length > 0) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.warn('Optimization Suggestions:', suggestions);
       }
 

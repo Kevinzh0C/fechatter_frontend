@@ -51,7 +51,7 @@ const router = useRouter();
 
 const hasError = ref(false);
 const errorInfo = ref('');
-const isDevelopment = ref(import.meta.env.DEV);
+const isDevelopment = ref(true);
 
 onErrorCaptured((error, instance, info) => {
   console.error('Error caught by ErrorBoundary:', error);

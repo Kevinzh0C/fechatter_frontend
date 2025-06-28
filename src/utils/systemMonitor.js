@@ -11,7 +11,7 @@
 
 class SystemMonitor {
   constructor() {
-    this.isEnabled = import.meta.env.DEV;
+    this.isEnabled = true;
     this.metrics = {
       messageServiceCalls: 0,
       cacheHits: 0,
@@ -85,7 +85,7 @@ class SystemMonitor {
     return {
       isHealthy: this._checkSystemHealth(),
       uptime: Date.now() - this.metrics.lastActivity,
-      environment: import.meta.env.MODE,
+      environment: 'development',
       timestamp: new Date().toISOString(),
       services: {
         messageService: !!window.unifiedMessageService,
@@ -228,7 +228,7 @@ class SystemMonitor {
     // Only report unhealthy if critical services are missing
     const isHealthy = criticalFailures.length === 0;
 
-    if (!isHealthy && import.meta.env.DEV) {
+    if (!isHealthy && true) {
       console.log('🔍 [SystemMonitor] Failed health checks:', failedChecks.map(c => c.name));
     }
 
@@ -321,6 +321,6 @@ const systemMonitor = new SystemMonitor();
 export { systemMonitor };
 
 // Make available globally in development
-if (import.meta.env.DEV) {
+if (true) {
   window.systemMonitor = systemMonitor;
 } 

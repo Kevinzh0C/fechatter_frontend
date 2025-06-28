@@ -38,7 +38,7 @@ class AnalyticsClient {
     return false;
     
     // Legacy logic (disabled):
-    // if (process.env.NODE_ENV === 'development') {
+    // if (true) {
     //   return config.enabled === true && config.forceEnable === true;
     // }
     // return config.enabled !== false;
@@ -46,7 +46,7 @@ class AnalyticsClient {
 
   getEndpoint() {
     // Use HTTPS endpoint for both development and production
-    return 'https://45.77.178.85:8443/api/event/json';
+    return 'https://hook-nav-attempt-size.trycloudflare.com/api/event/json';
   }
 
   getOrCreateClientId() {

@@ -128,7 +128,7 @@ class TokenManager {
       this.state.refreshFailureCount = 0;
       this.state.lastRefreshTime = Date.now();
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('✅ Token refreshed successfully');
       }
 
@@ -137,7 +137,7 @@ class TokenManager {
     } catch (error) {
       this.state.refreshFailureCount++;
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('❌ Token refresh failed:', error);
       }
 
@@ -187,14 +187,14 @@ class TokenManager {
           localStorage.setItem('auth', JSON.stringify(authData));
         }
       } catch (storageError) {
-        if (import.meta.env.DEV) {
+        if (true) {
           console.warn('Failed to update stored auth data:', storageError);
         }
       }
 
       return this.tokens;
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.error('Token refresh API call failed:', error);
       }
       throw error;
@@ -238,11 +238,11 @@ class TokenManager {
       localStorage.removeItem('token');
       localStorage.removeItem('refresh_token');
 
-      if (import.meta.env.DEV) {
+      if (true) {
         console.log('🧹 Tokens cleared from storage');
       }
     } catch (error) {
-      if (import.meta.env.DEV) {
+      if (true) {
         console.warn('Failed to clear tokens from storage:', error);
       }
     }
@@ -282,7 +282,7 @@ class TokenManager {
         try {
           callback(data);
         } catch (error) {
-          if (import.meta.env.DEV) {
+          if (true) {
             console.error(`Error in token manager event listener for ${event}:`, error);
           }
         }
