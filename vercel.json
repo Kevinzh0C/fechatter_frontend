@@ -1,6 +1,5 @@
 {
   "version": 2,
-  "name": "fechatter-frontend-dev",
   "builds": [
     {
       "src": "package.json",
@@ -11,61 +10,69 @@
       }
     }
   ],
-  "routes": [
+  "rewrites": [
     {
-      "src": "/api/(.*)",
-      "dest": "https://hook-nav-attempt-size.trycloudflare.com/api/$1"
+      "source": "/api/(.*)",
+      "destination": "https://hook-nav-attempt-size.trycloudflare.com/api/$1"
     },
     {
-      "src": "/events(.*)",
-      "dest": "https://hook-nav-attempt-size.trycloudflare.com/events$1"
+      "source": "/events(.*)",
+      "destination": "https://hook-nav-attempt-size.trycloudflare.com/events$1"
     },
     {
-      "src": "/files/(.*)",
-      "dest": "https://hook-nav-attempt-size.trycloudflare.com/files/$1"
+      "source": "/files/(.*)",
+      "destination": "https://hook-nav-attempt-size.trycloudflare.com/files/$1"
     },
     {
-      "src": "/presence(.*)",
-      "dest": "https://hook-nav-attempt-size.trycloudflare.com/presence$1"
+      "source": "/presence(.*)",
+      "destination": "https://hook-nav-attempt-size.trycloudflare.com/presence$1"
     },
     {
-      "src": "/health(.*)",
-      "dest": "https://hook-nav-attempt-size.trycloudflare.com/health$1"
+      "source": "/health(.*)",
+      "destination": "https://hook-nav-attempt-size.trycloudflare.com/health$1"
     },
     {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/notify(.*)",
+      "destination": "https://hook-nav-attempt-size.trycloudflare.com/notify$1"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ],
-  "env": {
-    "NODE_ENV": "development",
-    "VITE_API_URL": "https://hook-nav-attempt-size.trycloudflare.com/api",
-    "VITE_APP_ENV": "development",
-    "VITE_ENABLE_DEBUG": "true",
-    "VITE_SSE_ENDPOINT": "/events",
-    "VERCEL_ENV": "development"
-  },
   "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "ngrok-skip-browser-warning",
+          "value": "true"
+        }
+      ]
+    },
     {
       "source": "/(.*)",
       "headers": [
-        {
-          "key": "Cross-Origin-Embedder-Policy",
-          "value": "require-corp"
-        },
-        {
-          "key": "Cross-Origin-Opener-Policy",
-          "value": "same-origin"
-        },
         {
           "key": "X-Environment",
           "value": "development"
         },
         {
-          "key": "X-Build-Mode",
+          "key": "X-Build-Mode", 
           "value": "staging"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
         }
       ]
     }
-  ]
+  ],
+  "env": {
+    "NODE_ENV": "development",
+    "VITE_APP_ENV": "development",
+    "VITE_API_URL": "https://hook-nav-attempt-size.trycloudflare.com/api",
+    "VITE_SSE_ENDPOINT": "/events",
+    "VITE_ENABLE_DEBUG": "true"
+  }
 }

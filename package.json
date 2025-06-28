@@ -105,8 +105,7 @@
   },
   "optionalDependencies": {
     "@vueuse/motion": "^2.0.0",
-    "animate.css": "^4.1.1",
-    "vue-lottie-player": "^2.0.0"
+    "animate.css": "^4.1.1"
   },
   "engines": {
     "node": ">=18.0.0",
