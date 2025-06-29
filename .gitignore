@@ -55,3 +55,12 @@ temp/
 
 # Local development
 .cache/
+
+# Documentation and scripts
+docs/
+*.sh
+
+# Cleanup-related files
+test-*
+*.backup
+*.backup-*
