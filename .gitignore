@@ -55,3 +55,9 @@ temp/
 
 # Local development
 .cache/
+
+# Cleanup-related files
+*.sh
+test-*
+*.backup
+*.backup-*

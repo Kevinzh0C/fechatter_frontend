@@ -248,79 +248,7 @@ export function formatFileSize(bytes) {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
 }
 
-/**
- * Legacy compatibility function
- * @deprecated Use getStandardFileUrl instead
- */
-export function getCorrectFileUrl(file, workspaceId = 2) {
-  return getStandardFileUrl(file, { workspaceId });
-}
 
-/**
- * Legacy compatibility function for authenticated downloads
- * @deprecated Use buildAuthFileUrl instead
- */
-export function getAuthenticatedDownloadUrl(fileInput, options = {}) {
-  const { workspaceId = 2 } = options;
-  
-  // Enhanced file ID extraction with multiple strategies
-  let fileId = null;
-  
-  if (typeof fileInput === 'string') {
-    fileId = extractFileId(fileInput);
-  } else if (typeof fileInput === 'object' && fileInput !== null) {
-    // Try multiple extraction strategies
-    const candidates = [
-      fileInput.id,
-      fileInput.filename, 
-      fileInput.file_name,
-      fileInput.name,
-      fileInput.url,
-      fileInput.file_url
-    ];
-    
-    for (const candidate of candidates) {
-      if (candidate) {
-        fileId = extractFileId(candidate);
-        if (fileId && isValidFileId(fileId)) {
-          break;
-        }
-        
-        // Direct validation if the candidate itself looks like a file ID
-        if (isValidFileId(candidate)) {
-          fileId = candidate;
-          break;
-        }
-      }
-    }
-  }
-  
-  if (fileId && isValidFileId(fileId)) {
-    return buildAuthFileUrl(fileId);
-  }
-  
-  return null;
-}
-
-/**
- * Legacy compatibility function for robust URL generation
- * @deprecated Use getStandardFileUrl with fallback options instead
- */
-export function getRobustFileUrls(fileInput, options = {}) {
-  console.log('🔍 [getRobustFileUrls] Input:', { fileInput, options });
-  
-  const staticUrl = getStandardFileUrl(fileInput, { ...options, preferAuth: false });
-  const authUrl = getAuthenticatedDownloadUrl(fileInput, options);
-  
-  console.log('🔍 [getRobustFileUrls] Generated URLs:', { staticUrl, authUrl });
-  
-  // 🔧 PRIORITIZE AUTH URL: Since backend may not have static file serving configured
-  return {
-    primary: authUrl,    // Use auth URL as primary
-    fallback: staticUrl, // Use static URL as fallback
-    hasOptions: !!(staticUrl || authUrl)
-  };
-}
 
 export default {
   extractFileId,
@@ -330,8 +258,5 @@ export default {
   isValidFileId,
   getFileExtension,
   isImageFile,
-  formatFileSize,
-  getCorrectFileUrl,
-  getAuthenticatedDownloadUrl,
-  getRobustFileUrls
+  formatFileSize
 };

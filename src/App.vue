@@ -506,8 +506,6 @@ onUnmounted(() => {
 
 <style>
 /* Import Discord theme system */
-@import './styles/theme.css';
-@import './styles/channel-list-variables.css';
 @import './styles/enhanced-code-highlight.css';
 @import './style.css';
 

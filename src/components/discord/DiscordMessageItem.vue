@@ -302,7 +302,7 @@ import { highlightCodeAsync } from '@/utils/codeHighlight'
 import FloatingMessageToolbar from '@/components/chat/FloatingMessageToolbar.vue'
 import api from '@/services/api'
 import EnhancedImageModal from '@/components/common/EnhancedImageModal.vue'
-import { getStandardFileUrl, getRobustFileUrls, getAuthenticatedDownloadUrl } from '@/utils/fileUrlHandler'
+import { getStandardFileUrl, buildAuthFileUrl } from '@/utils/fileUrlHandler'
 
 // Props
 const props = defineProps({
@@ -857,15 +857,14 @@ const getFileUrl = (file) => {
     return null;
   }
   
-  // Use robust file URL handler with flat storage support
-  const urls = getRobustFileUrls(file, {
-    workspaceId: props.message?.workspace_id || props.workspaceId
+  // Use standard file URL handler with flat storage support
+  const staticUrl = getStandardFileUrl(file, {
+    workspaceId: props.message?.workspace_id || props.workspaceId,
+    preferAuth: false
   })
   
-
-  
-  // Return primary (flat static URL) for initial attempt
-  return urls.primary || urls.fallback
+  // Return static URL for initial attempt
+  return staticUrl
 }
 
 // 🔐 SECURE: Get image URL with API download + cache strategy
@@ -954,23 +953,25 @@ const loadSecureImage = async (file) => {
       fileKey
     });
 
-    // Get both primary and fallback URLs
-    const urls = getRobustFileUrls(file, {
-      workspaceId: props.message?.workspace_id || props.workspaceId
+    // Get static and auth URLs
+    const staticUrl = getStandardFileUrl(file, {
+      workspaceId: props.message?.workspace_id || props.workspaceId,
+      preferAuth: false
     })
+    const authUrl = buildAuthFileUrl(file.filename || file.file_name || file.name)
 
-    if (!urls.hasOptions) {
-      throw new Error('No file URLs available from robust handler')
+    if (!staticUrl && !authUrl) {
+      throw new Error('No file URLs available from file handler')
     }
 
-    console.log('🔧 [loadSecureImage] Robust URLs generated:', urls);
+    console.log('🔧 [loadSecureImage] URLs generated:', { staticUrl, authUrl });
 
     // 🚀 STRATEGY 1: Try API static file first (fastest)
-    if (urls.primary && (urls.primary.startsWith('/api/files/') || urls.primary.startsWith('/files/'))) {
-      console.log('📁 [loadSecureImage] Attempting flat static file access:', urls.primary);
+    if (staticUrl && (staticUrl.startsWith('/api/files/') || staticUrl.startsWith('/files/'))) {
+      console.log('📁 [loadSecureImage] Attempting flat static file access:', staticUrl);
       
-      try {
-        const staticResponse = await fetch(urls.primary);
+              try {
+        const staticResponse = await fetch(staticUrl);
         if (staticResponse.ok) {
           const blob = await staticResponse.blob();
           const objectUrl = URL.createObjectURL(blob);
@@ -1005,10 +1006,10 @@ const loadSecureImage = async (file) => {
     }
 
     // 🚀 STRATEGY 2: Fallback to authenticated API download
-    if (urls.fallback && urls.fallback.startsWith('/api/files/download/')) {
-      console.log('🔐 [loadSecureImage] Falling back to API download:', urls.fallback);
+    if (authUrl && authUrl.startsWith('/api/files/download/')) {
+      console.log('🔐 [loadSecureImage] Falling back to API download:', authUrl);
       
-      const downloadPath = urls.fallback.substring(5); // Remove '/api/' prefix
+      const downloadPath = authUrl.substring(5); // Remove '/api/' prefix
       
       const response = await api.get(downloadPath, {
         responseType: 'blob',
@@ -1047,7 +1048,7 @@ const loadSecureImage = async (file) => {
     }
 
     // 🚀 STRATEGY 3: Handle external URLs or blob URLs
-    const directUrl = urls.primary || urls.fallback;
+    const directUrl = staticUrl || authUrl;
     if (directUrl && (directUrl.startsWith('http') || directUrl.startsWith('blob:'))) {
       console.log('🔗 [loadSecureImage] Direct external/blob URL access:', directUrl);
       
@@ -1299,26 +1300,28 @@ const downloadFile = async (file) => {
       console.warn('⚠️ [downloadFile] SessionStorage access failed:', cacheError.message);
     }
 
-    // 🚀 PRIORITY 3: Use robust fallback mechanism
-    console.log('🔐 [downloadFile] No cache available, using robust fallback download...');
+    // 🚀 PRIORITY 3: Use standard URL mechanism
+    console.log('🔐 [downloadFile] No cache available, using standard URL download...');
     
-    const urls = getRobustFileUrls(file, {
-      workspaceId: props.message?.workspace_id || props.workspaceId
+    const staticUrl = getStandardFileUrl(file, {
+      workspaceId: props.message?.workspace_id || props.workspaceId,
+      preferAuth: false
     })
+    const authUrl = buildAuthFileUrl(file.filename || file.file_name || file.name)
 
-    if (!urls.hasOptions) {
-      throw new Error('No download URLs available from robust handler');
+    if (!staticUrl && !authUrl) {
+      throw new Error('No download URLs available from file handler');
     }
 
-    console.log('🔧 [downloadFile] Robust URLs for download:', urls);
+    console.log('🔧 [downloadFile] URLs for download:', { staticUrl, authUrl });
 
     let blob = null;
 
     // Try API static file first
-    if (urls.primary && (urls.primary.startsWith('/api/files/') || urls.primary.startsWith('/files/'))) {
+    if (staticUrl && (staticUrl.startsWith('/api/files/') || staticUrl.startsWith('/files/'))) {
       try {
-        console.log('📁 [downloadFile] Attempting flat static download:', urls.primary);
-        const staticResponse = await fetch(urls.primary);
+        console.log('📁 [downloadFile] Attempting flat static download:', staticUrl);
+        const staticResponse = await fetch(staticUrl);
         if (staticResponse.ok) {
           blob = await staticResponse.blob();
           console.log('✅ [downloadFile] Static file download successful');
@@ -1331,10 +1334,10 @@ const downloadFile = async (file) => {
     }
 
     // Fallback to API download if static failed
-    if (!blob && urls.fallback && urls.fallback.startsWith('/api/files/download/')) {
-      console.log('🔐 [downloadFile] Falling back to API download:', urls.fallback);
+    if (!blob && authUrl && authUrl.startsWith('/api/files/download/')) {
+      console.log('🔐 [downloadFile] Falling back to API download:', authUrl);
       
-      const downloadPath = urls.fallback.substring(5); // Remove '/api/' prefix
+      const downloadPath = authUrl.substring(5); // Remove '/api/' prefix
       
       const response = await api.get(downloadPath, {
         responseType: 'blob',

@@ -122,12 +122,7 @@ const loadingProgress = ref(0);
 const naturalWidth = ref(0);
 const naturalHeight = ref(0);
 
-// 🔧 CRITICAL FIX: Use unified file URL handler for correct test.rest format
-const getCorrectFileUrl = (file) => {
-  return getStandardFileUrl(file, {
-    workspaceId: authStore.user?.workspace_id || 2
-  });
-};
+
 
 // Computed properties
 const thumbnailSrc = computed(() => {
@@ -137,7 +132,9 @@ const thumbnailSrc = computed(() => {
   }
 
   // 🔧 CRITICAL FIX: Use unified URL handler instead of direct file properties
-  const correctUrl = getCorrectFileUrl(props.file);
+  const correctUrl = getStandardFileUrl(props.file, {
+    workspaceId: authStore.user?.workspace_id || 2
+  });
   if (!correctUrl) {
     console.error('❌ [EnhancedImageThumbnail] No valid URL for file:', props.file);
     return '';
@@ -152,7 +149,9 @@ const thumbnailSrc = computed(() => {
 
 const fullImageSrc = computed(() => {
   // 🔧 CRITICAL FIX: Use unified URL handler for full image as well
-  return getCorrectFileUrl(props.file) || '';
+  return getStandardFileUrl(props.file, {
+    workspaceId: authStore.user?.workspace_id || 2
+  }) || '';
 });
 
 const displayFileName = computed(() => {

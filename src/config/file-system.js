@@ -186,8 +186,21 @@ export class ProductionFileManager {
    */
   async getAuthenticatedUrl(fileInput, options = {}) {
     try {
-      const { getAuthenticatedDownloadUrl } = await import('../utils/fileUrlHandler.js');
-      return getAuthenticatedDownloadUrl(fileInput, options);
+      const { buildAuthFileUrl } = await import('../utils/fileUrlHandler.js');
+      // Extract file ID from various sources
+      let fileId = null;
+      if (typeof fileInput === 'string') {
+        fileId = fileInput;
+      } else if (fileInput && typeof fileInput === 'object') {
+        fileId = fileInput.filename || fileInput.file_name || fileInput.name || fileInput.id;
+      }
+      
+      if (!fileId) {
+        console.error('❌ [ProductionFileManager] No file ID available from input:', fileInput);
+        return null;
+      }
+      
+      return buildAuthFileUrl(fileId);
     } catch (error) {
       console.error('❌ [ProductionFileManager] Auth URL generation failed:', error);
       return null;
