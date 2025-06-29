@@ -14,6 +14,9 @@ import { useWorkspaceStore } from './workspace';
 import { errorHandler } from '@/utils/errorHandler';
 import router from '@/router';
 import { authEventBus, AuthEvents } from '@/services/auth-events';
+import { useRouter } from 'vue-router'
+import { initializeSSEConnection } from '@/utils/sseInitializer'
+import { getLoginProfiler } from '@/utils/loginPerformanceProfiler'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -29,6 +32,7 @@ export const useAuthStore = defineStore('auth', {
     returnUrl: null,
     userStoresInitialized: false,
     userStoresInitializationInProgress: false,
+    _initializingStores: false, // 🆕 NEW: 跟踪初始化状态
     logoutState: {
       isLoggingOut: false,
       lastLogoutTime: null,
@@ -234,6 +238,10 @@ export const useAuthStore = defineStore('auth', {
           return false;
         }
 
+        // 🔧 CRITICAL FIX: Set internal token and user state immediately for isAuthenticated getter
+        this.token = authState.token;
+        this.user = authState.user;
+
         // 🔧 PERFORMANCE: 简化token验证，避免复杂的格式检查
         // 基本设置到tokenManager用于API调用
         tokenManager.setTokens({
@@ -257,27 +265,28 @@ export const useAuthStore = defineStore('auth', {
         // 🔧 PERFORMANCE: 跳过initializeUserStores，让页面加载后再处理
         // 🔧 PERFORMANCE: 跳过verifyAuthStateIntegrity，信任存储的数据
 
-        // 🔧 ENHANCED: Immediate user stores initialization for better UX
-        // 立即初始化用户stores，为ChatBar数据加载做准备
-        setTimeout(async () => {
-          try {
-            // 立即初始化用户stores - 这些是ChatBar需要的
-            await this.initializeUserStores();
+        // 🔧 ENHANCED: 协调初始化，避免重复请求
+        if (!this._initializingStores) {
+          this._initializingStores = true;
+          
+          setTimeout(async () => {
+            try {
+              // 立即初始化用户stores - 这些是ChatBar需要的
+              await this.initializeUserStores();
 
-            // 后台获取用户数据（如果需要的话）
-            if (!authState.user) {
-              await this.fetchCurrentUser();
-            }
+              // 后台获取用户数据（如果需要的话）
+              if (!authState.user) {
+                await this.fetchCurrentUser();
+              }
 
-            if (true) {
-              console.log('🔄 [AUTH] User stores initialized immediately for optimal ChatBar UX');
-            }
-          } catch (error) {
-            if (true) {
+              console.log('🔄 [AUTH] User stores initialized for optimal UX');
+            } catch (error) {
               console.warn('⚠️ [AUTH] User stores initialization failed:', error);
+            } finally {
+              this._initializingStores = false;
             }
-          }
-        }, 25); // 🔧 CRITICAL: 减少到25ms，极快初始化
+          }, 25); // 🔧 CRITICAL: 减少到25ms，极快初始化
+        }
 
         this.isInitialized = true;
 
@@ -356,6 +365,10 @@ export const useAuthStore = defineStore('auth', {
           console.log('🔐 [AUTH] Starting completely refactored login process...');
         }
 
+        // 🚀 PERFORMANCE: Get profiler instance for detailed tracking
+        const profiler = getLoginProfiler();
+        profiler.startAuthStoreUpdate();
+
         // Step 1: API Call
         const authResult = await authService.login(email, password);
 
@@ -375,8 +388,15 @@ export const useAuthStore = defineStore('auth', {
           issuedAt: Date.now(),
         };
 
+        // 🚀 PERFORMANCE: Mark token sync start
+        profiler.startTokenSync();
+
         // 🔧 CRITICAL REFACTOR: Immediate State Setting Before Any Storage Operations
         await this.setImmediateAuthState(tokens, authResult.user);
+
+        // 🚀 PERFORMANCE: Mark token sync completion and auth store update completion
+        profiler.completeTokenSync();
+        profiler.completeAuthStoreUpdate();
 
         // Step 3: Enhanced storage operations (background)
         this.performBackgroundStorageOperations(tokens, authResult.user);
@@ -390,12 +410,15 @@ export const useAuthStore = defineStore('auth', {
         // Step 5: Initialize supporting systems (background)
         this.initializeSupportingSystems();
 
+        // 🆕 Initialize SSE connection in background (non-blocking)
+        this.initializeSSEInBackground(authResult.accessToken);
+
         if (true) {
           console.log('✅ [AUTH] Refactored login process completed successfully');
         }
 
         this.returnUrl = null;
-        return true;
+        return authResult;
 
       } catch (error) {
         // Enhanced error handling
@@ -407,56 +430,35 @@ export const useAuthStore = defineStore('auth', {
     },
 
     /**
-     * 🔧 OPTIMIZED: 立即设置认证状态 - 最高优先级，最小延迟
+     * 🔧 CRITICAL FIX: 立即设置认证状态 - 确保完全原子性
+     * Refactored to use tokenSynchronizer as the single source of truth for writing.
      */
     async setImmediateAuthState(tokens, user) {
       if (true) {
-        console.log('⚡ [AUTH] Setting immediate auth state with minimal delay...');
+        console.log('⚡ [AUTH] Setting immediate auth state via tokenSynchronizer...');
       }
 
       try {
-        // 🔧 CRITICAL: 立即设置核心状态 (including token and user)
+        // 🔧 SINGLE SOURCE OF TRUTH: Delegate all storage operations to the synchronizer.
+        // This prevents race conditions and ensures all tabs and storage locations are updated consistently.
+        const { default: tokenSynchronizer } = await import('@/services/tokenSynchronizer');
+        await tokenSynchronizer.setTokenAndUser(tokens.accessToken, user);
+
+        // Set internal Pinia store state for immediate UI reactivity.
+        // The synchronizer handles all other storage (localStorage, tokenManager, etc.)
+        this.token = tokens.accessToken;
+        this.user = user;
         this.lastLoginTime = Date.now();
         this.sessionStartTime = Date.now();
         this.isInitialized = true;
-        
-        // 🔧 CRITICAL FIX: Set internal token and user immediately for isAuthenticated getter
-        this.token = tokens.accessToken;
-        this.user = user;
 
-        // 🔧 CRITICAL: 立即设置tokenManager和authStateManager
-        await Promise.all([
-          tokenManager.setTokens(tokens),
-          Promise.resolve(authStateManager.setAuthState(tokens.accessToken, user))
-        ]);
-
-        // 🔧 CRITICAL: 立即设置localStorage关键keys
-        localStorage.setItem('auth_token', tokens.accessToken);
-        localStorage.setItem('auth_user', JSON.stringify(user));
-        
-        // 🔧 CRITICAL FIX: 为路由器重定向设置token过期时间
-        if (tokens.expiresAt) {
-          localStorage.setItem('token_expires_at', tokens.expiresAt.toString());
-          localStorage.setItem('fechatter_token_expiry', tokens.expiresAt.toString());
-        } else {
-          // 如果没有明确的过期时间，设置一个默认值（1小时）
-          const defaultExpiry = Date.now() + (60 * 60 * 1000);
-          localStorage.setItem('token_expires_at', defaultExpiry.toString());
-          localStorage.setItem('fechatter_token_expiry', defaultExpiry.toString());
+        if (true) {
+          console.log('✅ [AUTH] Immediate auth state set and synchronized successfully.');
         }
-
-        // 🔧 SIMPLIFIED: 最小验证，信任设置成功
-        const hasToken = !!tokenManager.getAccessToken();
-        const hasStorage = !!localStorage.getItem('auth_token');
-        
-        if (!hasToken || !hasStorage) {
-          console.warn('⚠️ [AUTH] Some auth setup failed, but continuing...');
-        }
-
-        console.log('✅ [AUTH] Immediate auth state set successfully');
 
       } catch (error) {
         console.error('❌ [AUTH] Immediate auth state setting failed:', error);
+        // Propagate the error to be handled by the login method.
         throw error;
       }
     },
@@ -480,8 +482,15 @@ export const useAuthStore = defineStore('auth', {
             version: '3.0-refactored',
             loginMethod: 'refactored'
           };
-          localStorage.setItem('auth', JSON.stringify(authBackup));
-          localStorage.setItem('refresh_token', tokens.refreshToken);
+          
+          // 🚨 FIX: 只有在安全时才设置localStorage
+          if (authStateManager.isLegacyStorageSafe()) {
+            localStorage.setItem('auth', JSON.stringify(authBackup));
+            localStorage.setItem('refresh_token', tokens.refreshToken);
+            console.log('🔧 [AUTH] Background storage set safely');
+          } else {
+            console.warn('⚠️ [AUTH] Skipping background localStorage - multi-user isolation active');
+          }
 
           // Setup token manager listeners
           this.setupTokenManagerListeners();
@@ -558,10 +567,13 @@ export const useAuthStore = defineStore('auth', {
 
       try {
         // Step 1: Clear any existing partial state for consistency
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('auth_user');
-        localStorage.removeItem('auth');
-        localStorage.removeItem('refresh_token');
+        // 🚨 FIX: 只有在安全时才清理localStorage
+        if (authStateManager.isLegacyStorageSafe()) {
+          localStorage.removeItem('auth_token');
+          localStorage.removeItem('auth_user');
+          localStorage.removeItem('auth');
+          localStorage.removeItem('refresh_token');
+        }
 
         // Step 2: Set tokens in tokenManager (in-memory) first
         await tokenManager.setTokens(tokens);
@@ -572,25 +584,49 @@ export const useAuthStore = defineStore('auth', {
           throw new Error('Failed to set token in tokenManager');
         }
 
-        // Step 4: Set auth state in localStorage via authStateManager
-        authStateManager.setAuthState(tokens.accessToken, user);
+        // Step 4: Set auth state via authStateManager (respects multi-user isolation)
+        const authStateSet = authStateManager.setAuthState(tokens.accessToken, user);
+        if (!authStateSet) {
+          // 🚨 PRODUCTION FIX: In production, warn but continue with legacy storage
+          if (authStateManager.isProductionEnvironment()) {
+            console.warn('⚠️ [AUTH] PRODUCTION: AuthStateManager rejected, using legacy storage for compatibility');
+            localStorage.setItem('auth_token', tokens.accessToken);
+            localStorage.setItem('auth_user', JSON.stringify(user));
+          } else {
+            throw new Error('AuthStateManager rejected auth state setting for isolation safety');
+          }
+        }
 
-        // Step 5: Create comprehensive auth backup in localStorage
-        const authBackup = {
-          user: user,
-          tokens: tokens,
-          timestamp: Date.now(),
-          version: '2.0'
-        };
-        localStorage.setItem('auth', JSON.stringify(authBackup));
+        // Step 5: Create comprehensive auth backup in localStorage (only if safe)
+        if (authStateManager.isLegacyStorageSafe()) {
+          const authBackup = {
+            user: user,
+            tokens: tokens,
+            timestamp: Date.now(),
+            version: '2.0'
+          };
+          localStorage.setItem('auth', JSON.stringify(authBackup));
 
-        // Step 6: Persist refresh token separately for backward compatibility
-        localStorage.setItem('refresh_token', tokens.refreshToken);
+          // Step 6: Persist refresh token separately for backward compatibility
+          localStorage.setItem('refresh_token', tokens.refreshToken);
+        } else {
+          console.warn('⚠️ [AUTH] Skipping localStorage backup - multi-user isolation active');
+        }
 
         // 🔧 CRITICAL FIX: Enhanced timing with progressive verification
         await this.waitForStorageStabilization();
 
-        // Step 7: 🔧 ENHANCED: Progressive verification with exponential backoff
+        // Step 7: 🔧 CRITICAL: Sync to tokenSynchronizer for centralized token management
+        try {
+          const { default: tokenSynchronizer } = await import('../services/tokenSynchronizer');
+          await tokenSynchronizer.setTokenAndUser(tokens.accessToken, user);
+          console.log('✅ [AUTH] Token synchronized to tokenSynchronizer');
+        } catch (error) {
+          console.error('❌ [AUTH] Failed to sync to tokenSynchronizer:', error);
+          // Continue even if tokenSynchronizer fails - backward compatibility
+        }
+
+        // Step 8: 🔧 ENHANCED: Progressive verification with exponential backoff
         const verificationSuccess = await this.verifyStorageConsistencyWithRetry(tokens, user, 5);
 
         if (!verificationSuccess) {
@@ -1491,21 +1527,21 @@ export const useAuthStore = defineStore('auth', {
         const userStore = useUserStore();
         const workspaceStore = useWorkspaceStore();
 
-        // Fetch workspace users - don't fail if this errors
-        await userStore.fetchWorkspaceUsers().catch(err => {
-          if (true) {
+        // 🔧 ENHANCED: 并行获取数据，但不等待完成
+        const fetchPromises = [
+          userStore.fetchWorkspaceUsers().catch(err => {
             console.warn('Failed to fetch workspace users:', err);
-          }
+          }),
+          workspaceStore.fetchCurrentWorkspace().catch(err => {
+            // 确保有默认工作区
+            workspaceStore.setCurrentWorkspaceId(this.user?.workspace_id || 1);
+          })
+        ];
+        
+        // 不等待所有Promise完成，让它们在后台运行
+        Promise.allSettled(fetchPromises).then(() => {
+          console.log('📊 [AUTH] Background data fetching completed');
         });
-
-        // Fetch workspace data - always provide a default workspace
-        try {
-          await workspaceStore.fetchCurrentWorkspace();
-        } catch (err) {
-          // console.warn('Failed to fetch workspace data, using defaults:', err);
-          // Ensure we have a default workspace even if fetch fails
-          workspaceStore.setCurrentWorkspaceId(this.user?.workspace_id || 1);
-        }
 
         // Set current workspace ID if available
         const workspaceId = this.user?.workspace_id || 1;
@@ -1537,6 +1573,52 @@ export const useAuthStore = defineStore('auth', {
         // 🔧 CRITICAL: Always clear the in-progress flag
         this.userStoresInitializationInProgress = false;
       }
+    },
+
+    /**
+     * 🚀 PERFORMANCE: Initialize SSE connection in background (non-blocking)
+     */
+    initializeSSEInBackground(token) {
+      // Use setTimeout to ensure this doesn't block the login completion
+      setTimeout(async () => {
+        try {
+          console.log('🔗 [AUTH] Starting background SSE initialization...');
+          // 🔧 FIX: Use the correct import path for initializeSSEConnection
+          const { initializeSSEConnection } = await import('@/utils/sseInitializer');
+          await initializeSSEConnection(token);
+          console.log('✅ [AUTH] Background SSE initialization completed');
+        } catch (sseError) {
+          console.warn('⚠️ [AUTH] Background SSE initialization failed:', sseError);
+          // Try again after a delay
+          setTimeout(() => {
+            this.retrySSEInitialization(token);
+          }, 5000);
+        }
+      }, 100); // Small delay to ensure login flow completes first
+    },
+
+    /**
+     * 🔄 Retry SSE initialization with exponential backoff
+     */
+    retrySSEInitialization(token, attempt = 1, maxAttempts = 3) {
+      if (attempt > maxAttempts) {
+        console.warn('⚠️ [AUTH] SSE initialization failed after max attempts');
+        return;
+      }
+
+      const delay = Math.min(1000 * Math.pow(2, attempt - 1), 10000); // Exponential backoff, max 10s
+      setTimeout(async () => {
+        try {
+          console.log(`🔗 [AUTH] SSE retry attempt ${attempt}/${maxAttempts}...`);
+          // 🔧 FIX: Use the correct import path for initializeSSEConnection
+          const { initializeSSEConnection } = await import('@/utils/sseInitializer');
+          await initializeSSEConnection(token);
+          console.log('✅ [AUTH] SSE initialization succeeded on retry');
+        } catch (error) {
+          console.warn(`⚠️ [AUTH] SSE retry ${attempt} failed:`, error);
+          this.retrySSEInitialization(token, attempt + 1, maxAttempts);
+        }
+      }, delay);
     },
 
     /**

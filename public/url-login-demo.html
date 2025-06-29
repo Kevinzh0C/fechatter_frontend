@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Direct Login Demo</title>
+    <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 40px; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        .demo-section {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .url-list {
+            display: grid;
+            gap: 12px;
+            margin: 20px 0;
+        }
+        .url-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+        .url-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+        .user-info {
+            flex: 1;
+        }
+        .user-name {
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+        .user-email {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+        .user-role {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-left: 8px;
+        }
+        .url-link {
+            color: #ffd700;
+            text-decoration: none;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 14px;
+            margin: 0 16px;
+            word-break: break-all;
+        }
+        .copy-btn, .open-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s ease;
+            margin-left: 8px;
+        }
+        .copy-btn:hover, .open-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+        .open-btn {
+            background: rgba(76, 175, 80, 0.3);
+            border-color: rgba(76, 175, 80, 0.5);
+        }
+        .open-btn:hover {
+            background: rgba(76, 175, 80, 0.5);
+        }
+        .instructions {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #ffd700;
+        }
+        .code-example {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 16px;
+            border-radius: 8px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 14px;
+            margin: 16px 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .current-url {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 12px;
+            border-radius: 6px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 14px;
+            margin: 12px 0;
+            word-break: break-all;
+        }
+        .status {
+            padding: 12px;
+            border-radius: 6px;
+            margin: 12px 0;
+            font-weight: 500;
+        }
+        .status.info { background: rgba(33, 150, 243, 0.2); border-left: 4px solid #2196f3; }
+        .status.success { background: rgba(76, 175, 80, 0.2); border-left: 4px solid #4caf50; }
+        .status.warning { background: rgba(255, 193, 7, 0.2); border-left: 4px solid #ffc107; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔗 URL Direct Login Demo</h1>
+        
+        <div class="instructions">
+            <h3>📋 How to Use URL Direct Login</h3>
+            <p>You can log in directly by adding a <code>?user=</code> parameter to any URL:</p>
+            <div class="code-example">
+https://your-app.vercel.app/?user=admin
+https://your-app.vercel.app/chat/1?user=user1
+https://your-app.vercel.app/settings?user=demo
+            </div>
+            <p>The system will automatically log in the specified user and redirect to the intended page.</p>
+        </div>
+
+        <div class="demo-section">
+            <h3>🎯 Current URL Status</h3>
+            <div class="current-url" id="current-url"></div>
+            <div id="url-status"></div>
+        </div>
+
+        <div class="demo-section">
+            <h3>👥 Available Users</h3>
+            <div class="url-list" id="user-list">
+                <!-- Users will be populated by JavaScript -->
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h3>🚀 Quick Actions</h3>
+            <button class="copy-btn" onclick="copyAllUrls()">📋 Copy All URLs</button>
+            <button class="open-btn" onclick="openMainApp()">🏠 Open Main App</button>
+            <button class="copy-btn" onclick="generateCustomUrl()">⚙️ Generate Custom URL</button>
+        </div>
+
+        <div class="demo-section">
+            <h3>🔧 Integration Guide</h3>
+            <p>For production deployment, you can:</p>
+            <ul>
+                <li><strong>Share direct links:</strong> Send specific user URLs to team members</li>
+                <li><strong>Bookmark users:</strong> Save different user URLs in browser bookmarks</li>
+                <li><strong>Demo accounts:</strong> Use predefined accounts for demonstrations</li>
+                <li><strong>Testing:</strong> Quickly switch between different user roles</li>
+            </ul>
+        </div>
+    </div>
+
+    <script type="module">
+        // Get current URL info
+        function updateCurrentUrlStatus() {
+            const currentUrl = window.location.href
+            const urlParams = new URLSearchParams(window.location.search)
+            const userParam = urlParams.get('user')
+            
+            document.getElementById('current-url').textContent = currentUrl
+            
+            const statusDiv = document.getElementById('url-status')
+            if (userParam) {
+                statusDiv.innerHTML = `
+                    <div class="status success">
+                        ✅ URL contains user parameter: <strong>${userParam}</strong>
+                        <br>This would trigger auto-login in the main app.
+                    </div>
+                `
+            } else {
+                statusDiv.innerHTML = `
+                    <div class="status info">
+                        ℹ️ No user parameter in current URL.
+                        <br>Click on any user link below to see the URL login in action.
+                    </div>
+                `
+            }
+        }
+
+        // Predefined users (matching the UrlUserManager)
+        const predefinedUsers = {
+            'admin': {
+                name: 'Administrator',
+                email: 'admin@fechatter.com',
+                role: 'admin'
+            },
+            'user1': {
+                name: 'User One',
+                email: 'user1@fechatter.com',
+                role: 'user'
+            },
+            'user2': {
+                name: 'User Two',
+                email: 'user2@fechatter.com',
+                role: 'user'
+            },
+            'demo': {
+                name: 'Demo User',
+                email: 'demo@fechatter.com',
+                role: 'user'
+            },
+            'test': {
+                name: 'Test User',
+                email: 'super@test.com',
+                role: 'user'
+            }
+        }
+
+        // Generate URLs
+        function generateUserUrls() {
+            const baseUrl = window.location.origin
+            const userList = document.getElementById('user-list')
+            
+            userList.innerHTML = Object.entries(predefinedUsers).map(([key, user]) => {
+                const mainUrl = `${baseUrl}/?user=${key}`
+                const chatUrl = `${baseUrl}/chat/1?user=${key}`
+                
+                return `
+                    <div class="url-item">
+                        <div class="user-info">
+                            <div class="user-name">
+                                ${user.name}
+                                <span class="user-role">${user.role}</span>
+                            </div>
+                            <div class="user-email">${user.email}</div>
+                        </div>
+                        <div class="url-link">${mainUrl}</div>
+                        <button class="copy-btn" onclick="copyToClipboard('${mainUrl}')">📋</button>
+                        <button class="open-btn" onclick="openUrl('${mainUrl}')">🚀</button>
+                    </div>
+                `
+            }).join('')
+        }
+
+        // Utility functions
+        window.copyToClipboard = function(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showNotification('✅ URL copied to clipboard!')
+            }).catch(err => {
+                console.error('Failed to copy:', err)
+                showNotification('❌ Failed to copy URL')
+            })
+        }
+
+        window.openUrl = function(url) {
+            window.open(url, '_blank')
+        }
+
+        window.copyAllUrls = function() {
+            const baseUrl = window.location.origin
+            const allUrls = Object.keys(predefinedUsers).map(key => 
+                `${baseUrl}/?user=${key} # ${predefinedUsers[key].name}`
+            ).join('\n')
+            
+            copyToClipboard(allUrls)
+        }
+
+        window.openMainApp = function() {
+            const baseUrl = window.location.origin
+            window.open(baseUrl, '_blank')
+        }
+
+        window.generateCustomUrl = function() {
+            const userKey = prompt('Enter user key (admin, user1, user2, demo, test):')
+            if (userKey && predefinedUsers[userKey]) {
+                const baseUrl = window.location.origin
+                const customUrl = `${baseUrl}/?user=${userKey}`
+                copyToClipboard(customUrl)
+                showNotification(`✅ Generated URL for ${predefinedUsers[userKey].name}`)
+            } else if (userKey) {
+                showNotification('❌ Invalid user key')
+            }
+        }
+
+        function showNotification(message) {
+            // Simple notification
+            const notification = document.createElement('div')
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: rgba(0, 0, 0, 0.8);
+                color: white;
+                padding: 12px 20px;
+                border-radius: 6px;
+                z-index: 10000;
+                font-size: 14px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            `
+            notification.textContent = message
+            document.body.appendChild(notification)
+            
+            setTimeout(() => {
+                notification.remove()
+            }, 3000)
+        }
+
+        // Initialize
+        updateCurrentUrlStatus()
+        generateUserUrls()
+        
+        console.log('🔗 URL Login Demo loaded')
+        console.log('📋 Available users:', Object.keys(predefinedUsers))
+    </script>
+</body>
+</html> 

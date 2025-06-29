@@ -69,7 +69,7 @@ console.log(`🧹 [PureMessageList] CLEARED - Chat ${props.chatId} message displ
   flex-direction: column;
   height: 100%;
   overflow-y: auto;
-  background: var(--bg-primary, #313338);
+  background: var(--bg-primary);
   padding: 16px;
 }
 
@@ -83,20 +83,20 @@ console.log(`🧹 [PureMessageList] CLEARED - Chat ${props.chatId} message displ
 .cleared-notice {
   text-align: center;
   padding: 40px 20px;
-  background: var(--bg-secondary, #2b2d31);
-  border: 2px dashed var(--border-primary, #3e4146);
+  background: var(--bg-secondary);
+  border: 2px dashed var(--border-primary);
   border-radius: 12px;
   max-width: 500px;
 }
 
 .cleared-notice h3 {
-  color: var(--text-primary, #dbdee1);
+  color: var(--text-primary);
   margin-bottom: 12px;
   font-size: 18px;
 }
 
 .cleared-notice p {
-  color: var(--text-muted, #949ba4);
+  color: var(--text-muted);
   margin: 8px 0;
   font-size: 14px;
 }
@@ -106,7 +106,7 @@ console.log(`🧹 [PureMessageList] CLEARED - Chat ${props.chatId} message displ
   justify-content: center;
   align-items: center;
   padding: 40px 20px;
-  color: var(--text-muted, #b5bac1);
+  color: var(--text-muted);
   font-size: 14px;
 }
 
@@ -116,6 +116,6 @@ console.log(`🧹 [PureMessageList] CLEARED - Chat ${props.chatId} message displ
   align-items: center;
   justify-content: center;
   text-align: center;
-  color: var(--text-muted, #949ba4);
+  color: var(--text-muted);
 }
 </style>

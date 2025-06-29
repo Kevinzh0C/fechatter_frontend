@@ -102,8 +102,8 @@ watch(() => props.avatarUrl, () => {
   height: 100%;
   border-radius: 50%;
   object-fit: cover;
-  background: rgba(255, 255, 255, 0.1);
-  border: 2px solid rgba(255, 255, 255, 0.1);
+  background: #40444b;
+  border: 2px solid #202225;
   transition: all 0.15s ease;
 }
 
@@ -115,7 +115,7 @@ watch(() => props.avatarUrl, () => {
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  border: 2px solid rgba(255, 255, 255, 0.1);
+  border: 2px solid #202225;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   transition: all 0.15s ease;
@@ -135,34 +135,34 @@ watch(() => props.avatarUrl, () => {
   min-width: 8px;
   min-height: 8px;
   border-radius: 50%;
-  border: 2px solid var(--bg-color, #fff);
+  border: 2px solid #2f3136;
   transition: all 0.2s ease;
 }
 
 .status-indicator.online {
-  background: #2eb67d;
-  box-shadow: 0 0 6px rgba(46, 182, 125, 0.4);
+  background: #23a55a;
+  box-shadow: 0 0 6px rgba(34, 197, 94, 0.4);
 }
 
 .status-indicator.away {
-  background: #ecb22e;
-  box-shadow: 0 0 6px rgba(236, 178, 46, 0.4);
+  background: #f9a828;
+  box-shadow: 0 0 6px rgba(249, 168, 40, 0.4);
 }
 
 .status-indicator.busy {
-  background: #e01e5a;
-  box-shadow: 0 0 6px rgba(224, 30, 90, 0.4);
+  background: #f84f31;
+  box-shadow: 0 0 6px rgba(248, 79, 49, 0.4);
 }
 
 .status-indicator.offline {
-  background: rgba(255, 255, 255, 0.3);
+  background: #747f8d;
 }
 
 /* Hover effects */
 .avatar-container:hover .avatar-image,
 .avatar-container:hover .avatar-fallback {
   transform: scale(1.05);
-  border-color: rgba(255, 255, 255, 0.2);
+  border-color: #40444b;
 }
 
 .avatar-container:hover .avatar-fallback {

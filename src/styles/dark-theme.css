@@ -1,0 +1,232 @@
+/* 🌙 暗色主题 - 基于当前被篡改的样式 */
+/* Discord-like Dark Theme System */
+
+[data-theme="dark"] {
+  /* 🎨 主色调 - 保持与浅色主题一致的深邃紫色 */
+  --color-primary: #3d1a78;
+  --color-primary-hover: #2f1460;
+  --color-primary-light: #c8b8e0;
+  --color-primary-dark: #2a0e54;
+  --color-primary-darker: #1a0833;
+  --color-primary-alpha: rgba(61, 26, 120, 0.1);
+  --color-primary-bg: rgba(61, 26, 120, 0.1);
+  --color-primary-border: rgba(61, 26, 120, 0.3);
+  --color-primary-soft: rgba(61, 26, 120, 0.08);
+
+  /* 🎨 工作区头部特殊色彩 */
+  --color-workspace-bg: #2a0e54;
+  --color-workspace-hover: rgba(255, 255, 255, 0.08);
+  --color-workspace-active: rgba(255, 255, 255, 0.12);
+
+  /* Sidebar Colors - Dark Theme */
+  --color-sidebar-bg: #1e1f22;
+  --color-sidebar-text: #dcddde;
+  --color-sidebar-text-muted: #b9bbbe;
+  --color-sidebar-active: #5865f2;
+  --color-sidebar-hover: #40444b;
+
+  /* Main Content Colors */
+  --color-background: #36393f;
+  --color-background-secondary: #2f3136;
+  --color-background-soft: #40444b;
+  --color-background-muted: #2f3136;
+  --color-text: #dcddde;
+  --color-text-secondary: #b9bbbe;
+  --color-text-muted: #8e9297;
+  --color-text-on-primary: #ffffff;
+  --color-border: #202225;
+  --color-border-hover: #40444b;
+  --color-border-soft: #2f3136;
+  --color-border-focus: #5865f2;
+
+  /* Status Colors */
+  --color-success: #23a55a;
+  --color-success-bg: rgba(35, 165, 90, 0.1);
+  --color-success-border: rgba(35, 165, 90, 0.3);
+  --color-warning: #f9a828;
+  --color-warning-bg: rgba(249, 168, 40, 0.1);
+  --color-warning-border: rgba(249, 168, 40, 0.3);
+  --color-danger: #ed4245;
+  --color-danger-bg: rgba(237, 66, 69, 0.1);
+  --color-danger-border: rgba(237, 66, 69, 0.3);
+  --color-danger-dark: #da373c;
+  --color-info: #0096fa;
+  --color-online: #23a55a;
+
+  /* Discord Message System */
+  --bg-primary: #313338;
+  --bg-secondary: #2b2d31;
+  --bg-tertiary: #1e1f22;
+  --bg-accent: #404249;
+  --bg-floating: #2b2d31;
+  --bg-input: #383a40;
+  --bg-message-hover: rgba(255, 255, 255, 0.06);
+
+  /* Text Colors - 暗色主题对比度优化 */
+  --text-primary: #f2f3f5;
+  --text-secondary: #b5bac1;
+  --text-muted: #9ca3af;
+  --text-link: #00a8fc;
+  --text-positive: #3ba55c;
+  --text-warning: #faa61a;
+  --text-danger: #ed4245;
+  --text-brand: #5865f2;
+
+  /* Border Colors */
+  --border-primary: #3f4147;
+  --border-secondary: #4e5058;
+  --border-focus: #5865f2;
+
+  /* Code highlighting */
+  --code-bg: #2b2d31;
+  --code-border: #3f4147;
+  --code-text: #f2f3f5;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.4);
+
+  /* Scrollbar Colors */
+  --color-scrollbar-track: rgba(255, 255, 255, 0.05);
+  --color-scrollbar-thumb: rgba(255, 255, 255, 0.2);
+  --color-scrollbar-thumb-hover: rgba(255, 255, 255, 0.3);
+
+  /* Interactive States */
+  --interactive-normal: #b5bac1;
+  --interactive-hover: #dbdee1;
+  --interactive-active: #f2f3f5;
+
+  /* 🎨 圆角 */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  
+  /* 🎨 登录页面专用鲜艳蓝色 - 暗色主题版本 */
+  --login-primary: #60a5fa;
+  --login-primary-hover: #3b82f6;
+  --login-primary-light: #93c5fd;
+  --login-primary-dark: #2563eb;
+  --login-primary-darker: #1d4ed8;
+}
+
+/* 暗色主题专属样式 */
+[data-theme="dark"] body {
+  background-color: var(--color-background);
+  color: var(--color-text);
+}
+
+[data-theme="dark"] .discord-chat-container {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .sidebar {
+  background-color: var(--color-sidebar-bg);
+  color: var(--color-sidebar-text);
+}
+
+/* 暗色主题滚动条 */
+[data-theme="dark"] ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-track {
+  background: var(--color-scrollbar-track);
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: var(--color-scrollbar-thumb);
+  border-radius: 4px;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+  background: var(--color-scrollbar-thumb-hover);
+}
+
+/* 暗色主题代码块 */
+[data-theme="dark"] .code-highlight-container {
+  background: #0d1117;
+  border-color: #30363d;
+}
+
+[data-theme="dark"] .code-header {
+  background: linear-gradient(135deg, #161b22 0%, #21262d 100%);
+  border-color: #30363d;
+}
+
+[data-theme="dark"] .language-label {
+  color: #f0f6fc;
+  background: #30363d;
+  border-color: #484f58;
+}
+
+[data-theme="dark"] .code-block {
+  background: #0d1117;
+  color: #e6edf3;
+}
+
+[data-theme="dark"] .line-numbers {
+  background: #161b22;
+  border-color: #30363d;
+  color: #7d8590;
+}
+
+/* 暗色主题消息输入 */
+[data-theme="dark"] .message-input {
+  background: var(--bg-secondary);
+  border-top-color: var(--border-primary);
+}
+
+[data-theme="dark"] .input-btn {
+  background: var(--color-background-soft);
+  border-color: var(--color-border);
+  color: var(--color-text-muted);
+}
+
+[data-theme="dark"] .input-btn:hover {
+  background: var(--color-background-muted);
+  border-color: var(--color-border-hover);
+  color: var(--color-text);
+}
+
+/* 暗色主题表单元素 */
+[data-theme="dark"] input,
+[data-theme="dark"] textarea,
+[data-theme="dark"] select {
+  background: var(--bg-input);
+  border-color: var(--border-primary);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] input:focus,
+[data-theme="dark"] textarea:focus,
+[data-theme="dark"] select:focus {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px rgba(88, 101, 242, 0.2);
+}
+
+/* 暗色主题按钮 */
+[data-theme="dark"] .btn-primary {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+}
+
+[data-theme="dark"] .btn-primary:hover {
+  background: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+}
+
+[data-theme="dark"] .btn-secondary {
+  background: var(--color-background-soft);
+  border-color: var(--color-border);
+  color: var(--color-text);
+}
+
+[data-theme="dark"] .btn-secondary:hover {
+  background: var(--color-background-muted);
+  border-color: var(--color-border-hover);
+} 

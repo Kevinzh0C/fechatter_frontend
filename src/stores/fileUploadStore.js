@@ -133,6 +133,9 @@ export const useFileUploadStore = defineStore('fileUpload', () => {
       return fileEntry.rawFile;
     }
 
+    let originalPreview = fileEntry.preview; // Store original preview
+    let newPreview = null; // To hold the new preview URL if created
+
     try {
       fileEntry.status = 'compressing';
       if (true) {
@@ -142,17 +145,19 @@ export const useFileUploadStore = defineStore('fileUpload', () => {
       const compressedFile = await imageCompression(fileEntry.rawFile, uploadConfig.compressionOptions);
 
       // Update file entry with compressed data
-      const oldPreview = fileEntry.preview;
       fileEntry.rawFile = compressedFile;
       fileEntry.name = compressedFile.name || fileEntry.name;
       fileEntry.size = compressedFile.size;
       fileEntry.type = compressedFile.type;
 
-      // Clean up old preview and create new one
-      if (oldPreview) {
-        URL.revokeObjectURL(oldPreview);
+      // Create new preview URL
+      newPreview = URL.createObjectURL(compressedFile);
+      fileEntry.preview = newPreview;
+
+      // Clean up old preview only after new one is successfully created
+      if (originalPreview) {
+        URL.revokeObjectURL(originalPreview);
       }
-      fileEntry.preview = URL.createObjectURL(compressedFile);
 
       if (true) {
         console.log(`✅ Compression successful: ${fileEntry.name} (${Math.round(fileEntry.size / 1024)}KB)`);
@@ -164,6 +169,14 @@ export const useFileUploadStore = defineStore('fileUpload', () => {
       }
       fileEntry.status = 'error';
       fileEntry.error = 'Compression failed';
+
+      // If a new preview was created but compression failed, revoke it
+      if (newPreview) {
+        URL.revokeObjectURL(newPreview);
+      }
+      // Revert to original preview if it existed
+      fileEntry.preview = originalPreview;
+
       throw error;
     }
   };

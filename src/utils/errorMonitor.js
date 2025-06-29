@@ -30,6 +30,11 @@ class ErrorMonitor {
 
     // 捕获未处理的Promise拒绝
     window.addEventListener('unhandledrejection', (event) => {
+      // Skip timeout errors if timeoutFix is handling them
+      if (event.reason?.message === 'Operation timeout' && window.timeoutFix) {
+        return;
+      }
+      
       this.logError({
         type: 'UNHANDLED_REJECTION',
         message: `Unhandled Promise Rejection: ${event.reason}`,
@@ -42,6 +47,11 @@ class ErrorMonitor {
   }
 
   logError(error, context = {}) {
+    // Skip timeout errors if timeoutFix is handling them
+    if (error?.message === 'Operation timeout' && window.timeoutFix) {
+      return null;
+    }
+
     const errorEntry = {
       id: Date.now() + '_' + Math.random(),
       timestamp: new Date().toISOString(),
@@ -143,13 +153,27 @@ class ErrorMonitor {
     return criticalPatterns.some(pattern => pattern.test(errorStr));
   }
 
+  // Manual cleanup function for stuck error toasts
+  clearErrorToasts() {
+    const existingToast = document.getElementById('error-monitor-toast');
+    if (existingToast) {
+      // Use the toast's cleanup function if available
+      if (existingToast._cleanup) {
+        existingToast._cleanup();
+        console.log('🧹 [ErrorMonitor] Cleared error toast with proper cleanup');
+      } else {
+        existingToast.remove();
+        console.log('🧹 [ErrorMonitor] Cleared error toast (fallback removal)');
+      }
+      return true;
+    }
+    return false;
+  }
+
   showDevelopmentError(errorEntry) {
     // 在开发环境中创建一个可视化的错误提示
     if (typeof document !== 'undefined' && this.environment === 'development') {
-      const existingToast = document.getElementById('error-monitor-toast');
-      if (existingToast) {
-        existingToast.remove();
-      }
+      this.clearErrorToasts();
 
       const toast = document.createElement('div');
       toast.id = 'error-monitor-toast';
@@ -169,33 +193,91 @@ class ErrorMonitor {
       `;
 
       toast.innerHTML = `
-        <div style="font-weight: bold; margin-bottom: 8px;">
+        <div style="font-weight: bold; margin-bottom: 8px; padding-right: 60px;">
           ❌ ${errorEntry.error.type || 'ERROR'}
         </div>
-        <div style="margin-bottom: 8px;">${errorEntry.error.message}</div>
-        <div style="opacity: 0.8; font-size: 10px;">
+        <div style="margin-bottom: 8px; padding-right: 60px;">${errorEntry.error.message}</div>
+        <div style="opacity: 0.8; font-size: 10px; padding-right: 60px;">
           ${errorEntry.context.component || errorEntry.url || ''}
+        </div>
+        <div style="margin-top: 8px; font-size: 10px; opacity: 0.7;">
+          Press ESC or click × to dismiss
         </div>
         <button onclick="this.parentElement.remove()" style="
           position: absolute;
           top: 8px;
           right: 8px;
-          background: none;
-          border: none;
+          background: rgba(255,255,255,0.2);
+          border: 1px solid rgba(255,255,255,0.3);
           color: white;
           cursor: pointer;
           font-size: 16px;
-        ">×</button>
+          width: 24px;
+          height: 24px;
+          border-radius: 12px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s ease;
+        " onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'" title="Close error (or press ESC)">×</button>
+        <button onclick="this.parentElement.remove()" style="
+          position: absolute;
+          bottom: 8px;
+          right: 8px;
+          background: rgba(255,255,255,0.1);
+          border: 1px solid rgba(255,255,255,0.2);
+          color: white;
+          cursor: pointer;
+          font-size: 10px;
+          padding: 4px 8px;
+          border-radius: 4px;
+          transition: all 0.2s ease;
+        " onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'" title="Dismiss this error">Dismiss</button>
       `;
 
       document.body.appendChild(toast);
 
-      // 自动移除
+      // 添加键盘支持（ESC键关闭）
+      const keyHandler = (event) => {
+        if (event.key === 'Escape' && document.getElementById('error-monitor-toast') === toast) {
+          toast.remove();
+          document.removeEventListener('keydown', keyHandler);
+          console.log('🔧 [ErrorMonitor] Error dismissed via ESC key');
+        }
+      };
+      document.addEventListener('keydown', keyHandler);
+
+      // 添加点击外部区域关闭功能
+      const clickHandler = (event) => {
+        if (!toast.contains(event.target) && document.getElementById('error-monitor-toast') === toast) {
+          toast.remove();
+          document.removeEventListener('click', clickHandler);
+          document.removeEventListener('keydown', keyHandler);
+          console.log('🔧 [ErrorMonitor] Error dismissed via outside click');
+        }
+      };
+      // 延迟添加点击监听器，避免立即触发
       setTimeout(() => {
+        document.addEventListener('click', clickHandler);
+      }, 100);
+
+      // 自动移除（延长到15秒，给用户更多时间）
+      const autoRemoveTimeout = setTimeout(() => {
         if (document.getElementById('error-monitor-toast') === toast) {
           toast.remove();
+          document.removeEventListener('keydown', keyHandler);
+          document.removeEventListener('click', clickHandler);
+          console.log('🔧 [ErrorMonitor] Error auto-dismissed after 15 seconds');
         }
-      }, 10000);
+      }, 15000);
+
+      // 存储清理函数到toast元素上，方便手动清理
+      toast._cleanup = () => {
+        clearTimeout(autoRemoveTimeout);
+        document.removeEventListener('keydown', keyHandler);
+        document.removeEventListener('click', clickHandler);
+        toast.remove();
+      };
     }
   }
 
@@ -313,7 +395,7 @@ class ErrorMonitor {
     const developmentSkipPatterns = [
       /hmr/i, // Vite HMR
       /hot.*reload/i,
-      /websocket.*connection/i,
+      /vite.*websocket/i, // 只过滤Vite HMR的WebSocket连接
       /dev.*server/i
     ];
 
@@ -331,4 +413,8 @@ export default errorMonitor;
 export const logError = (error, context) => errorMonitor.logError(error, context);
 export const logWarning = (message, context) => errorMonitor.logWarning(message, context);
 export const getErrorStats = () => errorMonitor.getErrorStats();
-export const clearErrors = () => errorMonitor.clearErrors(); 
+export const clearErrors = () => errorMonitor.clearErrors();
+export const clearErrorToasts = () => errorMonitor.clearErrorToasts();
+
+// Expose error monitor globally for debugging
+window.errorMonitor = errorMonitor; 

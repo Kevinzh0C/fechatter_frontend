@@ -212,24 +212,24 @@ const handleMouseLeave = () => {
   transition: all 0.1s ease;
   position: relative;
   min-height: 32px;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--color-sidebar-text-muted);
   background: transparent;
   border: none;
   line-height: 1.4;
 }
 
 .channel-item:hover {
-  background: rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.9);
+  background: var(--color-sidebar-hover);
+  color: var(--color-sidebar-text);
 }
 
 .channel-item.active {
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
+  background: var(--color-background-muted);
+  color: var(--color-text);
 }
 
 .channel-item.active:hover {
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--color-background-soft);
 }
 
 .channel-item.unread {
@@ -257,17 +257,17 @@ const handleMouseLeave = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--color-text-muted);
   margin-right: 8px;
   flex-shrink: 0;
 }
 
 .channel-item:hover .channel-icon {
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--color-sidebar-text-muted);
 }
 
 .channel-item.active .channel-icon {
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--color-text);
 }
 
 /* 📝 Channel Content */
@@ -287,13 +287,13 @@ const handleMouseLeave = () => {
 
 .name-text {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 500;
   color: inherit;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  line-height: 1.4;
+  line-height: 1.3;
   letter-spacing: 0.01em;
   font-feature-settings: 'liga' 1, 'kern' 1;
   -webkit-font-smoothing: antialiased;
@@ -304,7 +304,7 @@ const handleMouseLeave = () => {
 .muted-icon {
   width: 12px;
   height: 12px;
-  color: rgba(255, 255, 255, 0.3);
+  color: var(--color-text-muted);
   flex-shrink: 0;
 }
 
@@ -312,12 +312,31 @@ const handleMouseLeave = () => {
 .last-message {
   display: flex;
   align-items: center;
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.6);
+  font-size: 13px;
+  color: var(--color-sidebar-text-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   gap: 4px;
+  line-height: 1.3;
+  margin-top: 2px;
+}
+
+.message-sender {
+  font-weight: 500;
+  color: var(--color-sidebar-text);
+}
+
+.message-content {
+  color: var(--color-sidebar-text-muted);
+  font-weight: 400;
+}
+
+.message-time {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  margin-left: auto;
+  flex-shrink: 0;
 }
 
 /* 🔔 Channel Status */
@@ -330,28 +349,30 @@ const handleMouseLeave = () => {
 }
 
 .unread-badge {
-  background: #ED4245;
+  background: var(--color-danger);
   color: white;
   font-size: 11px;
   font-weight: 600;
-  padding: 0 5px;
-  border-radius: 8px;
-  min-width: 18px;
-  height: 16px;
+  padding: 0 6px;
+  border-radius: 10px;
+  min-width: 20px;
+  height: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
+  line-height: 1;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
 .unread-badge.mention {
-  background: #F0B232;
+  background: var(--color-warning);
 }
 
 .activity-indicator {
   width: 6px;
   height: 6px;
-  background: #3BA55C;
+  background: var(--color-success);
   border-radius: 50%;
 }
 
@@ -360,7 +381,7 @@ const handleMouseLeave = () => {
   display: flex;
   align-items: center;
   padding: 2px 6px;
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--color-sidebar-hover);
   border-radius: 8px;
 }
 
@@ -372,7 +393,7 @@ const handleMouseLeave = () => {
 .typing-dots span {
   width: 3px;
   height: 3px;
-  background: rgba(255, 255, 255, 0.4);
+  background: var(--color-sidebar-text-muted);
   border-radius: 50%;
   animation: typing-bounce 1.4s infinite ease-in-out;
 }
@@ -480,8 +501,8 @@ const handleMouseLeave = () => {
 .preload-spinner {
   width: 12px;
   height: 12px;
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  border-top-color: rgba(255, 255, 255, 0.6);
+  border: 2px solid #40444b;
+  border-top-color: #b9bbbe;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }

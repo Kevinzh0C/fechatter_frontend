@@ -104,8 +104,8 @@ class BackendPerformanceDiagnostic {
     // Test different endpoints
     const endpoints = [
       { path: '/api/health', method: 'GET', expectedTime: 100 },
-      { path: '/api/workspace/chats', method: 'GET', expectedTime: 500 },
-      { path: '/api/chat/6/messages', method: 'GET', expectedTime: 1000 }
+      { path: '/workspace/chats', method: 'GET', expectedTime: 500 },
+      { path: '/chat/6/messages', method: 'GET', expectedTime: 1000 }
     ];
 
     for (const endpoint of endpoints) {

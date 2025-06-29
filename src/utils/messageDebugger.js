@@ -118,7 +118,7 @@ if (true) {
       console.group('🌐 Recent Network Requests');
       if (true) {
         console.log('Check Network tab for:');
-        console.log('- POST /api/chat/{id}/messages (message send)');
+        console.log('- POST /chat/{id}/messages (message send)');
         console.log('- GET /api/events (SSE connection)');
         console.log('- Any 4xx or 5xx errors');
       }

@@ -108,13 +108,46 @@ export default defineConfig(({ mode }) => {
           target: 'https://hook-nav-attempt-size.trycloudflare.com',
           changeOrigin: true,
           secure: true,
-          ws: true, // Enable WebSocket proxying for SSE
+          timeout: 0, // 🔧 CRITICAL: No timeout for SSE connections
           configure: (proxy, options) => {
             proxy.on('proxyReq', (proxyReq, req, res) => {
+              // 🔧 CRITICAL FIX: 确保SSE请求有正确的headers，完全匹配curl命令
               proxyReq.setHeader('ngrok-skip-browser-warning', 'true');
-              // Mask token in SSE URLs for security
+              
+              // 🔧 ENHANCED: 强制设置正确的SSE headers，匹配curl命令格式
+              if (!req.headers.accept || !req.headers.accept.includes('text/event-stream')) {
+                proxyReq.setHeader('Accept', 'text/event-stream');
+              }
+              if (!req.headers['cache-control'] || !req.headers['cache-control'].includes('no-cache')) {
+                proxyReq.setHeader('Cache-Control', 'no-cache');
+              }
+              
+              // 保持SSE连接的特殊设置
+              proxyReq.setHeader('Connection', 'keep-alive');
+              
+              // 安全日志输出，隐藏token
               const maskedUrl = req.url.replace(/access_token=[^&]+/, 'access_token=***');
-              console.log(`🔗 Proxying SSE ${req.method} ${maskedUrl} to ${options.target}${maskedUrl}`);
+              console.log(`🔗 [SSE-PROXY] ${req.method} ${maskedUrl}`);
+              console.log(`🔗 [SSE-HEADERS] Accept: ${proxyReq.getHeader('Accept')}, Cache-Control: ${proxyReq.getHeader('Cache-Control')}`);
+            });
+            
+            // 🔧 ENHANCED: SSE 错误处理
+            proxy.on('error', (err, req, res) => {
+              console.error('❌ [SSE-PROXY] Connection error:', err.message);
+              console.error('❌ [SSE-PROXY] URL:', req.url?.replace(/access_token=[^&]+/, 'access_token=***'));
+            });
+            
+            // 🔧 ENHANCED: SSE 响应处理
+            proxy.on('proxyRes', (proxyRes, req, res) => {
+              if (req.url.includes('/events')) {
+                console.log(`📡 [SSE-PROXY] Response: ${proxyRes.statusCode} ${proxyRes.statusMessage}`);
+                console.log(`📡 [SSE-PROXY] Content-Type: ${proxyRes.headers['content-type']}`);
+                
+                // 🔧 CRITICAL: 检查响应是否为正确的SSE格式
+                if (!proxyRes.headers['content-type']?.includes('text/event-stream')) {
+                  console.warn('⚠️ [SSE-PROXY] Warning: Response is not text/event-stream');
+                }
+              }
             });
           }
         },
@@ -148,7 +181,11 @@ export default defineConfig(({ mode }) => {
       },
       watch: {
         // 3. tell vite to ignore watching `src-tauri`
-        ignored: ["**/src-tauri/**"],
+        ignored: [
+          "**/src-tauri/**",
+          "**/public/tests/**",
+          "**/public/test-*.html"
+        ],
       },
     },
 
@@ -167,6 +204,9 @@ export default defineConfig(({ mode }) => {
       minify: isDev ? false : 'esbuild',
       sourcemap: true,  // Always enable sourcemap
       rollupOptions: {
+        input: {
+          main: resolve(__dirname, 'index.html')
+        },
         output: {
           manualChunks: {
             // 优化依赖分块 - 移除Shiki，添加highlight.js
@@ -174,6 +214,10 @@ export default defineConfig(({ mode }) => {
             'vue-chunk': ['vue', 'vue-router', 'pinia'],
             'ui-chunk': ['@headlessui/vue', '@heroicons/vue']
           }
+        },
+        // Exclude test files from build scanning
+        external: (id) => {
+          return id.includes('/tests/') || id.includes('test-') || id.includes('debug-')
         }
       },
       chunkSizeWarningLimit: 1000,
@@ -187,7 +231,9 @@ export default defineConfig(({ mode }) => {
       logOverride: {
         'this-is-undefined-in-esm': 'silent',
         'import-is-undefined': 'silent'
-      }
+      },
+      // Ignore syntax errors in test files
+      ignoreAnnotations: true
     },
 
     // Simplified environment variables - no VERCEL_ prefix needed

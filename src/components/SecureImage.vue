@@ -160,17 +160,17 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   padding: 20px;
-  background: #f8f9fa;
+  background: #2f3136;
   border-radius: 8px;
-  color: #6c757d;
+  color: #b9bbbe;
   min-height: 120px;
 }
 
 .loading-spinner {
   width: 24px;
   height: 24px;
-  border: 2px solid #e9ecef;
-  border-top: 2px solid #6c757d;
+  border: 2px solid #40444b;
+  border-top: 2px solid #b9bbbe;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 8px;
@@ -178,7 +178,7 @@ onUnmounted(() => {
 
 .loading-text {
   font-size: 14px;
-  color: #6c757d;
+  color: #b9bbbe;
 }
 
 .secure-image-error {
@@ -187,9 +187,9 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   padding: 20px;
-  background: #f8d7da;
+  background: #f84f31;
   border-radius: 8px;
-  color: #721c24;
+  color: #ffffff;
   min-height: 120px;
 }
 
@@ -200,7 +200,7 @@ onUnmounted(() => {
 
 .error-text {
   font-size: 14px;
-  color: #721c24;
+  color: #ffffff;
 }
 
 @keyframes spin {

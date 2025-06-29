@@ -319,7 +319,7 @@ export class MessageSyncQueue {
    * Send message to server
    */
   async sendMessage(message) {
-    const response = await api.post(`/chat/${message.chatId}/messages`, message.toApiFormat());
+    const response = await api.post(`/chat/${chatId}/messages`, message.toApiFormat());
 
     // Update message with server response
     messageStateManager.updateFromServerResponse(message.metadata.clientId, response.data?.data || response.data);
@@ -332,7 +332,7 @@ export class MessageSyncQueue {
    */
   async editMessage(message) {
     const response = await api.patch(
-      `/chat/${message.chatId}/messages/${message.metadata.serverId}`,
+      `/chat/${chatId}/messages/${message.metadata.serverId}`,
       { content: message.content }
     );
 
@@ -343,7 +343,7 @@ export class MessageSyncQueue {
    * Delete message on server
    */
   async deleteMessage(message) {
-    const response = await api.delete(`/chat/${message.chatId}/messages/${message.metadata.serverId}`);
+    const response = await api.delete(`/chat/${chatId}/messages/${message.metadata.serverId}`);
     return response.data;
   }
 

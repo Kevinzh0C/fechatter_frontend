@@ -35,15 +35,15 @@ console.log(`🧹 [MessageItem] CLEARED - Message ${props.message.id} display re
 .message-item-placeholder {
   padding: 12px 16px;
   margin: 8px 0;
-  background: var(--bg-tertiary, #2b2d31);
-  border: 2px dashed var(--border-primary, #3e4146);
+  background: var(--bg-tertiary, #e3e5e8);
+  border: 2px dashed var(--border-primary, #e3e5e8);
   border-radius: 8px;
   text-align: center;
   opacity: 0.7;
 }
 
 .cleared-notice {
-  color: var(--text-muted, #949ba4);
+  color: var(--text-muted, #6b7280);
   font-style: italic;
   font-size: 14px;
 }

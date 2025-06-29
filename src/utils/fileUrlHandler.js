@@ -1,9 +1,11 @@
+import { getApiBaseUrl } from './apiUrlResolver';
+
 /**
  * 🎯 UNIFIED FILE URL HANDLER
  * Based on backend storage structure analysis:
  * - Static files: /files/{workspace_id}/{hash_path} (no auth, nginx served)
- * - Auth download: /api/files/download/{file_id} (with auth)
- * - Upload endpoint: /api/files/single (with auth)
+ * - Auth download: /files/download/{file_id} (with auth)
+ * - Upload endpoint: /files/single (with auth)
  */
 
 /**
@@ -13,13 +15,13 @@
 export function extractFileId(url) {
   if (!url || typeof url !== 'string') return null;
   
-  // Handle auth download URLs: /api/files/download/{file_id}
+  // Handle auth download URLs: /files/download/{file_id}
   const authMatch = url.match(/\/api\/files\/download\/([^\/\?]+)/);
   if (authMatch) {
     return authMatch[1];
   }
   
-  // Handle static URLs: /api/files/{workspace_id}/{hash_path} or /files/{workspace_id}/{hash_path}
+  // Handle static URLs: /files/{workspace_id}/{hash_path} or /files/{workspace_id}/{hash_path}
   const staticMatch = url.match(/\/(?:api\/)?files\/\d+\/(.+)$/);
   if (staticMatch) {
     const hashPath = staticMatch[1];
@@ -62,7 +64,7 @@ function convertHashPathToFileId(hashPath) {
  * Example: "60c155658fcb1ef14145b5c9e359a571c504b8e1a7449d9965f720d3c1eebb68.png" -> "60c/155/60c155658fcb1ef14145b5c9e359a571c504b8e1a7449d9965f720d3c1eebb68.png"
  * Backend uses hash-split directory structure for performance
  */
-function buildHashPath(fileId) {
+export function buildHashPath(fileId) {
   if (!fileId || typeof fileId !== 'string') return fileId;
   
   // Extract hash and extension
@@ -84,13 +86,16 @@ function buildHashPath(fileId) {
 
 /**
  * Build static file URL (no authentication required)
- * Uses backend API static file serving structure: /api/files/{workspace_id}/{hash_path}
+ * 🔧 VERIFIED via curl: Use direct /files/{file_id} format (working)
+ * NOT using /files/{workspace_id}/{hash_path} format (returns 404)
  */
 export function buildStaticFileUrl(fileId, workspaceId = 2) {
   if (!fileId) return null;
   
-  const hashPath = buildHashPath(fileId);
-  return `/api/files/${workspaceId}/${hashPath}`;
+  // 🔧 CRITICAL FIX: Based on curl testing, use direct /files/{file_id} format
+  // This format returns the actual image file (1.1MB PNG) instead of placeholder text
+  const baseUrl = getApiBaseUrl();
+  return `${baseUrl}/files/${fileId}`;
 }
 
 /**
@@ -100,7 +105,21 @@ export function buildStaticFileUrl(fileId, workspaceId = 2) {
 export function buildAuthFileUrl(fileId) {
   if (!fileId) return null;
   
-  return `/api/files/download/${fileId}`;
+  const baseUrl = getApiBaseUrl();
+  return `${baseUrl}/files/download/${fileId}`;
+}
+
+/**
+ * Build workspace path URL (for Level 3 fallback)
+ * Format: /files/{workspace_id}/{hash_path}
+ * Status: Currently returns 404, but kept for potential backend fixes
+ */
+export function buildWorkspaceFileUrl(fileId, workspaceId = 2) {
+  if (!fileId) return null;
+  
+  const hashPath = buildHashPath(fileId);
+  const baseUrl = getApiBaseUrl();
+  return `${baseUrl}/files/${workspaceId}/${hashPath}`;
 }
 
 /**
@@ -248,79 +267,7 @@ export function formatFileSize(bytes) {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
 }
 
-/**
- * Legacy compatibility function
- * @deprecated Use getStandardFileUrl instead
- */
-export function getCorrectFileUrl(file, workspaceId = 2) {
-  return getStandardFileUrl(file, { workspaceId });
-}
-
-/**
- * Legacy compatibility function for authenticated downloads
- * @deprecated Use buildAuthFileUrl instead
- */
-export function getAuthenticatedDownloadUrl(fileInput, options = {}) {
-  const { workspaceId = 2 } = options;
-  
-  // Enhanced file ID extraction with multiple strategies
-  let fileId = null;
-  
-  if (typeof fileInput === 'string') {
-    fileId = extractFileId(fileInput);
-  } else if (typeof fileInput === 'object' && fileInput !== null) {
-    // Try multiple extraction strategies
-    const candidates = [
-      fileInput.id,
-      fileInput.filename, 
-      fileInput.file_name,
-      fileInput.name,
-      fileInput.url,
-      fileInput.file_url
-    ];
-    
-    for (const candidate of candidates) {
-      if (candidate) {
-        fileId = extractFileId(candidate);
-        if (fileId && isValidFileId(fileId)) {
-          break;
-        }
-        
-        // Direct validation if the candidate itself looks like a file ID
-        if (isValidFileId(candidate)) {
-          fileId = candidate;
-          break;
-        }
-      }
-    }
-  }
-  
-  if (fileId && isValidFileId(fileId)) {
-    return buildAuthFileUrl(fileId);
-  }
-  
-  return null;
-}
-
-/**
- * Legacy compatibility function for robust URL generation
- * @deprecated Use getStandardFileUrl with fallback options instead
- */
-export function getRobustFileUrls(fileInput, options = {}) {
-  console.log('🔍 [getRobustFileUrls] Input:', { fileInput, options });
-  
-  const staticUrl = getStandardFileUrl(fileInput, { ...options, preferAuth: false });
-  const authUrl = getAuthenticatedDownloadUrl(fileInput, options);
-  
-  console.log('🔍 [getRobustFileUrls] Generated URLs:', { staticUrl, authUrl });
-  
-  // 🔧 PRIORITIZE AUTH URL: Since backend may not have static file serving configured
-  return {
-    primary: authUrl,    // Use auth URL as primary
-    fallback: staticUrl, // Use static URL as fallback
-    hasOptions: !!(staticUrl || authUrl)
-  };
-}
+// Deprecated functions removed for cleaner codebase
 
 export default {
   extractFileId,
@@ -330,8 +277,5 @@ export default {
   isValidFileId,
   getFileExtension,
   isImageFile,
-  formatFileSize,
-  getCorrectFileUrl,
-  getAuthenticatedDownloadUrl,
-  getRobustFileUrls
+  formatFileSize
 };

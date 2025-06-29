@@ -92,6 +92,14 @@ class ImageCacheService {
   async fetchAndCacheImage(imageUrl, options = {}) {
     const cacheKey = this.getCacheKey(imageUrl)
 
+    // 🔧 DEBUG: Log URL format for debugging
+    console.log('🔍 [ImageCache] Fetching image with URL format:', {
+      url: imageUrl,
+      isFlat: imageUrl.includes('/files/') && !imageUrl.includes('/files/2/'),
+      isLayered: imageUrl.includes('/files/2/'),
+      isAuth: imageUrl.includes('/files/download/')
+    })
+
     // 🔒 检查是否需要认证
     const needsAuth = this.needsAuthentication(imageUrl)
 
@@ -117,6 +125,14 @@ class ImageCacheService {
 
     const blob = await response.blob()
     const blobUrl = URL.createObjectURL(blob)
+
+    // 🔧 DEBUG: Log successful fetch details
+    console.log('✅ [ImageCache] Fetch successful:', {
+      url: imageUrl,
+      status: response.status,
+      contentType: response.headers.get('content-type'),
+      size: blob.size
+    })
 
     // 💾 存储到缓存
     const cacheItem = {
@@ -148,7 +164,7 @@ class ImageCacheService {
    */
   isApiImage(url) {
     return url && (
-      url.includes('/api/files/') ||
+      url.includes('/files/') ||
       url.startsWith('http://localhost') ||
               url.startsWith('https://hook-nav-attempt-size.trycloudflare.com')
     )
@@ -160,7 +176,7 @@ class ImageCacheService {
    * @returns {boolean}
    */
   needsAuthentication(url) {
-    return url && url.includes('/api/files/')
+    return url && url.includes('/files/')
   }
 
   /**

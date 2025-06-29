@@ -42,17 +42,19 @@ setInterval(() => {
 .test-app {
   padding: 20px;
   font-family: Arial, sans-serif;
+  background-color: #36393f;
+  color: #dcddde;
 }
 
 .status {
-  background: #f0f0f0;
+  background: #2f3136;
   padding: 10px;
   margin: 20px 0;
   border-radius: 5px;
 }
 
 button {
-  background: #007bff;
+  background: #5865f2;
   color: white;
   border: none;
   padding: 5px 15px;
@@ -61,7 +63,7 @@ button {
 }
 
 button:hover {
-  background: #0056b3;
+  background: #4f5cda;
 }
 
 .messages {
@@ -71,7 +73,7 @@ button:hover {
 .message {
   padding: 10px;
   margin: 5px 0;
-  background: #e9ecef;
+  background: #40444b;
   border-radius: 3px;
 }
 </style> 

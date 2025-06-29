@@ -257,7 +257,7 @@ const handleSubmit = async () => {
 }
 
 .modal-content {
-  background: white;
+  background: #2f3136;
   border-radius: 8px;
   width: 90%;
   max-width: 500px;
@@ -271,13 +271,13 @@ const handleSubmit = async () => {
   align-items: center;
   justify-content: space-between;
   padding: 20px 24px;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid #202225;
 }
 
 .modal-title {
   font-size: 18px;
   font-weight: 600;
-  color: #111827;
+  color: #dcddde;
   margin: 0;
 }
 
@@ -286,12 +286,12 @@ const handleSubmit = async () => {
   border: none;
   cursor: pointer;
   padding: 4px;
-  color: #6b7280;
+  color: #b9bbbe;
   transition: color 0.15s;
 }
 
 .modal-close:hover {
-  color: #111827;
+  color: #ffffff;
 }
 
 .modal-form {
@@ -308,44 +308,44 @@ const handleSubmit = async () => {
 }
 
 .channel-type-info.public-info {
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
+  background: #22c55a;
+  border: 1px solid #4ade80;
 }
 
 .channel-type-info.private-info {
-  background: #fefce8;
-  border: 1px solid #fde047;
+  background: #f9a828;
+  border: 1px solid #fcd34d;
 }
 
 .channel-type-icon {
   font-size: 20px;
   margin-right: 12px;
-  color: #059669;
+  color: #ffffff;
 }
 
 .private-info .channel-type-icon {
-  color: #d97706;
+  color: #ffffff;
 }
 
 .channel-type-info h4 {
   margin: 0 0 4px 0;
   font-size: 14px;
   font-weight: 600;
-  color: #065f46;
+  color: #ffffff;
 }
 
 .private-info h4 {
-  color: #92400e;
+  color: #ffffff;
 }
 
 .channel-type-info p {
   margin: 0;
   font-size: 12px;
-  color: #047857;
+  color: #ffffff;
 }
 
 .private-info p {
-  color: #a16207;
+  color: #ffffff;
 }
 
 .form-group {
@@ -356,12 +356,12 @@ const handleSubmit = async () => {
   display: block;
   font-size: 14px;
   font-weight: 500;
-  color: #374151;
+  color: #b9bbbe;
   margin-bottom: 6px;
 }
 
 .required {
-  color: #dc2626;
+  color: #f84f31;
 }
 
 /* Input with prefix */
@@ -374,7 +374,7 @@ const handleSubmit = async () => {
 .input-prefix {
   position: absolute;
   left: 12px;
-  color: #6b7280;
+  color: #b9bbbe;
   font-size: 14px;
   z-index: 1;
 }
@@ -386,36 +386,38 @@ const handleSubmit = async () => {
 .form-input {
   width: 100%;
   padding: 8px 12px;
-  border: 1px solid #d1d5db;
+  border: 1px solid #202225;
   border-radius: 6px;
   font-size: 14px;
+  background: #202225;
+  color: #dcddde;
   transition: border-color 0.15s;
 }
 
 .form-input:focus {
   outline: none;
-  border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  border-color: #5865f2;
+  box-shadow: 0 0 0 3px rgba(88, 101, 242, 0.1);
 }
 
 .form-input.error {
-  border-color: #dc2626;
+  border-color: #f84f31;
 }
 
 .form-input.error:focus {
-  border-color: #dc2626;
-  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+  border-color: #f84f31;
+  box-shadow: 0 0 0 3px rgba(248, 79, 49, 0.1);
 }
 
 .form-error-text {
-  color: #dc2626;
+  color: #f84f31;
   font-size: 12px;
   margin-top: 4px;
 }
 
 .form-help {
   font-size: 12px;
-  color: #6b7280;
+  color: #b9bbbe;
   margin-top: 4px;
 }
 
@@ -429,8 +431,8 @@ const handleSubmit = async () => {
   z-index: 10;
   width: 100%;
   margin-top: 4px;
-  background: white;
-  border: 1px solid #d1d5db;
+  background: #2f3136;
+  border: 1px solid #202225;
   border-radius: 6px;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   max-height: 200px;
@@ -442,7 +444,7 @@ const handleSubmit = async () => {
   align-items: center;
   padding: 8px 12px;
   cursor: pointer;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid #202225;
 }
 
 .search-result-item:last-child {
@@ -450,20 +452,20 @@ const handleSubmit = async () => {
 }
 
 .search-result-item:hover {
-  background: #f9fafb;
+  background: #40444b;
 }
 
 .user-avatar {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: #d1d5db;
+  background: #40444b;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 14px;
   font-weight: 600;
-  color: #374151;
+  color: #dcddde;
   margin-right: 12px;
 }
 
@@ -474,12 +476,12 @@ const handleSubmit = async () => {
 .user-name {
   font-size: 14px;
   font-weight: 500;
-  color: #111827;
+  color: #dcddde;
 }
 
 .user-email {
   font-size: 12px;
-  color: #6b7280;
+  color: #b9bbbe;
 }
 
 /* Selected members */
@@ -496,8 +498,8 @@ const handleSubmit = async () => {
 .member-chip {
   display: inline-flex;
   align-items: center;
-  background: #dbeafe;
-  color: #1e40af;
+  background: #40444b;
+  color: #dcddde;
   font-size: 12px;
   padding: 4px 8px;
   border-radius: 16px;
@@ -508,7 +510,7 @@ const handleSubmit = async () => {
   border: none;
   cursor: pointer;
   margin-left: 4px;
-  color: #1e40af;
+  color: #b9bbbe;
   padding: 2px;
   border-radius: 50%;
   display: flex;
@@ -517,7 +519,7 @@ const handleSubmit = async () => {
 }
 
 .remove-member:hover {
-  background: rgba(30, 64, 175, 0.1);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .modal-footer {
@@ -525,7 +527,7 @@ const handleSubmit = async () => {
   gap: 12px;
   justify-content: flex-end;
   padding: 20px 24px;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid #202225;
 }
 
 .btn {
@@ -539,12 +541,12 @@ const handleSubmit = async () => {
 }
 
 .btn-primary {
-  background: #6366f1;
+  background: #5865f2;
   color: white;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #4f46e5;
+  background: #4f5cda;
 }
 
 .btn-primary:disabled {
@@ -553,13 +555,13 @@ const handleSubmit = async () => {
 }
 
 .btn-secondary {
-  background: white;
-  color: #374151;
-  border-color: #d1d5db;
+  background: #40444b;
+  color: #dcddde;
+  border-color: #202225;
 }
 
 .btn-secondary:hover {
-  background: #f9fafb;
+  background: #4f545c;
 }
 
 .btn-secondary:disabled {
@@ -568,11 +570,11 @@ const handleSubmit = async () => {
 }
 
 .form-error {
-  color: #dc2626;
+  color: #f84f31;
   font-size: 14px;
   margin: 12px 0 0 0;
   padding: 8px 12px;
-  background: #fee2e2;
+  background: #f84f31;
   border-radius: 4px;
 }
 </style>

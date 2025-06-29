@@ -252,7 +252,7 @@ class MessageNavigationManager {
   async loadViaAPI(params) {
     try {
       // Try to fetch message context directly
-      const response = await fetch(`/api/chats/${params.chatId}/messages/${params.messageId}/context`, {
+      const response = await fetch(`/api/chat/${params.chatId}/messages/${params.messageId}/context`, {
         headers: {
           'Authorization': `Bearer ${this.getAuthToken()}`,
           'Content-Type': 'application/json'

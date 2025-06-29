@@ -12,6 +12,14 @@
   ],
   "rewrites": [
     {
+      "source": "/api/files/download/(.*)",
+      "destination": "https://hook-nav-attempt-size.trycloudflare.com/api/files/download/$1"
+    },
+    {
+      "source": "/api/files/(.*)",
+      "destination": "https://hook-nav-attempt-size.trycloudflare.com/api/files/$1"
+    },
+    {
       "source": "/api/(.*)",
       "destination": "https://hook-nav-attempt-size.trycloudflare.com/api/$1"
     },
@@ -42,10 +50,55 @@
   ],
   "headers": [
     {
+      "source": "/api/files/(.*)",
+      "headers": [
+        {
+          "key": "ngrok-skip-browser-warning",
+          "value": "true"
+        },
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Accept, Authorization, Cache-Control, Content-Type, DNT, If-Modified-Since, Keep-Alive, Origin, User-Agent, X-Requested-With, ngrok-skip-browser-warning"
+        },
+        {
+          "key": "Access-Control-Allow-Credentials",
+          "value": "true"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ]
+    },
+    {
       "source": "/api/(.*)",
       "headers": [
         {
           "key": "ngrok-skip-browser-warning",
+          "value": "true"
+        },
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Accept, Authorization, Cache-Control, Content-Type, DNT, If-Modified-Since, Keep-Alive, Origin, User-Agent, X-Requested-With, ngrok-skip-browser-warning"
+        },
+        {
+          "key": "Access-Control-Allow-Credentials",
           "value": "true"
         }
       ]

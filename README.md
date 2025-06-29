@@ -4,7 +4,7 @@ A modern Vue.js frontend application for the Fechatter chat platform.
 
 ## Features
 
-- Real-time messaging with WebSocket/SSE
+- Real-time messaging with SSE (Server-Sent Events)
 - File upload and sharing
 - Modern chat interface
 - Responsive design

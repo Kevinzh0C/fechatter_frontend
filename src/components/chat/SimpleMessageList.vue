@@ -77,7 +77,7 @@ defineExpose({
   width: 100%;
   height: 100%;
   overflow-y: auto;
-  background: var(--bg-primary, #313338);
+  background: var(--color-background);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -99,20 +99,20 @@ defineExpose({
 .cleared-notice {
   text-align: center;
   padding: 40px 20px;
-  background: var(--bg-secondary, #2b2d31);
-  border: 2px dashed var(--border-primary, #3e4146);
+  background: var(--color-background-soft);
+  border: 2px dashed var(--color-border);
   border-radius: 12px;
   max-width: 500px;
 }
 
 .cleared-notice h3 {
-  color: var(--text-primary, #dbdee1);
+  color: var(--color-text);
   margin-bottom: 12px;
   font-size: 18px;
 }
 
 .cleared-notice p {
-  color: var(--text-muted, #949ba4);
+  color: var(--color-text-muted);
   margin: 8px 0;
   font-size: 14px;
 }
@@ -124,7 +124,7 @@ defineExpose({
   align-items: center;
   gap: 12px;
   padding: 20px;
-  color: var(--text-muted, #b5bac1);
+  color: var(--color-text-muted);
   font-size: 14px;
   width: 100%;
 }
@@ -132,8 +132,8 @@ defineExpose({
 .loading-spinner {
   width: 16px;
   height: 16px;
-  border: 2px solid var(--border-primary, #3f4147);
-  border-top: 2px solid var(--discord-primary, #5865f2);
+  border: 2px solid var(--color-border);
+  border-top: 2px solid var(--color-primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -152,12 +152,12 @@ defineExpose({
   position: fixed;
   bottom: 100px;
   right: 20px;
-  background: var(--discord-primary, #5865f2);
-  color: white;
+  background: var(--color-primary);
+  color: var(--color-text-on-primary);
   border: none;
   border-radius: 16px;
   padding: 8px 16px;
-  box-shadow: var(--shadow-medium, 0 4px 4px rgba(0, 0, 0, 0.16));
+  box-shadow: var(--shadow-md);
   cursor: pointer;
   z-index: 1000;
   font-size: 12px;
@@ -166,6 +166,6 @@ defineExpose({
 }
 
 .scroll-to-bottom-button:hover {
-  background: var(--discord-primary-hover, #4752c4);
+  background: var(--color-primary-hover);
 }
 </style>

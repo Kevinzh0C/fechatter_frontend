@@ -108,6 +108,41 @@
     <path v-else-if="name === 'language'" fill="none" stroke="currentColor" stroke-width="2"
       d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
 
+    <!-- Home icon -->
+    <path v-else-if="name === 'home'" fill="none" stroke="currentColor" stroke-width="2"
+      d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+    <polyline v-else-if="name === 'home'" points="9,22 9,12 15,12 15,22" fill="none" stroke="currentColor" stroke-width="2" />
+
+    <!-- User Plus icon -->
+    <path v-else-if="name === 'user-plus'" fill="none" stroke="currentColor" stroke-width="2"
+      d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+    <circle v-else-if="name === 'user-plus'" cx="8.5" cy="7" r="4" fill="none" stroke="currentColor" stroke-width="2" />
+    <line v-else-if="name === 'user-plus'" x1="20" y1="8" x2="20" y2="14" stroke="currentColor" stroke-width="2" />
+    <line v-else-if="name === 'user-plus'" x1="23" y1="11" x2="17" y2="11" stroke="currentColor" stroke-width="2" />
+
+    <!-- Settings icon -->
+    <circle v-else-if="name === 'settings'" cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2" />
+    <path v-else-if="name === 'settings'" fill="none" stroke="currentColor" stroke-width="2"
+      d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z" />
+
+    <!-- Plus Circle icon -->
+    <circle v-else-if="name === 'plus-circle'" cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2" />
+    <line v-else-if="name === 'plus-circle'" x1="12" y1="8" x2="12" y2="16" stroke="currentColor" stroke-width="2" />
+    <line v-else-if="name === 'plus-circle'" x1="8" y1="12" x2="16" y2="12" stroke="currentColor" stroke-width="2" />
+
+    <!-- X icon -->
+    <path v-else-if="name === 'x'" fill="none" stroke="currentColor" stroke-width="2"
+      d="M18 6L6 18M6 6l12 12" />
+
+    <!-- Alert Circle icon -->
+    <circle v-else-if="name === 'alert-circle'" cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2" />
+    <line v-else-if="name === 'alert-circle'" x1="12" y1="8" x2="12" y2="12" stroke="currentColor" stroke-width="2" />
+    <line v-else-if="name === 'alert-circle'" x1="12" y1="16" x2="12.01" y2="16" stroke="currentColor" stroke-width="2" />
+
+    <!-- Message Circle icon -->
+    <path v-else-if="name === 'message-circle'" fill="none" stroke="currentColor" stroke-width="2"
+      d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+
     <!-- Fallback: Question Mark for unknown icons -->
     <path v-if="!knownIcons.includes(name)"
       d="M11,18H13V16H11V18M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,6A4,4 0 0,0 8,10H10A2,2 0 0,1 12,8A2,2 0 0,1 14,10C14,12 11,11.75 11,15H13C13,12.75 16,12.5 16,10A4,4 0 0,0 12,6Z" />
@@ -138,7 +173,8 @@ const knownIcons = [
   'hash', 'lock', 'megaphone', 'chevron-down', 'chevron-up', 'refresh', 'search', 'search-outline', 'plus',
   'ellipsis-horizontal', 'user', 'bell-off', 'arrow-right', 'edit', 'eye', 'users', 'log-out',
   'file', 'file-pdf', 'file-word', 'file-excel', 'file-ppt', 'file-code', 'file-archive',
-  'file-video', 'file-audio', 'image-broken', 'expand', 'download', 'language'
+  'file-video', 'file-audio', 'image-broken', 'expand', 'download', 'language',
+  'home', 'user-plus', 'settings', 'plus-circle', 'x', 'alert-circle', 'message-circle'
 ]
 
 // Computed

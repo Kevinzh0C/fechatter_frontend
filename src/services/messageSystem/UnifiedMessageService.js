@@ -256,11 +256,21 @@ export class UnifiedMessageService {
     const now = Date.now();
     const requestKey = `${normalizedChatId}_${limit}`;
     
-    // Check if there's already an active request for this chat
+    // 🔧 CRITICAL FIX: Check if there's already an active request for this chat
+    // Add timeout check to prevent eternal blocking
     if (this.activeRequests.has(requestKey)) {
-      console.log(`🔄 [Dedup] Reusing active request for chat ${chatId}`);
-      this.stats.duplicatesBlocked++;
-      return await this.activeRequests.get(requestKey);
+      const activeRequest = this.activeRequests.get(requestKey);
+      const requestAge = now - (activeRequest.timestamp || 0);
+      
+      // If request is older than 10 seconds, consider it stale and remove it
+      if (requestAge > 10000) {
+        console.warn(`⏰ [Dedup] Removing stale request for chat ${chatId} (age: ${requestAge}ms)`);
+        this.activeRequests.delete(requestKey);
+      } else {
+        console.log(`🔄 [Dedup] Reusing active request for chat ${chatId} (age: ${requestAge}ms)`);
+        this.stats.duplicatesBlocked++;
+        return await activeRequest.promise || activeRequest;
+      }
     }
     
     // Check debounce timing
@@ -292,9 +302,12 @@ export class UnifiedMessageService {
         return existingMessages;
       }
 
-      // Create request promise and store it
+      // Create request promise and store it with timestamp
       const requestPromise = this._performFetchRequest(normalizedChatId, limit, abortSignal, isPreload);
-      this.activeRequests.set(requestKey, requestPromise);
+      this.activeRequests.set(requestKey, {
+        promise: requestPromise,
+        timestamp: now
+      });
       this.requestDebounce.set(requestKey, now);
 
       // Execute request
@@ -306,7 +319,32 @@ export class UnifiedMessageService {
       return result;
 
     } catch (error) {
-      // Clean up active request on error
+      // 🚀 CRITICAL FIX: Handle deduplicated requests from the API layer
+      if (error && error.__DEDUPLICATED__) {
+        console.log(`🔄 [Dedup] Handling deduplicated promise for chat ${chatId}`);
+        // This is not a real error, but a signal to wait for the original request.
+        // The original promise is attached to the error object.
+        try {
+          if (error.originalPromise) {
+            console.log(`⚡ [Dedup] Awaiting original promise for chat ${chatId}`);
+            const result = await error.originalPromise;
+            console.log(`✅ [Dedup] Original promise resolved for chat ${chatId}`);
+            return result;
+          } else {
+            console.warn(`⚠️ [Dedup] No original promise found for chat ${chatId}, falling back to cache`);
+            const cachedMessages = this.messagesByChat.get(normalizedChatId);
+            return cachedMessages || [];
+          }
+        } catch (dedupeError) {
+          console.error(`❌ [Dedup] Original promise failed for chat ${chatId}:`, dedupeError);
+          // Clean up and try to return cached data
+          this.activeRequests.delete(requestKey);
+          const cachedMessages = this.messagesByChat.get(normalizedChatId);
+          return cachedMessages || [];
+        }
+      }
+
+      // Clean up active request on genuine error
       this.activeRequests.delete(requestKey);
       
       if (error.name === 'AbortError') {
@@ -343,9 +381,11 @@ export class UnifiedMessageService {
       const { default: api } = await import('../api');
 
       // Make API call to fetch messages
+      // 🚨 CRITICAL FIX: Skip API deduplication for message requests to prevent blocking
       const response = await api.get(`/chat/${chatId}/messages`, {
         params: { limit },
-        signal: abortSignal
+        signal: abortSignal,
+        skipDeduplication: true // 🔧 BYPASS API layer deduplication
       });
 
       // Extract messages from response
@@ -882,9 +922,43 @@ export class UnifiedMessageService {
   }
 
   /**
-   * 🔧 HELPER: Resolve user name with enhanced fallback logic
+   * 🔧 HELPER: Resolve user name with enhanced fallback logic (SYNC version for compatibility)
    */
   _resolveUserName(msg) {
+    // 🚀 Try to use enhanced resolver synchronously if available
+    if (window.__enhancedUserNameResolver) {
+      try {
+        // Use sync fallback from enhanced resolver
+        const userId = parseInt(msg.sender_id);
+        return window.__enhancedUserNameResolver.generateConsistentFallback(userId);
+      } catch (error) {
+        // Fall through to legacy
+      }
+    }
+    
+    return this._legacyResolveUserName(msg);
+  }
+
+  /**
+   * 🚀 ASYNC version for enhanced user name resolution
+   */
+  async _resolveUserNameAsync(msg) {
+    // 🚀 NEW: Use EnhancedUserNameResolver for consistent user name resolution
+    try {
+      const { enhancedUserNameResolver } = await import('../EnhancedUserNameResolver.js');
+      return await enhancedUserNameResolver.resolveUserName(msg.sender_id, msg);
+    } catch (error) {
+      if (true) {
+        console.warn('[UnifiedMessageService] Enhanced resolver failed, falling back to legacy:', error);
+      }
+      return this._legacyResolveUserName(msg);
+    }
+  }
+
+  /**
+   * 🔧 LEGACY: Original user name resolution logic (fallback)
+   */
+  _legacyResolveUserName(msg) {
     // 🔧 ROOT CAUSE FIX: Try multiple sources for user name from message object
     if (msg.sender?.fullname) return msg.sender.fullname;
     if (msg.sender?.name) return msg.sender.name;
@@ -1004,7 +1078,7 @@ export class UnifiedMessageService {
   }
 
   /**
-   * 🔧 HELPER: Enhanced sender object creation with better user data integration
+   * 🔧 HELPER: Enhanced sender object creation (SYNC version for compatibility)
    */
   _createSenderObject(msg) {
     // If message already has complete sender object, use it
@@ -1050,10 +1124,76 @@ export class UnifiedMessageService {
       }
     }
 
+    // 🚀 Use sync user name resolution
+    const resolvedName = this._resolveUserName(msg);
+
     // 🔧 PRODUCTION-READY: Create comprehensive sender object
     return {
       id: senderId || 0,
-      fullname: userData?.fullname || this._resolveUserName(msg),
+      fullname: userData?.fullname || resolvedName,
+      email: userData?.email || msg.sender?.email || '',
+      avatar_url: userData?.avatar_url || msg.sender?.avatar_url || null,
+      username: userData?.username || msg.sender?.username || null,
+      // 🔧 NEW: Additional user metadata for future use
+      status: userData?.status || 'unknown',
+      workspace_id: userData?.workspace_id || null
+    };
+  }
+
+  /**
+   * 🚀 ASYNC version for enhanced sender object creation
+   */
+  async _createSenderObjectAsync(msg) {
+    // If message already has complete sender object, use it
+    if (msg.sender && typeof msg.sender === 'object' && msg.sender.fullname) {
+      return {
+        id: parseInt(msg.sender.id) || parseInt(msg.sender_id) || 0,
+        fullname: msg.sender.fullname,
+        email: msg.sender.email || '',
+        avatar_url: msg.sender.avatar_url || null,
+        username: msg.sender.username || null
+      };
+    }
+
+    // 🔧 ENHANCED: Get complete user data from stores
+    let userData = null;
+    const senderId = parseInt(msg.sender_id);
+
+    if (senderId) {
+      try {
+        // 🔧 FIXED: Use correct global store access
+        const userStoreAccessor = window.__pinia_stores__?.user;
+        if (userStoreAccessor) {
+          const userStore = userStoreAccessor();
+          userData = userStore.getUserById(senderId);
+        }
+
+        // Fallback to workspaceStore
+        if (!userData) {
+          const workspaceStoreAccessor = window.__pinia_stores__?.workspace;
+          if (workspaceStoreAccessor) {
+            const workspaceStore = workspaceStoreAccessor();
+            if (workspaceStore?.workspaceUsers) {
+              userData = workspaceStore.workspaceUsers.find(u =>
+                parseInt(u.id) === senderId
+              );
+            }
+          }
+        }
+      } catch (error) {
+        if (true) {
+          console.warn('[UnifiedMessageService] Failed to get user data for sender:', senderId, error);
+        }
+      }
+    }
+
+    // 🚀 NEW: Use enhanced async user name resolution
+    const resolvedName = await this._resolveUserNameAsync(msg);
+
+    // 🔧 PRODUCTION-READY: Create comprehensive sender object
+    return {
+      id: senderId || 0,
+      fullname: userData?.fullname || resolvedName,
       email: userData?.email || msg.sender?.email || '',
       avatar_url: userData?.avatar_url || msg.sender?.avatar_url || null,
       username: userData?.username || msg.sender?.username || null,

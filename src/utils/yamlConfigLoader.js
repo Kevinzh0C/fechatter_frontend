@@ -29,7 +29,7 @@ async function loadYAMLConfig() {
     try {
       console.log('🔍 [yamlConfigLoader] Loading development.yml (simplified mode)')
       
-      const response = await fetch('/config/development.yml')
+      const response = await (window.originalFetch || fetch)('/config/development.yml')
       if (!response.ok) {
         throw new Error(`Failed to fetch config: ${response.status}`)
       }

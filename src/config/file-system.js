@@ -4,8 +4,8 @@
  * 
  * ✅ VERIFIED CAPABILITIES:
  * - Static file service: /files/* (238MB/s performance)
- * - API upload endpoint: /api/files/single (authenticated, working)
- * - API download endpoint: /api/files/download/* (authenticated, working)
+ * - API upload endpoint: /files/single (authenticated, working)
+ * - API download endpoint: /files/download/* (authenticated, working)
  * - Hash directory structure: abc/123/filename.ext (working)
  * - Symlink system: Root-level access via symlinks (working)
  * - File integrity: Binary files, large files all verified
@@ -14,8 +14,8 @@
 export const FILE_SYSTEM_CONFIG = {
   // ✅ PRODUCTION ENDPOINTS (verified working)
   endpoints: {
-    upload: '/api/files/single',           // Authenticated upload
-    download: '/api/files/download',       // Authenticated download  
+    upload: '/files/single',           // Authenticated upload
+    download: '/files/download',       // Authenticated download  
     staticFiles: '/files',                 // High-performance static access
   },
 
@@ -32,8 +32,8 @@ export const FILE_SYSTEM_CONFIG = {
   urlPatterns: {
     static: '/files/{workspaceId}/{hash1}/{hash2}/{filename}',
     staticSimple: '/files/{workspaceId}/{filename}',
-    apiUpload: '/api/files/single',
-    apiDownload: '/api/files/download/{filename}',
+    apiUpload: '/files/single',
+    apiDownload: '/files/download/{filename}',
   },
 
   // ✅ SUPPORTED FILE TYPES (comprehensive list)
@@ -110,15 +110,16 @@ export class FileSystemUtils {
    * Build optimized static URL
    */
   static buildStaticUrl(filename, workspaceId = FILE_SYSTEM_CONFIG.workspace.defaultId) {
-    const hashPath = this.generateHashPath(filename);
-    return `/files/${workspaceId}/${hashPath}`;
+    // 🔧 CRITICAL FIX: Use flat path format that returns actual images
+    // Previous format with workspace_id was returning placeholder text
+    return `/files/${filename}`;
   }
 
   /**
    * Build authenticated download URL
    */
   static buildAuthUrl(filename) {
-    return `/api/files/download/${filename}`;
+    return `/files/download/${filename}`;
   }
 
   /**
@@ -186,8 +187,15 @@ export class ProductionFileManager {
    */
   async getAuthenticatedUrl(fileInput, options = {}) {
     try {
-      const { getAuthenticatedDownloadUrl } = await import('../utils/fileUrlHandler.js');
-      return getAuthenticatedDownloadUrl(fileInput, options);
+      const { buildAuthFileUrl } = await import('../utils/fileUrlHandler.js');
+      // Extract file ID from various sources
+      let fileId = null;
+      if (typeof fileInput === 'string') {
+        fileId = fileInput;
+      } else if (fileInput && typeof fileInput === 'object') {
+        fileId = fileInput.filename || fileInput.file_name || fileInput.name || fileInput.id;
+      }
+      return buildAuthFileUrl(fileId);
     } catch (error) {
       console.error('❌ [ProductionFileManager] Auth URL generation failed:', error);
       return null;

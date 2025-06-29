@@ -1,9 +1,9 @@
 <template>
-  <div class="bg-white rounded-lg shadow-lg max-w-4xl w-full max-h-[90vh] overflow-hidden">
+  <div class="bg-gray-800 rounded-lg shadow-lg max-w-4xl w-full max-h-[90vh] overflow-hidden">
     <!-- Header -->
-    <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-      <h2 class="text-xl font-semibold text-gray-900">Workspace Settings</h2>
-      <button @click="$emit('close')" class="text-gray-400 hover:text-gray-600">
+    <div class="px-6 py-4 border-b border-gray-700 flex items-center justify-between">
+      <h2 class="text-xl font-semibold text-white">Workspace Settings</h2>
+      <button @click="$emit('close')" class="text-gray-400 hover:text-white">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
         </svg>
@@ -13,12 +13,12 @@
     <!-- Content -->
     <div class="flex h-full">
       <!-- Sidebar Navigation -->
-      <div class="w-64 bg-gray-50 border-r border-gray-200">
+      <div class="w-64 bg-gray-900 border-r border-gray-700">
         <nav class="p-4 space-y-2">
           <button v-for="tab in tabs" :key="tab.id" @click="activeTab = tab.id"
             class="w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors" :class="activeTab === tab.id
-              ? 'bg-purple-100 text-purple-700'
-              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'">
+              ? 'bg-purple-600 text-white'
+              : 'text-gray-300 hover:text-white hover:bg-gray-700'">
             <div class="flex items-center">
               <component :is="tab.icon" class="w-5 h-5 mr-3" />
               {{ tab.name }}
@@ -31,48 +31,48 @@
       <div class="flex-1 overflow-y-auto">
         <!-- General Settings -->
         <div v-if="activeTab === 'general'" class="p-6">
-          <h3 class="text-lg font-medium text-gray-900 mb-4">General Settings</h3>
+          <h3 class="text-lg font-medium text-white mb-4">General Settings</h3>
 
           <div class="space-y-6">
             <!-- Workspace Name -->
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
+              <label class="block text-sm font-medium text-gray-300 mb-2">
                 Workspace Name
               </label>
               <input v-model="workspaceName" type="text"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                class="w-full px-3 py-2 border border-gray-600 rounded-md bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                 placeholder="Enter workspace name">
             </div>
 
             <!-- Workspace Description -->
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
+              <label class="block text-sm font-medium text-gray-300 mb-2">
                 Description
               </label>
               <textarea v-model="workspaceDescription" rows="3"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                class="w-full px-3 py-2 border border-gray-600 rounded-md bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                 placeholder="Describe your workspace..."></textarea>
             </div>
 
             <!-- Workspace Info -->
-            <div class="bg-gray-50 p-4 rounded-lg">
-              <h4 class="text-sm font-medium text-gray-900 mb-3">Workspace Information</h4>
+            <div class="bg-gray-700 p-4 rounded-lg">
+              <h4 class="text-sm font-medium text-white mb-3">Workspace Information</h4>
               <div class="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <span class="text-gray-500">Created:</span>
-                  <span class="ml-2 text-gray-900">{{ formatDate(workspaceStore.currentWorkspace?.created_at) }}</span>
+                  <span class="text-gray-400">Created:</span>
+                  <span class="ml-2 text-white">{{ formatDate(workspaceStore.currentWorkspace?.created_at) }}</span>
                 </div>
                 <div>
-                  <span class="text-gray-500">Owner:</span>
-                  <span class="ml-2 text-gray-900">{{ workspaceStore.workspaceOwner?.fullname || 'Unknown' }}</span>
+                  <span class="text-gray-400">Owner:</span>
+                  <span class="ml-2 text-white">{{ workspaceStore.workspaceOwner?.fullname || 'Unknown' }}</span>
                 </div>
                 <div>
-                  <span class="text-gray-500">Members:</span>
-                  <span class="ml-2 text-gray-900">{{ workspaceStore.memberCount }}</span>
+                  <span class="text-gray-400">Members:</span>
+                  <span class="ml-2 text-white">{{ workspaceStore.memberCount }}</span>
                 </div>
                 <div>
-                  <span class="text-gray-500">Channels:</span>
-                  <span class="ml-2 text-gray-900">{{ workspaceStore.chatStats.length }}</span>
+                  <span class="text-gray-400">Channels:</span>
+                  <span class="ml-2 text-white">{{ workspaceStore.chatStats.length }}</span>
                 </div>
               </div>
             </div>
@@ -90,7 +90,7 @@
         <!-- Members Management -->
         <div v-if="activeTab === 'members'" class="p-6">
           <div class="flex items-center justify-between mb-6">
-            <h3 class="text-lg font-medium text-gray-900">Members</h3>
+            <h3 class="text-lg font-medium text-white">Members</h3>
             <button @click="showInviteModal = true"
               class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700">
               Invite Member
@@ -100,7 +100,7 @@
           <!-- Members List -->
           <div class="space-y-3">
             <div v-for="member in workspaceStore.workspaceUsers" :key="member.id"
-              class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+              class="flex items-center justify-between p-4 bg-gray-700 rounded-lg">
               <div class="flex items-center space-x-3">
                 <!-- Avatar -->
                 <div class="w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center">
@@ -111,17 +111,17 @@
 
                 <!-- Member Info -->
                 <div>
-                  <p class="font-medium text-gray-900">{{ member.fullname }}</p>
-                  <p class="text-sm text-gray-500">{{ member.email }}</p>
+                  <p class="font-medium text-white">{{ member.fullname }}</p>
+                  <p class="text-sm text-gray-400">{{ member.email }}</p>
                   <div class="flex items-center space-x-2 mt-1">
                     <span v-if="workspaceStore.isWorkspaceOwner(member.id)"
-                      class="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
+                      class="px-2 py-1 bg-yellow-200 text-yellow-800 text-xs rounded-full">
                       Owner
                     </span>
-                    <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                    <span class="px-2 py-1 bg-blue-200 text-blue-800 text-xs rounded-full">
                       Member
                     </span>
-                    <span class="text-xs text-gray-500">
+                    <span class="text-xs text-gray-400">
                       Joined {{ formatDate(member.created_at) }}
                     </span>
                   </div>
@@ -131,12 +131,12 @@
               <!-- Actions -->
               <div class="flex items-center space-x-2">
                 <button v-if="canTransferOwnership(member)" @click="confirmTransferOwnership(member)"
-                  class="px-3 py-1 bg-yellow-100 text-yellow-800 text-sm rounded hover:bg-yellow-200">
+                  class="px-3 py-1 bg-yellow-200 text-yellow-800 text-sm rounded hover:bg-yellow-300">
                   Make Owner
                 </button>
 
                 <button v-if="canRemoveMember(member)" @click="confirmRemoveMember(member)"
-                  class="px-3 py-1 bg-red-100 text-red-800 text-sm rounded hover:bg-red-200">
+                  class="px-3 py-1 bg-red-200 text-red-800 text-sm rounded hover:bg-red-300">
                   Remove
                 </button>
               </div>
@@ -147,7 +147,7 @@
         <!-- Channels Overview -->
         <div v-if="activeTab === 'channels'" class="p-6">
           <div class="flex items-center justify-between mb-6">
-            <h3 class="text-lg font-medium text-gray-900">Channels Overview</h3>
+            <h3 class="text-lg font-medium text-white">Channels Overview</h3>
             <button @click="refreshStats" :disabled="workspaceStore.loading"
               class="px-3 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 disabled:opacity-50">
               {{ workspaceStore.loading ? 'Refreshing...' : 'Refresh Stats' }}
@@ -156,67 +156,67 @@
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div v-for="chat in workspaceStore.chatStats" :key="chat.id"
-              class="p-4 border border-gray-200 rounded-lg relative">
+              class="p-4 border border-gray-700 rounded-lg relative bg-gray-700">
               <!-- 归档状态指示器 -->
               <div v-if="chat.is_archived"
-                class="absolute top-2 right-2 px-2 py-1 bg-gray-100 text-gray-500 text-xs rounded-full">
+                class="absolute top-2 right-2 px-2 py-1 bg-gray-600 text-gray-300 text-xs rounded-full">
                 Archived
               </div>
 
               <div class="flex items-center justify-between mb-2">
-                <h4 class="font-medium text-gray-900"># {{ chat.name }}</h4>
+                <h4 class="font-medium text-white"># {{ chat.name }}</h4>
                 <div class="flex items-center gap-2">
                   <!-- 活跃度指示器 -->
                   <span :class="{
-                    'bg-green-100 text-green-600': chat.activity_level === 'high',
-                    'bg-yellow-100 text-yellow-600': chat.activity_level === 'medium',
-                    'bg-gray-100 text-gray-600': chat.activity_level === 'low'
+                    'bg-green-200 text-green-800': chat.activity_level === 'high',
+                    'bg-yellow-200 text-yellow-800': chat.activity_level === 'medium',
+                    'bg-gray-600 text-gray-300': chat.activity_level === 'low'
                   }" class="px-2 py-1 text-xs rounded-full">
                     {{ chat.activity_level }} activity
                   </span>
-                  <span class="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
+                  <span class="px-2 py-1 bg-gray-600 text-gray-300 text-xs rounded-full">
                     {{ chat.chat_type }}
                   </span>
                 </div>
               </div>
 
-              <p class="text-sm text-gray-600 mb-3">{{ chat.description || 'No description' }}</p>
+              <p class="text-sm text-gray-300 mb-3">{{ chat.description || 'No description' }}</p>
 
               <!-- 详细统计信息 -->
-              <div class="grid grid-cols-2 gap-4 text-xs text-gray-500 mb-3">
+              <div class="grid grid-cols-2 gap-4 text-xs text-gray-400 mb-3">
                 <div>
-                  <span class="font-medium">{{ chat.member_count }}</span> members
+                  <span class="font-medium text-white">{{ chat.member_count }}</span> members
                 </div>
                 <div>
-                  <span class="font-medium">{{ chat.message_count }}</span> messages
+                  <span class="font-medium text-white">{{ chat.message_count }}</span> messages
                 </div>
                 <div>
-                  <span class="font-medium">{{ chat.file_count }}</span> files
+                  <span class="font-medium text-white">{{ chat.file_count }}</span> files
                 </div>
                 <div>
-                  Score: <span class="font-medium">{{ Math.round(chat.activity_score) }}</span>
+                  Score: <span class="font-medium text-white">{{ Math.round(chat.activity_score) }}</span>
                 </div>
               </div>
 
-              <div class="flex items-center justify-between text-xs text-gray-500">
+              <div class="flex items-center justify-between text-xs text-gray-400">
                 <span>Creator: {{ chat.creator_name }}</span>
                 <span>Created {{ formatDate(chat.created_at) }}</span>
               </div>
 
-              <div v-if="chat.last_activity" class="text-xs text-gray-500 mt-1">
+              <div v-if="chat.last_activity" class="text-xs text-gray-400 mt-1">
                 Last activity: {{ formatDate(chat.last_activity) }}
               </div>
 
               <!-- 管理员操作按钮 -->
               <div v-if="workspaceStore.isWorkspaceOwner(currentUserId)"
-                class="flex gap-2 mt-3 pt-3 border-t border-gray-100">
+                class="flex gap-2 mt-3 pt-3 border-t border-gray-600">
                 <button @click="editChat(chat)"
-                  class="px-3 py-1 text-xs bg-blue-50 text-blue-600 rounded hover:bg-blue-100">
+                  class="px-3 py-1 text-xs bg-blue-200 text-blue-800 rounded hover:bg-blue-300">
                   Edit
                 </button>
                 <button @click="toggleArchiveChat(chat)" :class="{
-                  'bg-gray-50 text-gray-600 hover:bg-gray-100': chat.is_archived,
-                  'bg-orange-50 text-orange-600 hover:bg-orange-100': !chat.is_archived
+                  'bg-gray-600 text-gray-300 hover:bg-gray-500': chat.is_archived,
+                  'bg-orange-200 text-orange-800 hover:bg-orange-300': !chat.is_archived
                 }" class="px-3 py-1 text-xs rounded">
                   {{ chat.is_archived ? 'Unarchive' : 'Archive' }}
                 </button>
@@ -227,44 +227,44 @@
 
         <!-- Permissions -->
         <div v-if="activeTab === 'permissions'" class="p-6">
-          <h3 class="text-lg font-medium text-gray-900 mb-6">Permissions & Security</h3>
+          <h3 class="text-lg font-medium text-white mb-6">Permissions & Security</h3>
 
           <div class="space-y-6">
             <!-- Workspace Permissions -->
             <div>
-              <h4 class="text-sm font-medium text-gray-900 mb-3">Workspace Permissions</h4>
+              <h4 class="text-sm font-medium text-white mb-3">Workspace Permissions</h4>
               <div class="space-y-3">
                 <label class="flex items-center">
                   <input type="checkbox" v-model="permissions.allowMemberInvites"
-                    class="rounded border-gray-300 text-purple-600 focus:ring-purple-500">
-                  <span class="ml-2 text-sm text-gray-700">Allow members to invite new users</span>
+                    class="rounded border-gray-600 bg-gray-700 text-purple-600 focus:ring-purple-500">
+                  <span class="ml-2 text-sm text-gray-300">Allow members to invite new users</span>
                 </label>
                 <label class="flex items-center">
                   <input type="checkbox" v-model="permissions.allowChannelCreation"
-                    class="rounded border-gray-300 text-purple-600 focus:ring-purple-500">
-                  <span class="ml-2 text-sm text-gray-700">Allow members to create channels</span>
+                    class="rounded border-gray-600 bg-gray-700 text-purple-600 focus:ring-purple-500">
+                  <span class="ml-2 text-sm text-gray-300">Allow members to create channels</span>
                 </label>
                 <label class="flex items-center">
                   <input type="checkbox" v-model="permissions.allowFileUploads"
-                    class="rounded border-gray-300 text-purple-600 focus:ring-purple-500">
-                  <span class="ml-2 text-sm text-gray-700">Allow file uploads</span>
+                    class="rounded border-gray-600 bg-gray-700 text-purple-600 focus:ring-purple-500">
+                  <span class="ml-2 text-sm text-gray-300">Allow file uploads</span>
                 </label>
               </div>
             </div>
 
             <!-- Security Settings -->
             <div>
-              <h4 class="text-sm font-medium text-gray-900 mb-3">Security Settings</h4>
+              <h4 class="text-sm font-medium text-white mb-3">Security Settings</h4>
               <div class="space-y-3">
                 <label class="flex items-center">
                   <input type="checkbox" v-model="security.requireEmailVerification"
-                    class="rounded border-gray-300 text-purple-600 focus:ring-purple-500">
-                  <span class="ml-2 text-sm text-gray-700">Require email verification for new members</span>
+                    class="rounded border-gray-600 bg-gray-700 text-purple-600 focus:ring-purple-500">
+                  <span class="ml-2 text-sm text-gray-300">Require email verification for new members</span>
                 </label>
                 <label class="flex items-center">
                   <input type="checkbox" v-model="security.enableTwoFactor"
-                    class="rounded border-gray-300 text-purple-600 focus:ring-purple-500">
-                  <span class="ml-2 text-sm text-gray-700">Enable two-factor authentication</span>
+                    class="rounded border-gray-600 bg-gray-700 text-purple-600 focus:ring-purple-500">
+                  <span class="ml-2 text-sm text-gray-300">Enable two-factor authentication</span>
                 </label>
               </div>
             </div>
@@ -275,21 +275,21 @@
 
     <!-- Invite Member Modal -->
     <div v-if="showInviteModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white rounded-lg p-6 w-96">
-        <h3 class="text-lg font-medium text-gray-900 mb-4">Invite Member</h3>
+      <div class="bg-gray-800 rounded-lg p-6 w-96">
+        <h3 class="text-lg font-medium text-white mb-4">Invite Member</h3>
 
         <div class="space-y-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+            <label class="block text-sm font-medium text-gray-300 mb-1">Email Address</label>
             <input v-model="inviteEmail" type="email"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              class="w-full px-3 py-2 border border-gray-600 rounded-md bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
               placeholder="Enter email address">
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Role</label>
+            <label class="block text-sm font-medium text-gray-300 mb-1">Role</label>
             <select v-model="inviteRole"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500">
+              class="w-full px-3 py-2 border border-gray-600 rounded-md bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
               <option value="member">Member</option>
               <option value="admin">Admin</option>
             </select>
@@ -297,7 +297,7 @@
         </div>
 
         <div class="flex justify-end space-x-3 mt-6">
-          <button @click="showInviteModal = false" class="px-4 py-2 text-gray-600 hover:text-gray-800">
+          <button @click="showInviteModal = false" class="px-4 py-2 text-gray-300 hover:text-white">
             Cancel
           </button>
           <button @click="inviteMember" :disabled="!inviteEmail || workspaceStore.loading"
@@ -310,9 +310,9 @@
 
     <!-- Error Message -->
     <div v-if="workspaceStore.error"
-      class="absolute bottom-4 right-4 bg-red-50 border border-red-200 rounded-lg p-4 max-w-sm">
-      <p class="text-sm text-red-600">{{ workspaceStore.error }}</p>
-      <button @click="workspaceStore.clearError()" class="mt-2 text-xs text-red-500 hover:text-red-700">
+      class="absolute bottom-4 right-4 bg-red-200 border border-red-300 rounded-lg p-4 max-w-sm">
+      <p class="text-sm text-red-700">{{ workspaceStore.error }}</p>
+      <button @click="workspaceStore.clearError()" class="mt-2 text-xs text-red-600 hover:text-red-800">
         Dismiss
       </button>
     </div>

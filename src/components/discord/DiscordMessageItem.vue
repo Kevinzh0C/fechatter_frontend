@@ -145,10 +145,18 @@
                   <span v-else-if="imageErrors[file.id || getFileUrl(file)] === 'server'">Server error</span>
                   <span v-else>Failed to load image</span>
                 </span>
-                <div class="error-details">{{ getFileName(file) }}</div>
+                <div class="error-details">{{ getFileName(file) || getFileUrl(file) }}</div>
                 <div v-if="imageErrors[file.id || getFileUrl(file)] === 'permanent'" class="error-hint">
                   This file may have been deleted or moved
                 </div>
+                
+                <!-- 🚀 NEW: Retry button for non-permanent errors -->
+                <button 
+                  v-if="imageErrors[file.id || getFileUrl(file)] !== 'permanent'"
+                  @click="retryLoadImage(file)" 
+                  class="retry-image-btn">
+                  Try Again
+                </button>
               </div>
               <img v-else :src="getSecureImageUrl(file)" :alt="getFileName(file)" class="attachment-image"
                 @load="onImageLoad(file)" @error="onImageError(file)" @click="openImagePreview(file)" loading="lazy" />
@@ -302,7 +310,7 @@ import { highlightCodeAsync } from '@/utils/codeHighlight'
 import FloatingMessageToolbar from '@/components/chat/FloatingMessageToolbar.vue'
 import api from '@/services/api'
 import EnhancedImageModal from '@/components/common/EnhancedImageModal.vue'
-import { getStandardFileUrl, getRobustFileUrls, getAuthenticatedDownloadUrl } from '@/utils/fileUrlHandler'
+import { getStandardFileUrl, buildAuthFileUrl } from '@/utils/fileUrlHandler'
 
 // Props
 const props = defineProps({
@@ -857,15 +865,14 @@ const getFileUrl = (file) => {
     return null;
   }
   
-  // Use robust file URL handler with flat storage support
-  const urls = getRobustFileUrls(file, {
-    workspaceId: props.message?.workspace_id || props.workspaceId
+  // Use standard file URL handler with flat storage support
+  const staticUrl = getStandardFileUrl(file, {
+    workspaceId: props.message?.workspace_id || props.workspaceId,
+    preferAuth: false
   })
   
-
-  
-  // Return primary (flat static URL) for initial attempt
-  return urls.primary || urls.fallback
+  // Return static URL for initial attempt
+  return staticUrl
 }
 
 // 🔐 SECURE: Get image URL with API download + cache strategy
@@ -954,23 +961,78 @@ const loadSecureImage = async (file) => {
       fileKey
     });
 
-    // Get both primary and fallback URLs
-    const urls = getRobustFileUrls(file, {
-      workspaceId: props.message?.workspace_id || props.workspaceId
-    })
+    // 🚨 VERCEL FIX: Check if we're in Vercel environment
+    const isVercelEnv = window.location.hostname.includes('vercel') || window.location.hostname.includes('.app');
+    const isProductionEnv = import.meta.env.PROD;
 
-    if (!urls.hasOptions) {
-      throw new Error('No file URLs available from robust handler')
-    }
-
-    console.log('🔧 [loadSecureImage] Robust URLs generated:', urls);
-
-    // 🚀 STRATEGY 1: Try API static file first (fastest)
-    if (urls.primary && (urls.primary.startsWith('/api/files/') || urls.primary.startsWith('/files/'))) {
-      console.log('📁 [loadSecureImage] Attempting flat static file access:', urls.primary);
+    if (isVercelEnv || isProductionEnv) {
+      console.log('🌐 [loadSecureImage] Vercel/Production environment detected, using API-only strategy');
+      
+      // 🚨 VERCEL STRATEGY: Only use authenticated API downloads in Vercel
+      const robustFileName = this.getFileName(file);
+      const apiUrl = `/api/files/download/${robustFileName}`;
       
       try {
-        const staticResponse = await fetch(urls.primary);
+        const response = await api.get(apiUrl.substring(5), { // Remove '/api/' prefix
+          responseType: 'blob',
+          skipAuthRefresh: false,
+          timeout: 30000
+        });
+
+        if (response.status === 200 && response.data) {
+          const blob = response.data;
+          const objectUrl = URL.createObjectURL(blob);
+          
+          // Cache successful API download
+          secureImageUrls.value[fileKey] = objectUrl;
+          
+          // Cache to sessionStorage
+          try {
+            const reader = new FileReader();
+            reader.onload = function() {
+              try {
+                sessionStorage.setItem(`cached_image_${fileKey}`, reader.result);
+                console.log('📦 [loadSecureImage] Vercel API download cached to sessionStorage');
+              } catch (storageError) {
+                console.warn('⚠️ [loadSecureImage] SessionStorage cache failed:', storageError.message);
+              }
+            };
+            reader.readAsDataURL(blob);
+          } catch (cacheError) {
+            console.warn('⚠️ [loadSecureImage] Cache operation failed:', cacheError.message);
+          }
+          
+          console.log('✅ [loadSecureImage] Vercel API download successful');
+          return;
+        } else {
+          throw new Error(`Vercel API download failed: ${response.status} ${response.statusText}`);
+        }
+      } catch (vercelError) {
+        console.error('❌ [loadSecureImage] Vercel API strategy failed:', vercelError);
+        throw vercelError;
+      }
+    }
+
+    // 🔧 DEVELOPMENT STRATEGY: Use multi-fallback for local development
+    // Get static and auth URLs
+    const staticUrl = getStandardFileUrl(file, {
+      workspaceId: props.message?.workspace_id || props.workspaceId,
+      preferAuth: false
+    })
+    const authUrl = buildAuthFileUrl(file.filename || file.file_name || file.name)
+
+    if (!staticUrl && !authUrl) {
+      throw new Error('No file URLs available from file handler')
+    }
+
+    console.log('🔧 [loadSecureImage] URLs generated:', { staticUrl, authUrl });
+
+    // 🚀 STRATEGY 1: Try API static file first (fastest)
+    if (staticUrl && (staticUrl.startsWith('/api/files/') || staticUrl.startsWith('/files/'))) {
+      console.log('📁 [loadSecureImage] Attempting flat static file access:', staticUrl);
+      
+              try {
+        const staticResponse = await fetch(staticUrl);
         if (staticResponse.ok) {
           const blob = await staticResponse.blob();
           const objectUrl = URL.createObjectURL(blob);
@@ -1005,10 +1067,10 @@ const loadSecureImage = async (file) => {
     }
 
     // 🚀 STRATEGY 2: Fallback to authenticated API download
-    if (urls.fallback && urls.fallback.startsWith('/api/files/download/')) {
-      console.log('🔐 [loadSecureImage] Falling back to API download:', urls.fallback);
+    if (authUrl && authUrl.startsWith('/api/files/download/')) {
+      console.log('🔐 [loadSecureImage] Falling back to API download:', authUrl);
       
-      const downloadPath = urls.fallback.substring(5); // Remove '/api/' prefix
+      const downloadPath = authUrl.substring(5); // Remove '/api/' prefix
       
       const response = await api.get(downloadPath, {
         responseType: 'blob',
@@ -1047,7 +1109,7 @@ const loadSecureImage = async (file) => {
     }
 
     // 🚀 STRATEGY 3: Handle external URLs or blob URLs
-    const directUrl = urls.primary || urls.fallback;
+    const directUrl = staticUrl || authUrl;
     if (directUrl && (directUrl.startsWith('http') || directUrl.startsWith('blob:'))) {
       console.log('🔗 [loadSecureImage] Direct external/blob URL access:', directUrl);
       
@@ -1110,6 +1172,12 @@ const loadSecureImage = async (file) => {
 }
 
 const getFileName = (file) => {
+  // 🔧 CRITICAL FIX: Add null check for file object
+  if (!file) {
+    console.warn('❌ [getFileName] Received null or undefined file object');
+    return 'Unknown file';
+  }
+
   // 🔧 ENHANCED: Multiple fallback sources for filename with debug logging
   const candidates = [
     file.file_name,
@@ -1258,8 +1326,17 @@ const onImageError = (file) => {
 }
 
 const downloadFile = async (file) => {
-  const fileName = getFileName(file)
-  const fileKey = file.id || getFileUrl(file) || 'unknown'
+  // 🔧 CRITICAL FIX: Add null check for file object
+  if (!file) {
+    console.error('❌ [downloadFile] Cannot download null or undefined file');
+    if (typeof window !== 'undefined' && window.showNotification) {
+      window.showNotification('文件下载失败: 无效的文件对象', 'error');
+    }
+    return;
+  }
+
+  const fileName = getFileName(file);
+  const fileKey = file.id || getFileUrl(file) || 'unknown';
 
   try {
     console.log('📥 [downloadFile] Starting robust download for:', fileName);
@@ -1268,15 +1345,15 @@ const downloadFile = async (file) => {
     if (secureImageUrls.value[fileKey]) {
       console.log('📦 [downloadFile] Using cached blob URL for instant download');
       
-      const link = document.createElement('a')
-      link.href = secureImageUrls.value[fileKey]
-      link.download = fileName
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
+      const link = document.createElement('a');
+      link.href = secureImageUrls.value[fileKey];
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
       
       console.log('✅ [downloadFile] Instant download from cache completed');
-      return
+      return;
     }
 
     // 🚀 PRIORITY 2: Check sessionStorage cache
@@ -1285,15 +1362,15 @@ const downloadFile = async (file) => {
       if (cachedData) {
         console.log('📦 [downloadFile] Using sessionStorage cache for download');
         
-        const link = document.createElement('a')
-        link.href = cachedData
-        link.download = fileName
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
+        const link = document.createElement('a');
+        link.href = cachedData;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
         
         console.log('✅ [downloadFile] Download from sessionStorage completed');
-        return
+        return;
       }
     } catch (cacheError) {
       console.warn('⚠️ [downloadFile] SessionStorage access failed:', cacheError.message);
@@ -1304,7 +1381,7 @@ const downloadFile = async (file) => {
     
     const urls = getRobustFileUrls(file, {
       workspaceId: props.message?.workspace_id || props.workspaceId
-    })
+    });
 
     if (!urls.hasOptions) {
       throw new Error('No download URLs available from robust handler');
@@ -1313,6 +1390,7 @@ const downloadFile = async (file) => {
     console.log('🔧 [downloadFile] Robust URLs for download:', urls);
 
     let blob = null;
+    let errorMessages = [];
 
     // Try API static file first
     if (urls.primary && (urls.primary.startsWith('/api/files/') || urls.primary.startsWith('/files/'))) {
@@ -1323,42 +1401,59 @@ const downloadFile = async (file) => {
           blob = await staticResponse.blob();
           console.log('✅ [downloadFile] Static file download successful');
         } else {
-          console.warn(`⚠️ [downloadFile] Static download failed: ${staticResponse.status}`);
+          const errorMsg = `Static download failed: ${staticResponse.status}`;
+          errorMessages.push(errorMsg);
+          console.warn(`⚠️ [downloadFile] ${errorMsg}`);
         }
       } catch (staticError) {
-        console.warn('⚠️ [downloadFile] Static download error:', staticError.message);
+        const errorMsg = `Static download error: ${staticError.message}`;
+        errorMessages.push(errorMsg);
+        console.warn(`⚠️ [downloadFile] ${errorMsg}`);
       }
     }
 
     // Fallback to API download if static failed
     if (!blob && urls.fallback && urls.fallback.startsWith('/api/files/download/')) {
-      console.log('🔐 [downloadFile] Falling back to API download:', urls.fallback);
-      
-      const downloadPath = urls.fallback.substring(5); // Remove '/api/' prefix
-      
-      const response = await api.get(downloadPath, {
-        responseType: 'blob',
-        skipAuthRefresh: false,
-        timeout: 60000 // Longer timeout for downloads
-      })
+      try {
+        console.log('🔐 [downloadFile] Falling back to API download:', urls.fallback);
+        
+        const downloadPath = urls.fallback.substring(5); // Remove '/api/' prefix
+        
+        const response = await api.get(downloadPath, {
+          responseType: 'blob',
+          skipAuthRefresh: false,
+          timeout: 60000 // Longer timeout for downloads
+        });
 
-      if (response.status === 200 && response.data) {
-        blob = response.data;
-        console.log('✅ [downloadFile] API download successful');
-      } else {
-        throw new Error(`API download failed: ${response.status} ${response.statusText}`)
+        if (response.status === 200 && response.data) {
+          blob = response.data;
+          console.log('✅ [downloadFile] API download successful');
+        } else {
+          const errorMsg = `API download failed: ${response.status} ${response.statusText}`;
+          errorMessages.push(errorMsg);
+          throw new Error(errorMsg);
+        }
+      } catch (apiError) {
+        const errorMsg = `API download error: ${apiError.message}`;
+        errorMessages.push(errorMsg);
+        console.error(`❌ [downloadFile] ${errorMsg}`);
       }
     }
 
     if (!blob) {
-      throw new Error('All download strategies failed');
+      throw new Error(`All download strategies failed: ${errorMessages.join('; ')}`);
+    }
+
+    // Validate blob content
+    if (blob.size === 0) {
+      throw new Error('Downloaded file is empty (0 bytes)');
     }
 
     // Create object URL and trigger download
-    const objectUrl = URL.createObjectURL(blob)
+    const objectUrl = URL.createObjectURL(blob);
 
     // 🚀 CACHE: Store for future use
-    secureImageUrls.value[fileKey] = objectUrl
+    secureImageUrls.value[fileKey] = objectUrl;
     
     // Also cache to sessionStorage
     try {
@@ -1377,15 +1472,15 @@ const downloadFile = async (file) => {
     }
 
     // Trigger download
-    const link = document.createElement('a')
-    link.href = objectUrl
-    link.download = fileName
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+    const link = document.createElement('a');
+    link.href = objectUrl;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 
     // Clean up the blob URL after a delay
-    setTimeout(() => URL.revokeObjectURL(objectUrl), 1000)
+    setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
 
     console.log('✅ [downloadFile] Robust download completed and cached');
 
@@ -1398,12 +1493,10 @@ const downloadFile = async (file) => {
 
     // Show user-friendly error message
     if (typeof window !== 'undefined' && window.showNotification) {
-      window.showNotification(`文件下载失败: ${fileName}`, 'error')
+      window.showNotification(`文件下载失败: ${fileName}`, 'error');
     } else {
-      alert(`文件下载失败: ${fileName}\n错误: ${error.message}`)
+      alert(`文件下载失败: ${fileName}\n错误: ${error.message}`);
     }
-    
-    throw error
   }
 }
 

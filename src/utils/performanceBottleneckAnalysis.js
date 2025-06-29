@@ -153,7 +153,7 @@ class PerformanceBottleneckAnalysis {
     if (chatStore?.currentChatId) {
       await this.testAPIEndpoint({
         name: 'Fetch Messages',
-        url: `/api/chat/${chatStore.currentChatId}/messages?limit=5`,
+        url: `/api/chat/${chatId}/messages?limit=5`,
         method: 'GET'
       });
 

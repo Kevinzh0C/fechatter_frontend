@@ -15,6 +15,9 @@ import { unifiedMessageService, MessageState } from '@/services/messageSystem/Un
 import messageConfirmationService from '@/services/messageConfirmationService';
 // 🚀 CRITICAL FIX: Import SSE service for real-time message handling
 import minimalSSE from '@/services/sse-minimal';
+import tokenSynchronizer from '../services/tokenSynchronizer';
+// 🎯 CRITICAL FIX: Import data consistency manager
+import { dataConsistencyManager } from '@/services/DataConsistencyManager';
 
 export const useChatStore = defineStore('chat', {
   state: () => ({
@@ -33,6 +36,11 @@ export const useChatStore = defineStore('chat', {
 
     // Upload state
     uploadProgress: 0,
+
+    // 🔧 ENHANCED: Add request deduplication
+    _fetchingChats: false,
+    _fetchingStartTime: null,
+    _lastChatsFetchTime: null,
   }),
 
   getters: {
@@ -147,17 +155,25 @@ export const useChatStore = defineStore('chat', {
      * 🚀 NEW: Safe content extraction to prevent [object Object] display issues
      */
     extractSafeContent(rawContent, message = null) {
-      if (!rawContent) return '';
+      // 🔧 FIX: 特殊处理空内容
+      if (!rawContent && rawContent !== 0 && rawContent !== false) {
+        // 如果有文件且无文本，返回空字符串
+        if (message && message.files && message.files.length > 0) {
+          return '';
+        }
+        return '';
+      }
 
       // If it's already a string, check for object serialization issues
       if (typeof rawContent === 'string') {
         if (rawContent.includes('[object Object]')) {
           console.warn('[ChatStore] Detected [object Object] string in SSE data');
-          return 'Message content error - please refresh';
+          // 🔧 FIX: 更友好的错误提示
+          return '';
         }
         
         // 🔧 BACKEND ALIGNED: Handle auto-generated space for file-only messages
-        if (rawContent === ' ' && message && message.files && message.files.length > 0) {
+        if (rawContent.trim() === '' && message && message.files && message.files.length > 0) {
           return ''; // 显示时忽略自动添加的空格，让文件本身承载信息
         }
         
@@ -183,17 +199,18 @@ export const useChatStore = defineStore('chat', {
           return extracted;
         }
 
-        // Last resort: safe JSON stringify
-        try {
-          return JSON.stringify(rawContent, null, 2);
-        } catch (e) {
-          console.error('[ChatStore] Failed to stringify SSE content:', e);
-          return 'Complex object content - display error';
-        }
+        // 🔧 FIX: 不显示JSON字符串，只返回空串
+        console.error('[ChatStore] Unexpected object content in message:', rawContent);
+        return '';
       }
 
-      // Convert any other type to string
-      return String(rawContent);
+      // 🔧 FIX: 对于其他类型，安全转换为字符串
+      if (typeof rawContent === 'number' || typeof rawContent === 'boolean') {
+        return String(rawContent);
+      }
+      
+      // 默认返回空字符串
+      return '';
     },
 
     /**
@@ -331,72 +348,157 @@ export const useChatStore = defineStore('chat', {
     },
 
     /**
-     * Fetch chats from server
+     * 🎯 Fetch all chats with data consistency management
      */
     async fetchChats() {
-      this.loading = true;
-      this.error = null;
-
+      const forceRefresh = window.location.search.includes('force_refresh=true');
+      
       try {
-        console.log('🔍 [ChatStore] Fetching chats...');
-        console.log('🔍 [ChatStore] API service will resolve URL based on environment');
+        // 🎯 使用数据一致性管理器进行请求去重和缓存
+        const chatsData = await dataConsistencyManager.deduplicatedFetch(
+          'workspace_chats',
+          async () => {
+            console.log('🔍 [ChatStore] Fetching chats via consistency manager...');
+            
+            this.loading = true;
+            
+            // 确保token初始化
+            await tokenSynchronizer.initialize();
+            const token = await tokenSynchronizer.getToken();
+            
+            if (!token) {
+              throw new Error('未找到认证token');
+            }
+            
+            // 🔧 CRITICAL FIX: Use correct workspace chats endpoint
+            const response = await api.get('/workspace/chats', {
+              timeout: 30000, // 增加到30秒，适应网络延迟
+              headers: {
+                'Cache-Control': 'no-cache'
+              }
+            });
+            
+            return response.data?.data || response.data || [];
+          },
+          {
+            forceRefresh,
+            timeout: 15000,
+            cacheTime: 30000 // 30秒缓存
+          }
+        );
         
-        const response = await api.get('/workspace/chats');
+        // 🎯 处理获取到的数据
+        await this.processChatsData(chatsData);
+        
+        this.loading = false;
+        this.error = null;
+        
+        console.log(`✅ [ChatStore] Chats loaded: ${this.chats.length} items`);
+        return this.chats;
+        
+      } catch (error) {
+        this.loading = false;
+        this.error = error.message;
+        
+        console.error('❌ [ChatStore] Fetch chats failed:', error);
+        
+        // 尝试使用缓存数据
+        if (this.chats.length > 0) {
+          console.log('📦 [ChatStore] Using cached chat data after error');
+          return this.chats;
+        }
+        
+        throw error;
+      }
+    },
 
-        console.log('🔍 [ChatStore] API Response status:', response.status);
-        console.log('🔍 [ChatStore] API Response data:', response.data);
-        console.log('🔍 [ChatStore] API Response URL:', response.config?.url || 'unknown');
+    /**
+     * 📝 Process chats data from API response with consistency management
+     */
+    async processChatsData(chatsData) {
+      console.log('🔍 [ChatStore] Processing chats data:', chatsData?.length || 0, 'items');
+      
+      // Normalize chat data structure
+      let normalizedChats = [];
+      
+      if (Array.isArray(chatsData)) {
+        normalizedChats = chatsData.map(chat => this.normalizeChat(chat));
+      } else if (chatsData?.data && Array.isArray(chatsData.data)) {
+        normalizedChats = chatsData.data.map(chat => this.normalizeChat(chat));
+      } else if (chatsData?.chats && Array.isArray(chatsData.chats)) {
+        normalizedChats = chatsData.chats.map(chat => this.normalizeChat(chat));
+      }
+      
+      // Ensure user consistency for all chats
+      await this.ensureChatUserConsistency(normalizedChats);
+      
+      // Update store with consistent data
+      this.chats = normalizedChats;
+      
+      // Cache the processed data
+      this.cacheChats();
+      
+      console.log('✅ [ChatStore] Processed and cached', normalizedChats.length, 'chats');
+    },
 
-        // Handle API response formats
-        let chatsData = [];
-        const responseData = response.data;
-
-        if (responseData) {
-          if (responseData.data && Array.isArray(responseData.data)) {
-            chatsData = responseData.data;
-          } else if (Array.isArray(responseData)) {
-            chatsData = responseData;
-          } else if (responseData.chats && Array.isArray(responseData.chats)) {
-            chatsData = responseData.chats;
+    /**
+     * 👤 Ensure consistent user information across all chats
+     */
+    async ensureChatUserConsistency(chatsData) {
+      console.log('🔍 [ChatStore] Ensuring user consistency for chats...');
+      
+      // Collect all unique user IDs from chats
+      const userIds = new Set();
+      
+      chatsData.forEach(chat => {
+        // Add creator
+        if (chat.created_by) userIds.add(chat.created_by);
+        
+        // Add last message sender
+        if (chat.last_message?.sender_id) {
+          userIds.add(chat.last_message.sender_id);
+        }
+        
+        // Add participants
+        if (chat.participants) {
+          chat.participants.forEach(participant => {
+            if (participant.id || participant.user_id) {
+              userIds.add(participant.id || participant.user_id);
+            }
+          });
+        }
+        
+        // Add members from chat members cache
+        if (this.chatMembers[chat.id]) {
+          this.chatMembers[chat.id].forEach(member => {
+            if (member.id) userIds.add(member.id);
+          });
+        }
+      });
+      
+      // Pre-fetch user information for consistency using DataConsistencyManager
+      const userPromises = Array.from(userIds).map(userId => 
+        dataConsistencyManager.getUserInfo(userId).catch(error => {
+          console.warn(`⚠️ [ChatStore] Failed to fetch user ${userId}:`, error.message);
+          return null;
+        })
+      );
+      
+      const users = await Promise.all(userPromises);
+      const validUsers = users.filter(user => user !== null);
+      
+      console.log('✅ [ChatStore] User consistency ensured for', validUsers.length, '/', userIds.size, 'users');
+      
+      // Update last message sender names using consistent user data
+      chatsData.forEach(chat => {
+        if (chat.last_message?.sender_id) {
+          const sender = validUsers.find(user => user.id === chat.last_message.sender_id);
+          if (sender) {
+            chat.last_message.sender_name = sender.fullname;
+            chat.last_message.sender = sender;
           }
         }
-
-        console.log('🔍 [ChatStore] Parsed chats data:', chatsData.length, 'items');
-
-        // Normalize chat data
-        this.chats = chatsData.map(chat => this.normalizeChat(chat));
-
-        console.log('🔍 [ChatStore] Normalized chats:', this.chats.length, 'items');
-
-        // Cache to localStorage
-        this.cacheChats();
-
-        return this.chats;
-
-      } catch (error) {
-        console.error('❌ [ChatStore] Failed to fetch chats:', error);
-        console.error('❌ [ChatStore] Error details:', {
-          message: error.message,
-          status: error.response?.status,
-          statusText: error.response?.statusText,
-          data: error.response?.data,
-          config: {
-            url: error.config?.url,
-            method: error.config?.method,
-            baseURL: error.config?.baseURL,
-            headers: error.config?.headers
-          }
-        });
-        
-        errorHandler.handle(error, {
-          context: 'Fetch chats',
-          silent: false
-        });
-        this.error = error.response?.data?.message || 'Failed to fetch chats';
-        throw error;
-      } finally {
-        this.loading = false;
-      }
+      });
     },
 
     /**
@@ -509,15 +611,24 @@ export const useChatStore = defineStore('chat', {
         const tempId = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
         const idempotencyKey = options.idempotency_key || generateUUID();
 
-        // 🔧 CRITICAL FIX: Get real user info from authStore instead of hardcoded 'You'
+        // 🔧 CRITICAL FIX: Get consistent user info from DataConsistencyManager
         const authStore = useAuthStore();
         const currentUser = authStore.user;
-        const currentUserInfo = {
-          id: currentUser?.id || this.getCurrentUserId(),
-          fullname: currentUser?.fullname || 'User',
-          email: currentUser?.email || '',
-          avatar_url: currentUser?.avatar_url || null
-        };
+        const userId = currentUser?.id || this.getCurrentUserId();
+        
+        // Use DataConsistencyManager to ensure consistent user data
+        let currentUserInfo;
+        try {
+          currentUserInfo = await dataConsistencyManager.getUserInfo(userId);
+        } catch (error) {
+          console.warn('⚠️ [ChatStore] Failed to get consistent user info, falling back to authStore');
+          currentUserInfo = {
+            id: userId,
+            fullname: currentUser?.fullname || 'User',
+            email: currentUser?.email || '',
+            avatar_url: currentUser?.avatar_url || null
+          };
+        }
 
         // Create optimistic message for immediate UI update
         const optimisticMessage = {
@@ -539,11 +650,7 @@ export const useChatStore = defineStore('chat', {
           mentions: options.mentions || [],
           reply_to: options.replyTo || null,
           isOptimistic: true,
-          // 🚀 NEW: Add timeout tracking for SSE confirmation
-          sentAt: Date.now(),
-          sseTimeout: null,
-          retryAttempts: 0,
-          maxRetryAttempts: 3
+          sentAt: Date.now()
         };
 
         // 🔧 IMMEDIATE UI UPDATE: Add to UnifiedMessageService to show instantly
@@ -564,7 +671,7 @@ export const useChatStore = defineStore('chat', {
           idempotency_key: idempotencyKey
         };
 
-        const response = await api.post(`/chat/${this.currentChatId}/messages`, payload);
+        const response = await api.post(`/chat/${chatId}/messages`, payload);
         const sentMessage = response.data?.data || response.data;
 
         if (sentMessage) {
@@ -595,17 +702,11 @@ export const useChatStore = defineStore('chat', {
               mentions: sentMessage.mentions || [],
               reply_to: sentMessage.reply_to || null,
               isOptimistic: false,
-              // 🚀 REMOVED: SSE timeout tracking since we don't need it anymore
-              sentAt: Date.now(),
-              retryAttempts: 0,
-              maxRetryAttempts: 3
+              sentAt: Date.now()
             };
 
             currentMessages[optimisticIndex] = realMessage;
             unifiedMessageService.messagesByChat.set(this.currentChatId, currentMessages);
-
-            // 🚀 REMOVED: SSE confirmation timeout since we immediately mark as delivered
-            // this.startSSEConfirmationTimeout(realMessage.id, this.currentChatId);
 
             // Update chat's last message
             this.updateChatLastMessage(realMessage);
@@ -644,197 +745,9 @@ export const useChatStore = defineStore('chat', {
     },
 
     /**
-     * 🚀 NEW: Start SSE confirmation timeout for message delivery
-     */
-    startSSEConfirmationTimeout(messageId, chatId) {
-      if (!messageId || !chatId) return;
-
-      const timeoutId = setTimeout(() => {
-        if (true) {
-          console.warn(`⏰ SSE confirmation timeout for message ${messageId}, triggering retry...`);
-        }
-
-        // Find the message and mark it for retry
-        const currentMessages = unifiedMessageService.getMessagesForChat(chatId) || [];
-        const messageIndex = currentMessages.findIndex(m => m.id === messageId);
-
-        if (messageIndex !== -1) {
-          const message = currentMessages[messageIndex];
-
-          // Only retry if still in 'sent' status (not already delivered)
-          if (message.status === 'sent') {
-            message.retryAttempts = (message.retryAttempts || 0) + 1;
-
-            if (message.retryAttempts < message.maxRetryAttempts) {
-              // 🔄 Trigger automatic retry
-              this.retryMessageDelivery(message, chatId);
-            } else {
-              // 🚨 Mark as timeout after max retries
-              message.status = 'timeout';
-              message.error = 'Message delivery timeout after 3 attempts';
-              unifiedMessageService.messagesByChat.set(chatId, currentMessages);
-
-              if (true) {
-                console.error(`❌ Message ${messageId} failed after ${message.retryAttempts} retry attempts`);
-              }
-            }
-          }
-        }
-      }, 15000); // 15 second timeout
-
-      // Store timeout ID to cancel if SSE confirmation arrives
-      const currentMessages = unifiedMessageService.getMessagesForChat(chatId) || [];
-      const message = currentMessages.find(m => m.id === messageId);
-      if (message) {
-        message.sseTimeout = timeoutId;
-      }
-    },
-
-    /**
-     * 🚀 NEW: Retry message delivery (used by timeout mechanism)
-     */
-    async retryMessageDelivery(message, chatId) {
-      if (!message || !chatId) return;
-
-      try {
-        if (true) {
-          console.log(`🔄 Retrying message delivery: ${message.id} (attempt ${message.retryAttempts})`);
-        }
-
-        // Update status to show retry in progress
-        message.status = 'sending';
-        const currentMessages = unifiedMessageService.getMessagesForChat(chatId) || [];
-        const messageIndex = currentMessages.findIndex(m => m.id === message.id);
-        if (messageIndex !== -1) {
-          currentMessages[messageIndex] = message;
-          unifiedMessageService.messagesByChat.set(chatId, currentMessages);
-        }
-
-        // 🚀 CRITICAL FIX: Generate proper UUID for idempotency_key
-        const generateRetryUUID = () => {
-          if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-            return crypto.randomUUID();
-          }
-          // Fallback UUID v4 generation
-          return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-            const r = Math.random() * 16 | 0;
-            const v = c == 'x' ? r : (r & 0x3 | 0x8);
-            return v.toString(16);
-          });
-        };
-
-        // Re-send the message
-        const payload = {
-          content: message.content,
-          files: message.files || [],
-          mentions: message.mentions || [],
-          reply_to: message.reply_to || null,
-          idempotency_key: generateRetryUUID() // ✅ 使用标准UUID格式
-        };
-
-        const response = await api.post(`/chat/${chatId}/messages`, payload);
-        const retryResponse = response.data?.data || response.data;
-
-        if (retryResponse) {
-          // Update message with new server response
-          message.status = 'sent';
-          message.server_id = retryResponse.id; // Store new server ID
-
-          // Start new SSE timeout for this retry
-          this.startSSEConfirmationTimeout(message.id, chatId);
-
-          if (true) {
-            console.log(`✅ Message retry successful: ${message.id}`);
-          }
-
-          return true;
-        }
-
-      } catch (error) {
-        if (true) {
-          console.error(`❌ Message retry failed: ${message.id}`, error);
-        }
-
-        // Mark as failed if retry fails
-        message.status = 'failed';
-        message.error = `Retry failed: ${error.message}`;
-
-        const currentMessages = unifiedMessageService.getMessagesForChat(chatId) || [];
-        const messageIndex = currentMessages.findIndex(m => m.id === message.id);
-        if (messageIndex !== -1) {
-          currentMessages[messageIndex] = message;
-          unifiedMessageService.messagesByChat.set(chatId, currentMessages);
-        }
-
-        return false;
-      }
-    },
-
-    /**
-     * Retry failed message
-     */
-    async retryMessage(messageId) {
-      try {
-        if (true) {
-          console.log(`🔄 Retrying message: ${messageId}`);
-        }
-
-        const result = await unifiedMessageService.retryMessage(messageId);
-
-        if (result) {
-          if (true) {
-            console.log(`✅ Message retry queued: ${messageId}`);
-          }
-        }
-
-        return result;
-
-      } catch (error) {
-        if (true) {
-          console.error('Failed to retry message:', error);
-        }
-        errorHandler.handle(error, {
-          context: 'Retry message',
-          silent: false
-        });
-        throw error;
-      }
-    },
-
-    /**
-     * Handle incoming real-time message (called by SSE service)
-     */
-    handleIncomingMessage(message) {
-      if (true) {
-        console.log(`📨 Handling incoming message for chat ${message.chat_id}`);
-      }
-
-      // The unified message service handles all the logic
-      // We just need to update chat metadata here
-
-      const chat = this.getChatById(message.chat_id);
-      if (chat) {
-        // Update chat's last message
-        this.updateChatLastMessage(message);
-
-        // Update unread count if not current chat
-        if (message.chat_id !== this.currentChatId) {
-          this.incrementChatUnreadCount(message.chat_id);
-
-          // Move chat to top
-          const chatIndex = this.chats.findIndex(c => c.id === message.chat_id);
-          if (chatIndex > 0) {
-            const [movedChat] = this.chats.splice(chatIndex, 1);
-            this.chats.unshift(movedChat);
-          }
-        }
-      }
-    },
-
-    /**
      * 🔧 CRITICAL FIX: Add realtime message to UI (called by SSE service)
      */
-    addRealtimeMessage(message) {
+    async addRealtimeMessage(message) {
       if (true) {
         console.log(`📨 Adding realtime message for chat ${message.chat_id}:`, message);
       }
@@ -850,6 +763,18 @@ export const useChatStore = defineStore('chat', {
           console.log('📨 Message already exists, skipping duplicate:', message.id);
         }
         return;
+      }
+
+      // 🎯 CRITICAL FIX: Ensure consistent user data for incoming messages
+      if (message.sender_id && !message.sender?.fullname) {
+        try {
+          const senderInfo = await dataConsistencyManager.getUserInfo(message.sender_id);
+          message.sender = senderInfo;
+          message.sender_name = senderInfo.fullname;
+          console.log(`✅ [ChatStore] Enhanced incoming message with consistent user data: ${senderInfo.fullname}`);
+        } catch (error) {
+          console.warn(`⚠️ [ChatStore] Failed to get sender info for ${message.sender_id}:`, error.message);
+        }
       }
 
       // Add the new message
@@ -1052,6 +977,67 @@ export const useChatStore = defineStore('chat', {
     },
 
     /**
+     * Handle incoming real-time message (called by SSE service)
+     */
+    handleIncomingMessage(message) {
+      if (true) {
+        console.log(`📨 Handling incoming message for chat ${message.chat_id}`);
+      }
+
+      // The unified message service handles all the logic
+      // We just need to update chat metadata here
+
+      const chat = this.getChatById(message.chat_id);
+      if (chat) {
+        // Update chat's last message
+        this.updateChatLastMessage(message);
+
+        // Update unread count if not current chat
+        if (message.chat_id !== this.currentChatId) {
+          this.incrementChatUnreadCount(message.chat_id);
+
+          // Move chat to top
+          const chatIndex = this.chats.findIndex(c => c.id === message.chat_id);
+          if (chatIndex > 0) {
+            const [movedChat] = this.chats.splice(chatIndex, 1);
+            this.chats.unshift(movedChat);
+          }
+        }
+      }
+    },
+
+    /**
+     * Get current user ID for message status determination
+     */
+    getCurrentUserId() {
+      try {
+        const authStore = useAuthStore();
+        if (authStore?.user?.id) {
+          return authStore.user.id;
+        }
+
+        // Fallback: try localStorage
+        const authUser = localStorage.getItem('auth_user');
+        if (authUser) {
+          const userData = JSON.parse(authUser);
+          if (userData?.id) {
+            return userData.id;
+          }
+        }
+
+        if (true) {
+          console.warn('⚠️ [Chat Store] Could not determine current user ID');
+        }
+        return null;
+      } catch (error) {
+        if (true) {
+          console.error('❌ [Chat Store] Error getting current user ID:', error);
+        }
+        return null;
+      }
+    },
+
+    /**
      * Create new chat
      */
     async createChat(name, members = [], description = '', chatType = 'PrivateChannel') {
@@ -1090,110 +1076,6 @@ export const useChatStore = defineStore('chat', {
     },
 
     /**
-     * Find existing DM with user
-     */
-    async findExistingDM(userId) {
-      try {
-        const authStore = useAuthStore();
-        const currentUserId = authStore.user?.id;
-
-        if (!currentUserId || currentUserId === userId) {
-          return null;
-        }
-
-        // Search in local chats first
-        const existingDM = this.chats.find(chat => {
-          return chat.chat_type === 'Single' &&
-            chat.chat_members &&
-            chat.chat_members.includes(userId) &&
-            chat.chat_members.includes(currentUserId);
-        });
-
-        if (existingDM) {
-          return existingDM;
-        }
-
-        // If not found locally, refresh and try again
-        await this.fetchChats();
-
-        return this.chats.find(chat => {
-          return chat.chat_type === 'Single' &&
-            chat.chat_members &&
-            chat.chat_members.includes(userId) &&
-            chat.chat_members.includes(currentUserId);
-        });
-
-      } catch (error) {
-        errorHandler.handle(error, {
-          context: 'Find existing DM',
-          silent: true
-        });
-        return null;
-      }
-    },
-
-    /**
-     * Find or create DM with user
-     */
-    async findOrCreateDM(userId) {
-      try {
-        const authStore = useAuthStore();
-        const userStore = useUserStore();
-        const currentUserId = authStore.user?.id;
-
-        if (!currentUserId || currentUserId === userId) {
-          throw new Error('Invalid user ID for DM creation');
-        }
-
-        if (true) {
-          console.log(`[ChatStore] Finding or creating DM with user ${userId}`);
-        }
-
-        // First try to find existing DM
-        let existingDM = await this.findExistingDM(userId);
-
-        if (existingDM) {
-          if (true) {
-            console.log(`[ChatStore] Found existing DM:`, existingDM);
-          }
-          return existingDM;
-        }
-
-        // If no existing DM found, create a new one
-        const targetUser = userStore.getUserById(userId);
-        const dmName = targetUser ? targetUser.fullname : `User ${userId}`;
-
-        if (true) {
-          console.log(`[ChatStore] Creating new DM with name: ${dmName}`);
-        }
-
-        const newDM = await this.createChat(
-          dmName,
-          [userId], // Members array with the target user
-          '', // No description for DMs
-          'Single' // Chat type for direct messages
-        );
-
-        if (true) {
-          console.log(`[ChatStore] Created new DM:`, newDM);
-        }
-
-        return newDM;
-
-      } catch (error) {
-        if (true) {
-          console.error(`[ChatStore] Failed to find or create DM:`, error);
-        }
-
-        errorHandler.handle(error, {
-          context: 'Find or create DM',
-          silent: false
-        });
-        throw error;
-      }
-    },
-
-    /**
      * Fetch chat members
      */
     async fetchChatMembers(chatId) {
@@ -1207,41 +1089,6 @@ export const useChatStore = defineStore('chat', {
           silent: true
         });
         return [];
-      }
-    },
-
-    /**
-     * File upload handling
-     */
-    async uploadFiles(files) {
-      if (!files || files.length === 0) return [];
-
-      const formData = new FormData();
-      files.forEach(file => {
-        formData.append('file', file);
-      });
-
-      try {
-        this.uploadProgress = 0;
-
-        const response = await api.post('/files/single', formData, {
-          onUploadProgress: (progressEvent) => {
-            this.uploadProgress = Math.round(
-              (progressEvent.loaded * 100) / progressEvent.total
-            );
-          }
-        });
-
-        return response.data || [];
-
-      } catch (error) {
-        errorHandler.handle(error, {
-          context: 'File upload',
-          silent: false
-        });
-        throw error;
-      } finally {
-        this.uploadProgress = 0;
       }
     },
 
@@ -1396,25 +1243,6 @@ export const useChatStore = defineStore('chat', {
     },
 
     /**
-     * Get debug information
-     */
-    async getDebugInfo() {
-      const messageServiceDebug = await unifiedMessageService.exportDebugInfo();
-
-      return {
-        timestamp: new Date().toISOString(),
-        chatStore: {
-          chatsCount: this.chats.length,
-          currentChatId: this.currentChatId,
-          isInitialized: this.isInitialized,
-          loading: this.loading,
-          error: this.error
-        },
-        messageService: messageServiceDebug
-      };
-    },
-
-    /**
      * Fetch messages with signal for abort control
      */
     async fetchMessagesWithSignal(chatId, abortSignal = null, limit = 15, isPreload = false) {
@@ -1524,599 +1352,6 @@ export const useChatStore = defineStore('chat', {
      */
     async fetchMessages(chatId, limit = 15) {
       return this.fetchMessagesWithSignal(chatId, null, limit, false);
-    },
-
-    /**
-     * Update chat details
-     */
-    async updateChat(chatId, name, description = '') {
-      this.loading = true;
-      this.error = null;
-
-      try {
-        const payload = {
-          name: name.trim(),
-          description: description.trim()
-        };
-
-        const response = await api.put(`/chat/${chatId}`, payload);
-        const updatedChat = this.normalizeChat(response.data?.data || response.data);
-
-        // Update local chat
-        const chatIndex = this.chats.findIndex(c => c.id === chatId);
-        if (chatIndex !== -1) {
-          this.chats[chatIndex] = updatedChat;
-        }
-
-        // Cache updated chats
-        this.cacheChats();
-
-        return updatedChat;
-
-      } catch (error) {
-        errorHandler.handle(error, {
-          context: 'Update chat',
-          silent: false
-        });
-        this.error = error.response?.data?.message || 'Failed to update chat';
-        throw error;
-      } finally {
-        this.loading = false;
-      }
-    },
-
-    /**
-     * Delete chat
-     */
-    async deleteChat(chatId) {
-      this.loading = true;
-      this.error = null;
-
-      try {
-        await api.delete(`/chat/${chatId}`);
-
-        // Remove from local chats
-        this.chats = this.chats.filter(c => c.id !== chatId);
-
-        // Clear current chat if it was deleted
-        if (this.currentChatId === chatId) {
-          this.currentChatId = null;
-        }
-
-        // Clear messages for this chat
-        await unifiedMessageService.clearMessagesForChat(chatId);
-
-        // Cache updated chats
-        this.cacheChats();
-
-        return true;
-
-      } catch (error) {
-        errorHandler.handle(error, {
-          context: 'Delete chat',
-          silent: false
-        });
-        this.error = error.response?.data?.message || 'Failed to delete chat';
-        throw error;
-      } finally {
-        this.loading = false;
-      }
-    },
-
-    /**
-     * Leave chat
-     */
-    async leaveChat(chatId) {
-      this.loading = true;
-      this.error = null;
-
-      try {
-        await api.post(`/chat/${chatId}/leave`);
-
-        // Remove from local chats
-        this.chats = this.chats.filter(c => c.id !== chatId);
-
-        // Clear current chat if it was left
-        if (this.currentChatId === chatId) {
-          this.currentChatId = null;
-        }
-
-        // Clear messages for this chat
-        await unifiedMessageService.clearMessagesForChat(chatId);
-
-        // Cache updated chats
-        this.cacheChats();
-
-        return true;
-
-      } catch (error) {
-        errorHandler.handle(error, {
-          context: 'Leave chat',
-          silent: false
-        });
-        this.error = error.response?.data?.message || 'Failed to leave chat';
-        throw error;
-      } finally {
-        this.loading = false;
-      }
-    },
-
-    /**
-     * Fetch full chat details for settings
-     */
-    async fetchFullChatDetails(chatId) {
-      try {
-        const response = await api.get(`/chat/${chatId}/details`);
-        return response.data?.data || response.data;
-
-      } catch (error) {
-        errorHandler.handle(error, {
-          context: 'Fetch chat details',
-          silent: false
-        });
-        throw error;
-      }
-    },
-
-    /**
-     * 🔧 新增：根据ID获取单个chat（Perfect Navigation兼容）
-     */
-    async fetchChatById(chatId) {
-      try {
-        const response = await api.get(`/chat/${chatId}`);
-        const chatData = response.data?.data || response.data;
-
-        if (chatData) {
-          const normalizedChat = this.normalizeChat(chatData);
-
-          // 添加到本地chats数组（如果不存在）
-          const existingIndex = this.chats.findIndex(c => c.id === parseInt(chatId));
-          if (existingIndex === -1) {
-            this.chats.push(normalizedChat);
-          } else {
-            this.chats[existingIndex] = normalizedChat;
-          }
-
-          // 更新缓存
-          this.cacheChats();
-
-          return normalizedChat;
-        }
-
-        return null;
-      } catch (error) {
-        // 404错误表示chat不存在，不是系统错误
-        if (error.response?.status === 404) {
-          console.warn(`Chat ${chatId} does not exist or user has no access`);
-          return null;
-        }
-
-        errorHandler.handle(error, {
-          context: `Fetch chat ${chatId}`,
-          silent: true
-        });
-        throw error;
-      }
-    },
-
-    /**
-     * 🔧 新增：确保chat存在（兼容方法）
-     */
-    async ensureChat(chatId) {
-      // 先检查本地是否存在
-      let chat = this.getChatById(parseInt(chatId));
-      if (chat) {
-        return chat;
-      }
-
-      // 不存在则尝试从API获取
-      chat = await this.fetchChatById(chatId);
-      return chat;
-    },
-
-    /**
-     * 🔧 新增：加载chat（兼容方法）
-     */
-    async loadChat(chatId) {
-      return this.ensureChat(chatId);
-    },
-
-    /**
-     * 🔧 增强：智能chat检查
-     */
-    async smartChatCheck(chatId) {
-      const checkResult = {
-        exists: false,
-        hasAccess: false,
-        chat: null,
-        source: null
-      };
-
-      // 1. 检查本地缓存
-      let chat = this.getChatById(parseInt(chatId));
-      if (chat) {
-        checkResult.exists = true;
-        checkResult.hasAccess = true;
-        checkResult.chat = chat;
-        checkResult.source = 'local_cache';
-        return checkResult;
-      }
-
-      // 2. 尝试从API获取
-      try {
-        chat = await this.fetchChatById(chatId);
-        if (chat) {
-          checkResult.exists = true;
-          checkResult.hasAccess = true;
-          checkResult.chat = chat;
-          checkResult.source = 'api_fetch';
-        }
-      } catch (error) {
-        if (error.response?.status === 404) {
-          checkResult.exists = false;
-          checkResult.hasAccess = false;
-          checkResult.source = 'api_not_found';
-        } else if (error.response?.status === 403) {
-          checkResult.exists = true;
-          checkResult.hasAccess = false;
-          checkResult.source = 'api_no_access';
-        } else {
-          // 网络错误等
-          checkResult.source = 'api_error';
-        }
-      }
-
-      return checkResult;
-    },
-
-    /**
-     * 🚀 NEW: Get current user ID for message status determination
-     * Helper method used by message status logic
-     */
-    getCurrentUserId() {
-      try {
-        const authStore = useAuthStore();
-        if (authStore?.user?.id) {
-          return authStore.user.id;
-        }
-
-        // Fallback: try localStorage
-        const authUser = localStorage.getItem('auth_user');
-        if (authUser) {
-          const userData = JSON.parse(authUser);
-          if (userData?.id) {
-            return userData.id;
-          }
-        }
-
-        if (true) {
-          console.warn('⚠️ [Chat Store] Could not determine current user ID');
-        }
-        return null;
-      } catch (error) {
-        if (true) {
-          console.error('❌ [Chat Store] Error getting current user ID:', error);
-        }
-        return null;
-      }
-    },
-
-    /**
-     * 🚀 NEW: Enhanced file message with optimistic updates and progress tracking
-     * Supports both raw File objects and already-uploaded file URLs/objects
-     */
-    async sendMessageWithFiles(content, files, options = {}) {
-      if (!files || files.length === 0) {
-        // Fallback to regular message
-        return this.sendMessage(content, options);
-      }
-
-      const authStore = useAuthStore();
-      const currentUserInfo = authStore.user || {};
-      const tempId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-
-      // 🚀 CRITICAL FIX: Generate proper UUID for idempotency_key
-      const generateFileMessageUUID = () => {
-        if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-          return crypto.randomUUID();
-        }
-        // Fallback UUID v4 generation
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-          const r = Math.random() * 16 | 0;
-          const v = c == 'x' ? r : (r & 0x3 | 0x8);
-          return v.toString(16);
-        });
-      };
-
-      const idempotencyKey = options.idempotencyKey || generateFileMessageUUID(); // ✅ 使用标准UUID格式
-
-      try {
-        // 🔧 CRITICAL FIX: Detect if files are already uploaded URLs or raw File objects
-        const areFilesAlreadyUploaded = files.every(file =>
-          typeof file === 'string' ||
-          (file && typeof file === 'object' && (file.url || file.file_url) && !file.constructor.name.includes('File'))
-        );
-
-        if (areFilesAlreadyUploaded) {
-          // 🚀 Fast path: Files already uploaded, send message directly
-          if (true) {
-            console.log('🚀 [sendMessageWithFiles] Files already uploaded, using fast path');
-          }
-
-          const fileUrls = files.map(file => {
-            if (typeof file === 'string') return file;
-            return file.url || file.file_url || file;
-          });
-
-          return this.sendMessage(content, { ...options, files: fileUrls });
-        }
-
-        // 🚀 Full path: Raw File objects, need upload + progress tracking
-        if (true) {
-          console.log('🚀 [sendMessageWithFiles] Raw File objects detected, using full upload path');
-        }
-
-        // Step 1: Create optimistic message with file previews
-        const optimisticMessage = {
-          id: tempId,
-          temp_id: tempId,
-          content: content.trim(),
-          sender_id: currentUserInfo.id,
-          sender_name: currentUserInfo.fullname || currentUserInfo.name || 'Unknown',
-          sender: {
-            id: currentUserInfo.id,
-            fullname: currentUserInfo.fullname || currentUserInfo.name || 'Unknown',
-            email: currentUserInfo.email,
-            avatar_url: currentUserInfo.avatar_url
-          },
-          created_at: new Date().toISOString(),
-          chat_id: this.currentChatId,
-          status: 'file_uploading', // 🚀 NEW: File uploading status
-          files: files.map(file => ({
-            id: `temp_file_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-            filename: file.name,
-            size: file.size,
-            mime_type: file.type,
-            upload_status: 'uploading', // 🚀 NEW: Individual file status
-            upload_progress: 0,         // 🚀 NEW: Progress tracking
-            local_url: URL.createObjectURL(file), // 🚀 Safe: Only called for File objects
-            server_url: null,
-            upload_error: null
-          })),
-          mentions: options.mentions || [],
-          reply_to: options.replyTo || null,
-          isOptimistic: true,
-          sentAt: Date.now(),
-          sseTimeout: null,
-          retryAttempts: 0,
-          maxRetryAttempts: 3
-        };
-
-        // Add to UI immediately
-        let currentMessages = unifiedMessageService.getMessagesForChat(this.currentChatId) || [];
-        currentMessages.push(optimisticMessage);
-        unifiedMessageService.messagesByChat.set(this.currentChatId, currentMessages);
-
-        if (true) {
-          console.log('✅ File message added to UI with uploading status:', optimisticMessage);
-        }
-
-        // Step 2: Upload files with progress tracking
-        const uploadedFileUrls = [];
-        for (let i = 0; i < files.length; i++) {
-          const file = files[i];
-
-          try {
-            // Update individual file status
-            this.updateFileUploadStatus(tempId, i, 'uploading', 0);
-
-            // Upload with progress
-            const uploadResult = await this.uploadFileWithProgress(
-              file,
-              (progress) => this.updateFileUploadProgress(tempId, i, progress)
-            );
-
-            // Mark file as uploaded
-            this.updateFileUploadStatus(tempId, i, 'uploaded', 100, uploadResult.file_url || uploadResult.url);
-            uploadedFileUrls.push(uploadResult.file_url || uploadResult.url);
-
-          } catch (uploadError) {
-            // Mark individual file as failed
-            this.updateFileUploadStatus(tempId, i, 'failed', 0, null, uploadError.message);
-            throw new Error(`File ${file.name} upload failed: ${uploadError.message}`);
-          }
-        }
-
-        // Step 3: Update status to sending message
-        this.updateOptimisticMessageStatus(tempId, 'sending');
-
-        // Step 4: Send message with uploaded file URLs
-        const payload = {
-          content: content.trim(),
-          files: uploadedFileUrls,
-          mentions: options.mentions || [],
-          reply_to: options.replyTo || null,
-          idempotency_key: idempotencyKey
-        };
-
-        const response = await api.post(`/chat/${this.currentChatId}/messages`, payload);
-        const sentMessage = response.data?.data || response.data;
-
-        if (sentMessage) {
-          // Replace optimistic with real message
-          currentMessages = unifiedMessageService.getMessagesForChat(this.currentChatId) || [];
-          const optimisticIndex = currentMessages.findIndex(m => m.temp_id === tempId);
-
-          if (optimisticIndex !== -1) {
-            const realMessage = {
-              id: sentMessage.id,
-              content: sentMessage.content,
-              sender_id: sentMessage.sender_id,
-              sender_name: sentMessage.sender?.fullname || currentUserInfo.fullname,
-              sender: sentMessage.sender || {
-                id: sentMessage.sender_id || currentUserInfo.id,
-                fullname: currentUserInfo.fullname,
-                email: currentUserInfo.email,
-                avatar_url: currentUserInfo.avatar_url
-              },
-              created_at: sentMessage.created_at,
-              chat_id: sentMessage.chat_id,
-              status: 'delivered',
-              delivered_at: new Date().toISOString(),
-              confirmed_via_api: true,
-              files: sentMessage.files || uploadedFileUrls.map(url => ({ url })),
-              mentions: sentMessage.mentions || [],
-              reply_to: sentMessage.reply_to || null,
-              isOptimistic: false,
-              sentAt: Date.now(),
-              retryAttempts: 0,
-              maxRetryAttempts: 3
-            };
-
-            currentMessages[optimisticIndex] = realMessage;
-            unifiedMessageService.messagesByChat.set(this.currentChatId, currentMessages);
-
-            this.updateChatLastMessage(realMessage);
-
-            if (true) {
-              console.log('✅ Message immediately marked as delivered via API success (notify-server doesn\'t send SSE to sender):', realMessage);
-              console.log('🎯 API confirmed delivery, no SSE needed for own messages');
-            }
-
-            return { message: realMessage };
-          }
-        }
-
-        return { message: sentMessage };
-
-      } catch (error) {
-        if (true) {
-          console.error('Failed to send file message:', error);
-        }
-
-        // Mark optimistic message as failed
-        const currentMessages = unifiedMessageService.getMessagesForChat(this.currentChatId) || [];
-        const failedMessage = currentMessages.find(m => m.temp_id === tempId);
-        if (failedMessage) {
-          failedMessage.status = 'failed';
-          failedMessage.error = error.message;
-          unifiedMessageService.messagesByChat.set(this.currentChatId, currentMessages);
-        }
-
-        errorHandler.handle(error, {
-          context: 'Send file message',
-          silent: false
-        });
-        throw error;
-      }
-    },
-
-    /**
-     * 🚀 NEW: Upload file with progress tracking using XMLHttpRequest
-     */
-    async uploadFileWithProgress(file, onProgress) {
-      const authStore = useAuthStore();
-
-      return new Promise((resolve, reject) => {
-        const formData = new FormData();
-        formData.append('file', file);
-
-        const xhr = new XMLHttpRequest();
-
-        // Track upload progress
-        xhr.upload.addEventListener('progress', (e) => {
-          if (e.lengthComputable) {
-            const progress = Math.round((e.loaded / e.total) * 100);
-            onProgress(progress);
-          }
-        });
-
-        xhr.addEventListener('load', () => {
-          if (xhr.status === 200) {
-            try {
-              const result = JSON.parse(xhr.responseText);
-              resolve(result.data || result);
-            } catch (parseError) {
-              reject(new Error(`Upload response parse error: ${parseError.message}`));
-            }
-          } else {
-            reject(new Error(`Upload failed with status: ${xhr.status}`));
-          }
-        });
-
-        xhr.addEventListener('error', () => {
-          reject(new Error('Upload network error'));
-        });
-
-        xhr.addEventListener('timeout', () => {
-          reject(new Error('Upload timeout'));
-        });
-
-        // Set timeout
-        xhr.timeout = 30000; // 30 seconds
-
-        // Set request headers
-        xhr.open('POST', '/api/files/single');
-
-        // Add authentication header if available
-        const token = authStore.token;
-        if (token) {
-          xhr.setRequestHeader('Authorization', `Bearer ${token}`);
-        }
-
-        xhr.send(formData);
-      });
-    },
-
-    /**
-     * 🚀 NEW: Update file upload status for a specific file in message
-     */
-    updateFileUploadStatus(messageId, fileIndex, status, progress = 0, serverUrl = null, error = null) {
-      const currentMessages = unifiedMessageService.getMessagesForChat(this.currentChatId) || [];
-      const messageIndex = currentMessages.findIndex(m => m.temp_id === messageId || m.id === messageId);
-
-      if (messageIndex !== -1) {
-        const message = currentMessages[messageIndex];
-        if (message.files && message.files[fileIndex]) {
-          message.files[fileIndex].upload_status = status;
-          message.files[fileIndex].upload_progress = progress;
-          if (serverUrl) message.files[fileIndex].server_url = serverUrl;
-          if (error) message.files[fileIndex].upload_error = error;
-
-          unifiedMessageService.messagesByChat.set(this.currentChatId, currentMessages);
-
-          if (true) {
-            console.log(`📤 File ${fileIndex} status updated to ${status} (${progress}%)`);
-          }
-        }
-      }
-    },
-
-    /**
-     * 🚀 NEW: Update file upload progress for a specific file
-     */
-    updateFileUploadProgress(messageId, fileIndex, progress) {
-      this.updateFileUploadStatus(messageId, fileIndex, 'uploading', progress);
-    },
-
-    /**
-     * 🚀 NEW: Update optimistic message status
-     */
-    updateOptimisticMessageStatus(messageId, status, error = null) {
-      const currentMessages = unifiedMessageService.getMessagesForChat(this.currentChatId) || [];
-      const messageIndex = currentMessages.findIndex(m => m.temp_id === messageId || m.id === messageId);
-
-      if (messageIndex !== -1) {
-        const message = currentMessages[messageIndex];
-        message.status = status;
-        if (error) message.error = error;
-
-        unifiedMessageService.messagesByChat.set(this.currentChatId, currentMessages);
-
-        if (true) {
-          console.log(`📨 Message ${messageId} status updated to ${status}`);
-        }
-      }
-    },
+    }
   }
 });

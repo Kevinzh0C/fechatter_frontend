@@ -27,15 +27,15 @@ console.log(`🧹 [MessageItemOptimized] CLEARED - Message ${props.message.id} d
 .optimized-message-placeholder {
   padding: 16px 20px;
   margin: 12px 0;
-  background: var(--bg-secondary, #2b2d31);
-  border: 2px dashed var(--text-warning, #fbbf24);
+  background: var(--bg-secondary);
+  border: 2px dashed var(--text-warning);
   border-radius: 12px;
   text-align: center;
   opacity: 0.8;
 }
 
 .cleared-notice {
-  color: var(--text-warning, #fbbf24);
+  color: var(--text-warning);
   font-style: italic;
   font-size: 14px;
   font-weight: 500;

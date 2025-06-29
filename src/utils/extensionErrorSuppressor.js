@@ -59,15 +59,28 @@ class ExtensionErrorSuppressor {
       /malicious/i
     ];
 
+    // 🔧 CRITICAL FIX: Add patterns for file download errors that should never be suppressed
+    this.fileDownloadPatterns = [
+      /\[downloadFile\]/i,
+      /download.*failed/i,
+      /file.*download/i,
+      /blob.*error/i,
+      /FileService/i,
+      /ImageCacheService/i,
+      /getFileUrl/i,
+      /buildStaticFileUrl/i,
+      /getRobustFileUrls/i
+    ];
+
+    // Initialize counters
     this.suppressedCount = 0;
-    this.sessionStats = {
-      startTime: Date.now(),
-      totalSuppressed: 0,
-      securityErrorsPreserved: 0,
-      byPattern: new Map(),
-      recentErrors: [],
-      securityErrors: []
-    };
+    this.passedCount = 0;
+    this.securityCount = 0;
+    this.fileDownloadCount = 0;
+    this.suppressedErrors = [];
+    this.securityErrors = [];
+    this.fileDownloadErrors = [];
+    this.maxStoredErrors = 50;
 
     this.initialize();
   }
@@ -96,10 +109,13 @@ class ExtensionErrorSuppressor {
     // Periodic cleanup of old error history
     setInterval(() => {
       const cutoff = Date.now() - (5 * 60 * 1000); // Keep 5 minutes
-      this.sessionStats.recentErrors = this.sessionStats.recentErrors.filter(
+      this.suppressedErrors = this.suppressedErrors.filter(
         error => error.timestamp > cutoff
       );
-      this.sessionStats.securityErrors = this.sessionStats.securityErrors.filter(
+      this.securityErrors = this.securityErrors.filter(
+        error => error.timestamp > cutoff
+      );
+      this.fileDownloadErrors = this.fileDownloadErrors.filter(
         error => error.timestamp > cutoff
       );
     }, 60000); // Clean up every minute
@@ -148,6 +164,16 @@ class ExtensionErrorSuppressor {
         return;
       }
 
+      // 🔧 CRITICAL FIX: Never suppress file download errors
+      if (self.isFileDownloadError(errorMessage)) {
+        if (true) {
+          console.warn('📁 [FILE] File download error preserved:', errorMessage);
+        }
+        self.recordFileDownloadError(errorMessage);
+        originalConsoleError.apply(console, args);
+        return;
+      }
+
       // Check if arguments contain suppressible extension errors
       if (self.shouldSuppress({ message: errorMessage })) {
         self.recordSuppression(errorMessage, 'console');
@@ -177,6 +203,15 @@ class ExtensionErrorSuppressor {
       return; // Let the error propagate
     }
 
+    // 🔧 CRITICAL FIX: Never suppress file download errors
+    if (this.isFileDownloadError(errorMessage)) {
+      if (true) {
+        console.warn('📁 [FILE] File download error preserved in global handler:', errorMessage);
+      }
+      this.recordFileDownloadError(errorMessage);
+      return; // Let the error propagate
+    }
+
     if (this.suppressionEnabled && this.shouldSuppress(error)) {
       this.recordSuppression(errorMessage, 'global');
       event.stopImmediatePropagation();
@@ -197,6 +232,15 @@ class ExtensionErrorSuppressor {
       return; // Let the error propagate
     }
 
+    // 🔧 CRITICAL FIX: Never suppress file download errors
+    if (this.isFileDownloadError(errorMessage)) {
+      if (true) {
+        console.warn('📁 [FILE] File download error preserved in promise rejection:', errorMessage);
+      }
+      this.recordFileDownloadError(errorMessage);
+      return; // Let the error propagate
+    }
+
     if (this.suppressionEnabled && this.shouldSuppress(event.reason)) {
       this.recordSuppression(errorMessage, 'promise');
       event.stopImmediatePropagation();
@@ -212,6 +256,15 @@ class ExtensionErrorSuppressor {
     if (!errorMessage || typeof errorMessage !== 'string') return false;
 
     return this.securityPatterns.some(pattern => pattern.test(errorMessage));
+  }
+
+  /**
+   * 🔧 CRITICAL FIX: Check if error is file download related (never suppress these)
+   */
+  isFileDownloadError(errorMessage) {
+    if (!errorMessage || typeof errorMessage !== 'string') return false;
+
+    return this.fileDownloadPatterns.some(pattern => pattern.test(errorMessage));
   }
 
   /**
@@ -246,6 +299,9 @@ class ExtensionErrorSuppressor {
     // Never suppress security errors
     if (this.isSecurityError(errorMessage)) return false;
 
+    // 🔧 CRITICAL FIX: Never suppress file download errors
+    if (this.isFileDownloadError(errorMessage)) return false;
+
     // Only suppress extension errors
     return this.isExtensionError(error);
   }
@@ -263,39 +319,45 @@ class ExtensionErrorSuppressor {
     if (!this.suppressionEnabled) return;
 
     this.suppressedCount++;
-    this.sessionStats.totalSuppressed++;
-
-    // Find matching pattern for statistics
-    const matchingPattern = this.suppressedPatterns.find(pattern =>
-      pattern.test(message)
-    );
-
-    if (matchingPattern) {
-      const patternKey = matchingPattern.toString();
-      const current = this.sessionStats.byPattern.get(patternKey) || 0;
-      this.sessionStats.byPattern.set(patternKey, current + 1);
+    
+    if (this.suppressedErrors.length >= this.maxStoredErrors) {
+      this.suppressedErrors.shift(); // Remove oldest
     }
-
-    // Store recent error for debugging (limit to prevent memory leaks)
-    if (this.sessionStats.recentErrors.length < 100) {
-      this.sessionStats.recentErrors.push({
-        message: message.substring(0, 200),
-        source,
-        timestamp: Date.now(),
-      });
-    }
+    
+    this.suppressedErrors.push({
+      message: message.substring(0, 200), // Truncate long messages
+      source,
+      timestamp: new Date().toISOString()
+    });
   }
 
   recordSecurityError(message) {
-    this.sessionStats.securityErrorsPreserved++;
-
-    if (this.sessionStats.securityErrors.length < 50) {
-      this.sessionStats.securityErrors.push({
-        message: message.substring(0, 300),
-        timestamp: Date.now(),
-        environment: this.environment
-      });
+    this.securityCount++;
+    
+    if (this.securityErrors.length >= this.maxStoredErrors) {
+      this.securityErrors.shift(); // Remove oldest
     }
+    
+    this.securityErrors.push({
+      message: message.substring(0, 200), // Truncate long messages
+      timestamp: new Date().toISOString()
+    });
+  }
+
+  /**
+   * 🔧 CRITICAL FIX: Record a file download error that was not suppressed
+   */
+  recordFileDownloadError(message) {
+    this.fileDownloadCount++;
+    
+    if (this.fileDownloadErrors.length >= this.maxStoredErrors) {
+      this.fileDownloadErrors.shift(); // Remove oldest
+    }
+    
+    this.fileDownloadErrors.push({
+      message: message.substring(0, 200), // Truncate long messages
+      timestamp: new Date().toISOString()
+    });
   }
 
   // Get comprehensive statistics
@@ -312,14 +374,15 @@ class ExtensionErrorSuppressor {
       suppressionRate: this.sessionStats.totalSuppressed / (sessionDuration / 1000 / 60), // per minute
       patternCount: this.suppressedPatterns.length,
       byPattern: Object.fromEntries(this.sessionStats.byPattern),
-      recentErrorCount: this.sessionStats.recentErrors.length,
-      securityErrorCount: this.sessionStats.securityErrors.length,
+      recentErrorCount: this.suppressedErrors.length,
+      securityErrorCount: this.securityErrors.length,
+      fileDownloadCount: this.fileDownloadCount,
     };
   }
 
   // Debug method to show recent errors
   showRecentErrors(limit = 10) {
-    const recent = this.sessionStats.recentErrors.slice(-limit);
+    const recent = this.suppressedErrors.slice(-limit);
     console.group('🛡️ Recent Suppressed Extension Errors');
     recent.forEach((error, index) => {
       if (true) {
@@ -333,13 +396,25 @@ class ExtensionErrorSuppressor {
   // Show security errors that were preserved
   showSecurityErrors() {
     console.group('🚨 Security Errors (Preserved)');
-    this.sessionStats.securityErrors.forEach((error, index) => {
+    this.securityErrors.forEach((error, index) => {
       if (true) {
         console.warn(`${index + 1}. ${error.message}`);
       }
     });
     console.groupEnd();
-    return this.sessionStats.securityErrors;
+    return this.securityErrors;
+  }
+
+  // Show file download errors that were preserved
+  showFileDownloadErrors() {
+    console.group('📁 File Download Errors (Preserved)');
+    this.fileDownloadErrors.forEach((error, index) => {
+      if (true) {
+        console.warn(`${index + 1}. ${error.message}`);
+      }
+    });
+    console.groupEnd();
+    return this.fileDownloadErrors;
   }
 }
 
@@ -352,6 +427,7 @@ if (typeof window !== 'undefined') {
   if (suppressor.isDevelopment) {
     window.debugExtensionErrors = () => suppressor.showRecentErrors();
     window.debugSecurityErrors = () => suppressor.showSecurityErrors();
+    window.debugFileDownloadErrors = () => suppressor.showFileDownloadErrors();
     window.extensionErrorStats = () => suppressor.getStats();
   }
 }

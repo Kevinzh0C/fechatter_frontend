@@ -1111,3 +1111,300 @@
     font-size: 11px;
   }
 }
+
+/* 📱 移动端键盘适配优化 */
+@media (max-width: 768px) {
+  /* 📱 输入框键盘适配 */
+  .message-input {
+    padding: 12px;
+    /* 📱 确保输入区域在键盘上方 */
+    position: relative;
+    z-index: 100;
+    background: white;
+    border-top: 1px solid #e5e7eb;
+  }
+
+  /* 📱 键盘显示时的输入框优化 */
+  .message-textarea {
+    /* 📱 防止iOS自动缩放 */
+    font-size: 16px !important;
+    /* 📱 优化键盘体验 */
+    -webkit-appearance: none;
+    appearance: none;
+    /* 📱 硬件加速 */
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    /* 📱 平滑滚动 */
+    -webkit-overflow-scrolling: touch;
+    /* 📱 键盘适配 */
+    resize: none;
+    outline: none;
+  }
+
+  /* 📱 聚焦时的特殊处理 */
+  .message-textarea:focus {
+    /* 📱 确保输入框可见 */
+    position: relative;
+    z-index: 101;
+    /* 📱 防止键盘遮挡 */
+    scroll-margin-bottom: 20px;
+    /* 📱 iOS Safari 特殊处理 */
+    -webkit-user-select: text;
+    user-select: text;
+  }
+
+  /* 📱 主输入区域适配 */
+  .main-input-area {
+    gap: 6px;
+    align-items: flex-end;
+    /* 📱 确保按钮区域触摸友好 */
+    min-height: 44px;
+  }
+
+  /* 📱 输入按钮触摸优化 */
+  .input-btn {
+    width: 44px;
+    height: 44px;
+    /* 📱 确保足够的触摸目标 */
+    min-width: 44px;
+    min-height: 44px;
+    /* 📱 触摸反馈 */
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* 📱 发送按钮特殊优化 */
+  .send-btn {
+    /* 📱 发送按钮更醒目 */
+    background: #6366f1;
+    color: white;
+    border: none;
+  }
+
+  .send-btn:hover,
+  .send-btn.active {
+    background: #5856eb;
+    transform: scale(1.05);
+  }
+
+  .send-btn:disabled {
+    background: #d1d5db;
+    color: #9ca3af;
+    transform: none;
+  }
+
+  /* 📱 输入容器键盘适配 */
+  .input-container {
+    flex: 1;
+    /* 📱 确保输入框占据足够空间 */
+    min-width: 0;
+  }
+
+  /* 📱 预览容器移动端优化 */
+  .preview-container {
+    /* 📱 减少预览高度，为键盘让出空间 */
+    max-height: 200px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .preview-content {
+    max-height: 150px;
+    padding: 8px;
+  }
+
+  /* 📱 Markdown工具栏移动端适配 */
+  .markdown-toolbar {
+    padding: 6px 8px;
+    gap: 4px;
+    /* 📱 工具栏滚动 */
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .markdown-toolbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .toolbar-btn {
+    width: 36px;
+    height: 36px;
+    /* 📱 确保按钮不会收缩 */
+    flex-shrink: 0;
+    /* 📱 触摸友好 */
+    min-width: 36px;
+    min-height: 36px;
+  }
+
+  /* 📱 表情选择器移动端优化 */
+  .emoji-picker-overlay {
+    /* 📱 全屏遮罩 */
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+  }
+
+  .emoji-picker-container {
+    /* 📱 底部弹出 */
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    border-radius: 16px 16px 0 0;
+    max-height: 60vh;
+    /* 📱 键盘适配 */
+    margin-bottom: env(keyboard-inset-height, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .emoji-picker-content {
+    /* 📱 确保内容可滚动 */
+    max-height: calc(60vh - 60px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .emoji-grid {
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .emoji-item {
+    width: 36px;
+    height: 36px;
+    font-size: 20px;
+    /* 📱 触摸友好 */
+    min-width: 36px;
+    min-height: 36px;
+    touch-action: manipulation;
+  }
+
+  /* 📱 文件预览移动端优化 */
+  .file-upload-area {
+    padding: 16px;
+    /* 📱 触摸友好的上传区域 */
+    min-height: 80px;
+  }
+
+  .file-item {
+    padding: 8px;
+    /* 📱 文件项目触摸优化 */
+    min-height: 60px;
+  }
+
+  .file-actions {
+    /* 📱 确保操作按钮触摸友好 */
+    min-width: 44px;
+  }
+
+  .file-remove {
+    width: 32px;
+    height: 32px;
+    /* 📱 触摸目标优化 */
+    min-width: 32px;
+    min-height: 32px;
+  }
+}
+
+/* 📱 iOS Safari 特殊键盘适配 */
+@supports (-webkit-touch-callout: none) {
+  @media (max-width: 768px) {
+    .message-input {
+      /* 📱 iOS特殊处理：使用安全区域 */
+      padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    }
+    
+    .message-textarea:focus {
+      /* 📱 iOS聚焦时防止页面跳动 */
+      position: relative;
+      z-index: 101;
+      /* 📱 确保输入框在视口内 */
+      scroll-margin-bottom: 100px;
+    }
+    
+    /* 📱 iOS键盘弹出时的特殊处理 */
+    .emoji-picker-container {
+      /* 📱 iOS键盘高度补偿 */
+      margin-bottom: max(env(keyboard-inset-height, 0px), env(safe-area-inset-bottom, 0px));
+    }
+  }
+}
+
+/* 📱 Android 键盘适配 */
+@media (max-width: 768px) and (not (-webkit-touch-callout: none)) {
+  .message-input {
+    /* 📱 Android特殊处理 */
+    position: sticky;
+    bottom: 0;
+    background: white;
+    border-top: 1px solid #e5e7eb;
+  }
+  
+  .message-textarea:focus {
+    /* 📱 Android聚焦优化 */
+    transform: translateZ(0);
+    scroll-margin-bottom: 50px;
+  }
+}
+
+/* 📱 键盘弹出动画 */
+@media (max-width: 768px) and (prefers-reduced-motion: no-preference) {
+  .message-input {
+    transition: padding 0.3s ease, transform 0.3s ease;
+  }
+  
+  .message-textarea {
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .emoji-picker-container {
+    animation: slideUpFromBottom 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+/* 📱 减少动画偏好适配 */
+@media (max-width: 768px) and (prefers-reduced-motion: reduce) {
+  .message-input,
+  .message-textarea,
+  .emoji-picker-container {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* 📱 高对比度支持 */
+@media (max-width: 768px) and (prefers-contrast: high) {
+  .message-input {
+    border-top: 2px solid #000;
+  }
+  
+  .message-textarea {
+    border: 2px solid #000;
+  }
+  
+  .input-btn {
+    border: 2px solid #000;
+  }
+}
+
+/* 📱 横屏适配 */
+@media (max-width: 768px) and (orientation: landscape) {
+  .preview-container {
+    max-height: 120px;
+  }
+  
+  .emoji-picker-container {
+    max-height: 50vh;
+  }
+  
+  .emoji-picker-content {
+    max-height: calc(50vh - 60px);
+  }
+}

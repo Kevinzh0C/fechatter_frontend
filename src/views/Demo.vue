@@ -1,7 +1,7 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
+  <div class="min-h-screen bg-gray-900">
     <!-- Simple Header -->
-    <div class="bg-white shadow-sm border-b border-gray-200">
+    <div class="bg-gray-800 shadow-sm border-b border-gray-700">
       <div class="max-w-4xl mx-auto px-4 py-3">
         <div class="flex items-center gap-2">
           <AppIcon 
@@ -9,40 +9,40 @@
             :preserve-gradient="true"
             title="Fechatter Demo"
           />
-          <h1 class="text-lg font-semibold text-gray-900">Demo Page - 演示页面</h1>
+          <h1 class="text-lg font-semibold text-white">Demo Page - 演示页面</h1>
         </div>
       </div>
     </div>
 
     <div class="max-w-4xl mx-auto p-4">
       <!-- Basic Status Card -->
-      <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-6">
-        <h2 class="text-xl font-semibold text-gray-900 mb-4">Application Status</h2>
+      <div class="bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-700 mb-6">
+        <h2 class="text-xl font-semibold text-white mb-4">Application Status</h2>
         <div class="space-y-3">
           <div class="flex items-center space-x-2">
             <svg class="w-5 h-5 text-green-500" viewBox="0 0 24 24" fill="currentColor">
               <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
             </svg>
-            <span>Vue app mounted successfully</span>
+            <span class="text-gray-300">Vue app mounted successfully</span>
           </div>
           <div class="flex items-center space-x-2">
             <svg class="w-5 h-5 text-green-500" viewBox="0 0 24 24" fill="currentColor">
               <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
             </svg>
-            <span>Router working</span>
+            <span class="text-gray-300">Router working</span>
           </div>
           <div class="flex items-center space-x-2">
             <svg class="w-5 h-5 text-green-500" viewBox="0 0 24 24" fill="currentColor">
               <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
             </svg>
-            <span>JavaScript router implementation</span>
+            <span class="text-gray-300">JavaScript router implementation</span>
           </div>
         </div>
       </div>
 
       <!-- Navigation Links -->
-      <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-6">
-        <h2 class="text-xl font-semibold text-gray-900 mb-4">Navigation Test</h2>
+      <div class="bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-700 mb-6">
+        <h2 class="text-xl font-semibold text-white mb-4">Navigation Test</h2>
         <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
           <router-link to="/login" 
                        class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 text-center">
@@ -72,14 +72,14 @@
       </div>
 
       <!-- Simple Functionality Test -->
-      <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-        <h2 class="text-xl font-semibold text-gray-900 mb-4">Basic Functionality</h2>
+      <div class="bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-700">
+        <h2 class="text-xl font-semibold text-white mb-4">Basic Functionality</h2>
         <div class="space-y-4">
           <button @click="showMessage" 
                   class="px-4 py-2 bg-indigo-500 text-white rounded hover:bg-indigo-600">
             Show Alert
           </button>
-          <div v-if="message" class="p-3 bg-green-100 border border-green-400 text-green-700 rounded">
+          <div v-if="message" class="p-3 bg-green-900 border border-green-700 text-green-300 rounded">
             {{ message }}
           </div>
         </div>

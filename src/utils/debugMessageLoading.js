@@ -77,7 +77,7 @@ export async function debugMessageLoading() {
     if (chatStore.currentChatId) {
       const { default: api } = await import('@/services/api');
       try {
-        const response = await api.get(`/chat/${chatStore.currentChatId}/messages`);
+        const response = await api.get(`/chat/${chatId}/messages`);
         if (true) {
           console.log('✅ Direct API call successful');
         if (true) {

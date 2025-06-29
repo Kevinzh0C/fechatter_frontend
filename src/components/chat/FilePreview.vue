@@ -174,58 +174,48 @@ const getFileUrl = (file) => {
   });
 };
 
-// ✅ BACKEND-ALIGNED: Download using proper file service
+// 🎯 三级降级文件下载系统
 const downloadFile = async () => {
   const fileName = props.file.filename || props.file.file_name || props.file.name || 'file';
 
   try {
-    // Try static URL first (faster, no auth required)
-    const staticUrl = getFileUrl(props.file);
+    console.log('🎯 [FilePreview] Starting 3-level fallback download for:', fileName);
     
-    if (staticUrl && !staticUrl.startsWith('/api/')) {
-      console.log('📥 [FilePreview] Using static URL for download:', fileName);
-      
-      const link = document.createElement('a');
-      link.href = staticUrl;
-      link.download = fileName;
-      link.target = '_blank';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      console.log('✅ [FilePreview] Downloaded via static URL:', fileName);
-      return;
-    }
+    // 导入三级降级下载服务
+    const { fileDownloadFallback } = await import('@/utils/fileDownloadFallback.js');
     
-    // Fallback to authenticated download
-    console.log('📥 [FilePreview] Using authenticated download for:', fileName);
+    // 执行三级降级下载
+    const result = await fileDownloadFallback.downloadFile(props.file);
     
-    const { default: fileService } = await import('@/services/FileService.js');
-    const { extractFileId } = await import('@/utils/fileUrlHandler.js');
+    console.log(`✅ [FilePreview] Download SUCCESS via Level ${result.level} (${result.method}):`, fileName);
     
-    const fileId = extractFileId(props.file.url || props.file.file_url || props.file.id);
-    if (!fileId) {
-      throw new Error('No valid file ID found');
-    }
-    
-    const downloadResult = await fileService.downloadFile(fileId);
-    
-    // Create download link with blob
-    const link = document.createElement('a');
-    link.href = downloadResult.url;
-    link.download = downloadResult.filename || fileName;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    // Clean up blob URL
-    setTimeout(() => URL.revokeObjectURL(downloadResult.url), 1000);
-    
-    console.log('✅ [FilePreview] Downloaded via authenticated API:', fileName);
+    // 显示成功反馈
+    const levelNames = { 1: 'Static', 2: 'Auth API', 3: 'Workspace' };
+    console.log(`🎉 [FilePreview] ${fileName} downloaded via ${levelNames[result.level]} method`);
     
   } catch (error) {
-    console.error('❌ [FilePreview] Download failed for file:', fileName, error);
-    alert(`Failed to download ${fileName}. Please try again.`);
+    console.error('❌ [FilePreview] All 3 download levels failed for:', fileName, error);
+    
+    // 获取下载统计信息用于错误报告
+    const { fileDownloadFallback } = await import('@/utils/fileDownloadFallback.js');
+    const stats = fileDownloadFallback.getStats();
+    
+    // 提供详细的错误信息
+    const errorMessage = `File download failed after trying all 3 methods:
+    
+📊 Download Statistics:
+• Level 1 (Static): ${stats.level1_success} successes
+• Level 2 (Auth API): ${stats.level2_success} successes  
+• Level 3 (Workspace): ${stats.level3_success} successes
+• Total Failures: ${stats.total_failures}
+• Success Rate: ${stats.success_rate}%
+
+File: ${fileName}
+Error: ${error.message}
+
+Please contact support if this issue persists.`;
+
+    alert(errorMessage);
   }
 };
 

@@ -225,7 +225,7 @@ const getStatusText = (status) => {
 }
 
 .profile-modal-container {
-  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+  background: linear-gradient(145deg, #2f3136 0%, #202225 100%);
   border-radius: 24px;
   box-shadow:
     0 25px 50px rgba(0, 0, 0, 0.25),
@@ -250,9 +250,9 @@ const getStatusText = (status) => {
   height: 40px;
   border-radius: 50%;
   border: none;
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(47, 49, 54, 0.9);
   backdrop-filter: blur(10px);
-  color: #6b7280;
+  color: #b9bbbe;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -262,8 +262,8 @@ const getStatusText = (status) => {
 }
 
 .close-button:hover {
-  background: rgba(255, 255, 255, 1);
-  color: #374151;
+  background: rgba(47, 49, 54, 1);
+  color: #ffffff;
   transform: scale(1.05);
 }
 
@@ -276,7 +276,7 @@ const getStatusText = (status) => {
 .profile-avatar-section {
   padding: 40px 32px 24px;
   text-align: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #5865f2 0%, #7983f5 100%);
   position: relative;
 }
 
@@ -290,7 +290,7 @@ const getStatusText = (status) => {
   width: 120px;
   height: 120px;
   border-radius: 50%;
-  border: 4px solid rgba(255, 255, 255, 0.9);
+  border: 4px solid rgba(47, 49, 54, 0.9);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
   object-fit: cover;
 }
@@ -316,7 +316,7 @@ const getStatusText = (status) => {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: white;
+  background: #2f3136;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -330,23 +330,23 @@ const getStatusText = (status) => {
 }
 
 .status-online .status-dot {
-  background: #10b981;
-  box-shadow: 0 0 0 2px #10b981;
+  background: #23a55a;
+  box-shadow: 0 0 0 2px #23a55a;
 }
 
 .status-away .status-dot {
-  background: #f59e0b;
-  box-shadow: 0 0 0 2px #f59e0b;
+  background: #f9a828;
+  box-shadow: 0 0 0 2px #f9a828;
 }
 
 .status-busy .status-dot {
-  background: #ef4444;
-  box-shadow: 0 0 0 2px #ef4444;
+  background: #f84f31;
+  box-shadow: 0 0 0 2px #f84f31;
 }
 
 .status-offline .status-dot {
-  background: #6b7280;
-  box-shadow: 0 0 0 2px #6b7280;
+  background: #747f8d;
+  box-shadow: 0 0 0 2px #747f8d;
 }
 
 /* User Information */
@@ -357,7 +357,7 @@ const getStatusText = (status) => {
 .user-name {
   font-size: 24px;
   font-weight: 700;
-  color: #1f2937;
+  color: #ffffff;
   margin: 0 0 24px 0;
   text-align: center;
 }
@@ -376,7 +376,7 @@ const getStatusText = (status) => {
 .detail-icon {
   width: 20px;
   height: 20px;
-  color: #6366f1;
+  color: #5865f2;
   flex-shrink: 0;
   margin-top: 2px;
 }
@@ -390,7 +390,7 @@ const getStatusText = (status) => {
   display: block;
   font-size: 12px;
   font-weight: 600;
-  color: #6b7280;
+  color: #b9bbbe;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin-bottom: 2px;
@@ -400,24 +400,24 @@ const getStatusText = (status) => {
   display: block;
   font-size: 14px;
   font-weight: 500;
-  color: #374151;
+  color: #dcddde;
   word-wrap: break-word;
 }
 
 .status-text.status-online {
-  color: #10b981;
+  color: #23a55a;
 }
 
 .status-text.status-away {
-  color: #f59e0b;
+  color: #f9a828;
 }
 
 .status-text.status-busy {
-  color: #ef4444;
+  color: #f84f31;
 }
 
 .status-text.status-offline {
-  color: #6b7280;
+  color: #747f8d;
 }
 
 /* Action Buttons */
@@ -445,14 +445,14 @@ const getStatusText = (status) => {
 }
 
 .action-button.primary {
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: linear-gradient(135deg, #5865f2, #7983f5);
   color: white;
-  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
+  box-shadow: 0 4px 14px rgba(88, 101, 242, 0.4);
 }
 
 .action-button.primary:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+  box-shadow: 0 6px 20px rgba(88, 101, 242, 0.5);
 }
 
 .action-button.primary:disabled {
@@ -462,14 +462,14 @@ const getStatusText = (status) => {
 }
 
 .action-button.secondary {
-  background: rgba(107, 114, 128, 0.1);
-  color: #374151;
-  border: 1px solid rgba(107, 114, 128, 0.2);
+  background: rgba(79, 84, 92, 0.5);
+  color: #dcddde;
+  border: 1px solid rgba(79, 84, 92, 0.8);
 }
 
 .action-button.secondary:hover {
-  background: rgba(107, 114, 128, 0.15);
-  border-color: rgba(107, 114, 128, 0.3);
+  background: rgba(79, 84, 92, 0.7);
+  border-color: rgba(79, 84, 92, 1);
   transform: translateY(-1px);
 }
 

@@ -1,6 +1,10 @@
 <template>
   <div class="discord-message-wrapper">
-    <div class="discord-message-list" ref="scrollContainer"
+    <EmptyChatPlaceholder 
+      v-if="!loading && groupedMessages.length === 0" 
+      :chat-id="chatId" 
+    />
+    <div v-else class="discord-message-list" ref="scrollContainer"
          :data-loading="loadingMore" 
          :data-chat-id="chatId"
          :class="{ 
@@ -163,6 +167,7 @@ import { useChatStore } from '@/stores/chat'
 import DiscordMessageItem from './DiscordMessageItem.vue'
 import TimeSessionDivider from '@/components/chat/TimeSessionDivider.vue'
 import Icon from '@/components/ui/Icon.vue'
+import EmptyChatPlaceholder from '@/components/chat/EmptyChatPlaceholder.vue'
 import { debounce, throttle } from '@/utils/performance'
 import { messageSessionGrouper } from '@/services/MessageSessionGrouper.js'
 // 🏆 UNIFIED SCROLL MANAGER INTEGRATION
@@ -1328,7 +1333,7 @@ const debouncedDOMOperations = debounce(() => {
   width: 100%;
   overflow-y: auto;
   overflow-x: hidden;
-  background-color: var(--bg-primary, #36393f);
+  background-color: var(--bg-primary);
   position: relative;
   scroll-behavior: auto;
   /* 🎯 确保瞬时滚动，避免平滑滚动干扰 */
@@ -1373,7 +1378,7 @@ const debouncedDOMOperations = debounce(() => {
 }
 
 .discord-message-list::-webkit-scrollbar-thumb:active {
-  background: var(--accent-primary, #5865f2);
+  background: var(--accent-primary);
 }
 
 .messages-container {
@@ -1401,7 +1406,7 @@ const debouncedDOMOperations = debounce(() => {
   justify-content: center;
   padding: 12px 16px;
   gap: 10px;
-  color: var(--text-muted, #72767d);
+  color: var(--text-muted);
   font-size: 13px;
   font-weight: 500;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -1430,7 +1435,7 @@ const debouncedDOMOperations = debounce(() => {
   width: 18px;
   height: 18px;
   border: 2px solid rgba(88, 101, 242, 0.2);
-  border-top: 2px solid var(--accent-primary, #5865f2);
+  border-top: 2px solid var(--accent-primary);
   border-radius: 50%;
   animation: spin 1s linear infinite, pulse 2s ease-in-out infinite;
   box-shadow: 0 0 0 0 rgba(88, 101, 242, 0.4);
@@ -1441,7 +1446,7 @@ const debouncedDOMOperations = debounce(() => {
   align-items: center;
   gap: 8px;
   padding: 8px 16px;
-  color: var(--text-muted, #72767d);
+  color: var(--text-muted);
   font-size: 14px;
 }
 
@@ -1453,7 +1458,7 @@ const debouncedDOMOperations = debounce(() => {
 .typing-dots span {
   width: 4px;
   height: 4px;
-  background: var(--text-muted, #72767d);
+  background: var(--text-muted);
   border-radius: 50%;
   animation: typing 1.4s ease-in-out infinite;
 }
@@ -1493,8 +1498,8 @@ const debouncedDOMOperations = debounce(() => {
 
 .scroll-to-bottom-btn-fixed:hover {
   background: rgba(255, 255, 255, 1);
-  border-color: var(--accent-primary, #5865f2);
-  color: var(--accent-primary, #5865f2);
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
   transform: translateY(-2px) scale(1.05);
   box-shadow:
     0 4px 12px rgba(0, 0, 0, 0.15),
@@ -1509,7 +1514,7 @@ const debouncedDOMOperations = debounce(() => {
   position: absolute;
   top: -4px;
   right: -4px;
-  background: var(--danger-color, #ed4245);
+  background: var(--danger-color);
   color: white;
   border-radius: 12px;
   padding: 3px 8px;
@@ -1548,12 +1553,12 @@ const debouncedDOMOperations = debounce(() => {
 /* Message highlighting */
 :deep(.search-highlight) {
   background-color: var(--warning-color, rgba(255, 212, 59, 0.3));
-  border-left: 3px solid var(--warning-color, #ffd43b);
+  border-left: 3px solid var(--warning-color);
   animation: highlight-pulse 0.6s ease-in-out;
 }
 
 :deep(.search-term-highlight) {
-  background-color: var(--warning-color, #ffd43b);
+  background-color: var(--warning-color);
   color: var(--text-dark, #000);
   padding: 1px 2px;
   border-radius: 2px;
@@ -1668,7 +1673,7 @@ const debouncedDOMOperations = debounce(() => {
   right: 0;
   height: 2px;
   background: linear-gradient(90deg,
-      var(--accent-primary, #5865f2) 0%,
+      var(--accent-primary) 0%,
       rgba(88, 101, 242, 0.6) 50%,
       rgba(88, 101, 242, 0.2) 100%);
   transform: scaleX(0);
@@ -1695,8 +1700,8 @@ const debouncedDOMOperations = debounce(() => {
   width: 3px;
   background: linear-gradient(180deg,
       transparent 0%,
-      var(--accent-primary, #5865f2) 20%,
-      var(--accent-primary, #5865f2) 80%,
+      var(--accent-primary) 20%,
+      var(--accent-primary) 80%,
       transparent 100%);
   border-radius: 2px;
   opacity: 0;
@@ -1758,7 +1763,7 @@ const debouncedDOMOperations = debounce(() => {
 
   .date-separator::before,
   .date-separator::after {
-    background: var(--text-primary, #dcddde);
+    background: var(--text-primary);
   }
 
   .search-highlight {
@@ -1809,7 +1814,7 @@ const debouncedDOMOperations = debounce(() => {
 
   .date-text {
     color: rgba(220, 221, 222, 0.85);
-    background: var(--bg-primary, #2f3136);
+    background: var(--bg-primary);
     border: 1px solid rgba(255, 255, 255, 0.08);
     box-shadow: 0 1.618px 6.18px rgba(0, 0, 0, 0.15);
   }
@@ -1918,7 +1923,7 @@ const debouncedDOMOperations = debounce(() => {
 }
 
 .spinner-circle {
-  stroke: var(--accent-primary, #5865f2);
+  stroke: var(--accent-primary);
   animation: circleProgress 1.5s ease-in-out infinite;
 }
 
@@ -1929,13 +1934,13 @@ const debouncedDOMOperations = debounce(() => {
 }
 
 .loading-primary-text {
-  color: var(--text-primary, #dcddde);
+  color: var(--text-primary);
   font-size: 13px;
   font-weight: 500;
 }
 
 .loading-sub-text {
-  color: var(--text-muted, #72767d);
+  color: var(--text-muted);
   font-size: 11px;
   font-weight: 400;
 }
@@ -2076,9 +2081,9 @@ const debouncedDOMOperations = debounce(() => {
   right: 0;
   height: 2px;
   background: linear-gradient(90deg,
-      var(--accent-primary, #5865f2) 0%,
+      var(--accent-primary) 0%,
       rgba(88, 101, 242, 0.6) 50%,
-      var(--accent-primary, #5865f2) 100%);
+      var(--accent-primary) 100%);
   background-size: 200% 100%;
   animation: loadingProgress 2s ease-in-out infinite;
   z-index: 20;
@@ -2235,7 +2240,7 @@ const debouncedDOMOperations = debounce(() => {
   
   .discord-message-list.history-loading-active::before {
     animation: none;
-    background: var(--accent-primary, #5865f2);
+    background: var(--accent-primary);
   }
 }
 
@@ -2298,7 +2303,7 @@ const debouncedDOMOperations = debounce(() => {
 }
 
 .spinner-circle {
-  stroke: var(--accent-primary, #5865f2);
+  stroke: var(--accent-primary);
   animation: circleProgress 1.5s ease-in-out infinite;
 }
 
@@ -2309,13 +2314,13 @@ const debouncedDOMOperations = debounce(() => {
 }
 
 .loading-primary-text {
-  color: var(--text-primary, #dcddde);
+  color: var(--text-primary);
   font-size: 13px;
   font-weight: 500;
 }
 
 .loading-sub-text {
-  color: var(--text-muted, #72767d);
+  color: var(--text-muted);
   font-size: 11px;
   font-weight: 400;
 }
@@ -2456,9 +2461,9 @@ const debouncedDOMOperations = debounce(() => {
   right: 0;
   height: 2px;
   background: linear-gradient(90deg,
-      var(--accent-primary, #5865f2) 0%,
+      var(--accent-primary) 0%,
       rgba(88, 101, 242, 0.6) 50%,
-      var(--accent-primary, #5865f2) 100%);
+      var(--accent-primary) 100%);
   background-size: 200% 100%;
   animation: loadingProgress 2s ease-in-out infinite;
   z-index: 20;
@@ -2615,7 +2620,7 @@ const debouncedDOMOperations = debounce(() => {
   
   .discord-message-list.history-loading-active::before {
     animation: none;
-    background: var(--accent-primary, #5865f2);
+    background: var(--accent-primary);
   }
 }
 
@@ -2681,7 +2686,7 @@ const debouncedDOMOperations = debounce(() => {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--accent-primary, #5865f2);
+  background: var(--accent-primary);
   animation: loadingDots 1.4s ease-in-out infinite both;
 }
 
@@ -2944,7 +2949,7 @@ const debouncedDOMOperations = debounce(() => {
 }
 
 .bridge-text {
-  color: var(--text-primary, #374151);
+  color: var(--text-primary);
   font-size: 13px;
   font-weight: 500;
   letter-spacing: 0.025em;
@@ -2978,7 +2983,7 @@ const debouncedDOMOperations = debounce(() => {
 }
 
 .progress-text {
-  color: var(--text-muted, #6b7280);
+  color: var(--text-muted);
   font-size: 11px;
   font-weight: 400;
 }

@@ -68,27 +68,27 @@ const handleClick = () => {
   transition: all 0.15s ease;
   font-size: 14px;
   text-align: left;
-  color: var(--text-primary, #dcddde);
+  color: var(--text-primary);
 }
 
 .menu-item:hover:not(.disabled) {
-  background-color: var(--bg-tertiary, #40444b);
+  background-color: var(--bg-tertiary);
 }
 
 .menu-item:active:not(.disabled) {
-  background-color: var(--bg-quaternary, #36393f);
+  background-color: var(--bg-quaternary);
 }
 
 .menu-item.danger {
-  color: var(--danger-color, #ed4245);
+  color: var(--danger-color);
 }
 
 .menu-item.danger:hover:not(.disabled) {
-  background-color: var(--danger-bg-hover, rgba(237, 66, 69, 0.1));
+  background-color: var(--danger-bg-hover);
 }
 
 .menu-item.disabled {
-  color: var(--text-muted, #72767d);
+  color: var(--text-muted);
   cursor: not-allowed;
   opacity: 0.5;
 }
@@ -108,7 +108,7 @@ const handleClick = () => {
 
 .menu-item-shortcut {
   font-size: 12px;
-  color: var(--text-muted, #72767d);
+  color: var(--text-muted);
   font-family: monospace;
 }
 </style> 

@@ -1,407 +1,268 @@
 /**
- * Quick Fix Script
- * One-click solution for all major frontend issues
+ * 🔧 快速修复工具 - 解决Token和API连接问题
  */
 
-async function quickFix() {
-  if (true) {
-    console.log('🚀 Starting Quick Fix for all frontend issues...');
+import tokenSynchronizer from '../services/tokenSynchronizer';
+import api from '../services/api';
+
+class QuickFix {
+  constructor() {
+    this.fixResults = [];
   }
 
-  const results = [];
+  /**
+   * 🚀 执行所有修复
+   */
+  async executeAllFixes() {
+    console.log('🔧 [QuickFix] Starting comprehensive fix...');
+    
+    const fixes = [
+      { name: 'Token Synchronization', fn: () => this.fixTokenSync() },
+      { name: 'API Connection Test', fn: () => this.testAPIConnection() },
+      { name: 'Migration Completion', fn: () => this.completeMigration() },
+      { name: 'Sidebar Data Load', fn: () => this.fixSidebarData() }
+    ];
 
-  try {
-    // 1. Activate log suppression immediately
-    if (true) {
-      console.log('1️⃣ Activating log suppression...');
-    if (window.logSuppressor) {
-      window.logSuppressor.activate();
-      results.push('✅ Log suppression activated');
-    } else {
-      results.push('⚠️ Log suppressor not available');
-    }
-
-    // 2. Suppress extension conflicts immediately
-    if (true) {
-      console.log('2️⃣ Suppressing extension conflicts...');
-    suppressExtensionConflicts();
-    results.push('✅ Extension conflict suppression added');
-
-    // 3. Suppress API 404 errors for missing endpoints
-    if (true) {
-      console.log('3️⃣ Suppressing API 404 errors...');
-    suppressApiNotFoundErrors();
-    results.push('✅ API 404 error suppression added');
-
-    // 4. Clear repetitive debug script errors
-    if (true) {
-      console.log('4️⃣ Clearing repetitive errors...');
-    clearRepetitiveErrors();
-    results.push('✅ Repetitive error patterns cleared');
-
-    // 5. Fix API authentication
-    if (true) {
-      console.log('5️⃣ Fixing API authentication...');
-    const authFixed = await fixApiAuth();
-    results.push(authFixed ? '✅ API auth checked/fixed' : '⚠️ API auth needs attention');
-
-    // 6. Fix SSE connection
-    if (true) {
-      console.log('6️⃣ Fixing SSE connection...');
-    if (window.sseConnectionFix) {
-      const sseResult = await window.sseConnectionFix.autoFix();
-      if (sseResult) {
-        results.push('✅ SSE connection fixed');
-      } else {
-        results.push('⚠️ SSE connection needs manual attention');
-      }
-    } else {
-      results.push('⚠️ SSE connection fix not available');
-    }
-
-    // 7. Reset navigation fix state
-    if (true) {
-      console.log('7️⃣ Resetting navigation fixes...');
-    if (window.navigationFix) {
-      window.navigationFix.resetLogCounts();
-      results.push('✅ Navigation fix state reset');
-    } else {
-      results.push('⚠️ Navigation fix not available');
-    }
-
-    // 8. Clear any problematic state
-    if (true) {
-      console.log('8️⃣ Clearing problematic state...');
-    if (window.emergencyCleanup) {
-      window.emergencyCleanup();
-      results.push('✅ Emergency cleanup completed');
-    } else {
-      results.push('⚠️ Emergency cleanup not available');
-    }
-
-    // 9. Check overall system health
-    if (true) {
-      console.log('9️⃣ Running health check...');
-    if (window.healthHelper) {
+    for (const fix of fixes) {
       try {
-        const healthResult = await window.healthHelper.run();
-        if (healthResult.healthScore >= 80) {
-          results.push('✅ System health is good');
-        } else {
-          results.push(`⚠️ System health score: ${healthResult.healthScore}%`);
-        }
+        console.log(`🔄 [QuickFix] Executing: ${fix.name}...`);
+        const result = await fix.fn();
+        this.fixResults.push({ name: fix.name, success: true, result });
+        console.log(`✅ [QuickFix] ${fix.name} completed`);
       } catch (error) {
-        results.push('⚠️ Health check failed');
+        console.error(`❌ [QuickFix] ${fix.name} failed:`, error);
+        this.fixResults.push({ name: fix.name, success: false, error: error.message });
       }
-    } else {
-      results.push('⚠️ Health helper not available');
     }
 
-    // 10. Final verification
-    if (true) {
-      console.log('🔟 Running final verification...');
-    if (window.verifyFixes) {
-      setTimeout(async () => {
-        await window.verifyFixes();
-      }, 1000);
-      results.push('✅ Verification scheduled');
-    } else {
-      results.push('⚠️ Verification not available');
-    }
-
-    // Show results
-    if (true) {
-      console.log('\n🎉 Quick Fix Results:');
-    results.forEach(result => console.log(result));
-
-    const successCount = results.filter(r => r.startsWith('✅')).length;
-    const totalCount = results.length;
-
-    if (true) {
-      console.log(`\n📊 Success Rate: ${successCount}/${totalCount} (${Math.round(successCount / totalCount * 100)}%)`);
-    }
-
-    if (successCount === totalCount) {
-      if (true) {
-        console.log('🎊 All fixes applied successfully!');
-      }
-    } else if (successCount >= totalCount * 0.7) {
-      if (true) {
-        console.log('✨ Most fixes applied, system should be stable');
-      }
-    } else {
-      if (true) {
-        console.log('⚠️ Some fixes failed, manual intervention may be needed');
-      }
-
-    return {
-      success: successCount >= totalCount * 0.7,
-      results,
-      successRate: Math.round(successCount / totalCount * 100)
-    };
-
-  } catch (error) {
-    if (true) {
-      console.error('❌ Quick Fix failed:', error);
-    return {
-      success: false,
-      error: error.message,
-      results
-    };
+    // 显示修复结果
+    this.showResults();
+    return this.fixResults;
   }
 
-// Additional helper functions
-function quickSilence() {
-  if (true) {
-    console.log('🔇 Activating maximum silence mode...');
-  }
+  /**
+   * 🎫 修复Token同步
+   */
+  async fixTokenSync() {
+    console.log('🎫 [QuickFix] Fixing token synchronization...');
 
-  if (window.logSuppressor) {
-    window.logSuppressor.activate();
+    // 1. 检查所有token源
+    const tokenSources = {
+      localStorage_auth_token: localStorage.getItem('auth_token'),
+      localStorage_access_token: localStorage.getItem('access_token'),
+      sessionStorage_auth_token: sessionStorage.getItem('auth_token'),
+      tokenSynchronizer: null,
+      authStore: null
+    };
 
-    // Add extra patterns for maximum silence
-    window.logSuppressor.addPattern(/\[.*\]/); // Any square bracket logs
-    window.logSuppressor.addPattern(/📡|✅|🔧|🔍|🚀|🔑|🔐|🏠|📍|🔄|📥|📋|🛡️|⏰|📨/); // Emoji-heavy logs
-    window.logSuppressor.addPattern(/PM\]/); // Timestamp logs
-    window.logSuppressor.addPattern(/developmentOptimizer/); // Any developmentOptimizer mentions
-    window.logSuppressor.addPattern(/\d+:\d+:\d+/); // Any timestamp
-
-    if (true) {
-      console.log('✅ Maximum silence mode activated');
+    // 2. 尝试从tokenSynchronizer获取
+    try {
+      tokenSources.tokenSynchronizer = await tokenSynchronizer.getToken();
+    } catch (error) {
+      console.warn('⚠️ TokenSynchronizer failed:', error);
     }
 
-    // Clear existing logs if possible
-    if (typeof console.clear === 'function') {
-      setTimeout(() => {
-        console.clear();
-        if (true) {
-          console.log('🔇 Console cleared - Maximum silence mode active');
-        if (true) {
-          console.log('💡 Use window.allowLogs() to restore full logging');
+    // 3. 尝试从authStore获取
+    try {
+      if (window.authStore && window.authStore.token) {
+        tokenSources.authStore = window.authStore.token;
+      }
+    } catch (error) {
+      console.warn('⚠️ AuthStore access failed:', error);
+    }
+
+    // 4. 找到最佳token
+    const validToken = this.findBestToken(tokenSources);
+    
+    if (!validToken) {
+      throw new Error('No valid token found in any source');
+    }
+
+    // 5. 同步到所有位置
+    console.log('🔄 [QuickFix] Synchronizing token to all sources...');
+    
+    // 更新localStorage
+    localStorage.setItem('auth_token', validToken);
+    localStorage.setItem('access_token', validToken);
+    
+    // 更新tokenSynchronizer
+    try {
+      await tokenSynchronizer.setTokenAndUser(validToken, null);
+    } catch (error) {
+      console.warn('⚠️ Failed to update tokenSynchronizer:', error);
+    }
+
+    // 更新authStore如果存在
+    if (window.authStore) {
+      window.authStore.token = validToken;
+    }
+
+    console.log('✅ [QuickFix] Token synchronized successfully');
+    return { tokenFound: true, tokenLength: validToken.length };
+  }
+
+  /**
+   * 🎯 找到最佳token
+   */
+  findBestToken(sources) {
+    const tokens = Object.values(sources).filter(token => 
+      token && typeof token === 'string' && token.length > 20
+    );
+
+    if (tokens.length === 0) return null;
+
+    // 返回最长的token（通常是最完整的）
+    return tokens.reduce((longest, current) => 
+      current.length > longest.length ? current : longest
+    );
+  }
+
+  /**
+   * 🔗 测试API连接
+   */
+  async testAPIConnection() {
+    console.log('🔗 [QuickFix] Testing API connection...');
+
+    try {
+      // 测试workspace chats API
+      const response = await api.get('/workspace/chats');
+      
+      const chats = response.data?.data || [];
+      console.log(`✅ [QuickFix] API working! Found ${chats.length} chats`);
+      
+      return { 
+        success: true, 
+        chatsCount: chats.length,
+        responseTime: response.duration || 'unknown'
+      };
+    } catch (error) {
+      console.error('❌ [QuickFix] API test failed:', error);
+      throw new Error(`API connection failed: ${error.message}`);
+    }
+  }
+
+  /**
+   * 🚀 完成Migration
+   */
+  async completeMigration() {
+    console.log('🚀 [QuickFix] Completing migration if needed...');
+
+    // 检查migration状态
+    if (window.migrationExecutor) {
+      // 检查newService是否已设置
+      if (window.migrationExecutor.newService && window.minimalSSE) {
+        console.log('✅ [QuickFix] Migration already completed');
+        return { status: 'already_completed' };
+      }
+    }
+
+    // 如果migration没有完成，强制完成
+    if (window.modernSSEService) {
+      console.log('🔄 [QuickFix] Forcing migration completion...');
+      
+      // 设置全局引用
+      window.minimalSSE = window.modernSSEService;
+      window.sseService = window.modernSSEService;
+      
+      // 连接到服务
+      const token = this.findBestToken({
+        localStorage: localStorage.getItem('auth_token'),
+        authStore: window.authStore?.token
+      });
+      
+      if (token) {
+        await window.modernSSEService.connect(token);
+      }
+      
+      console.log('✅ [QuickFix] Migration completed successfully');
+      return { status: 'completed', service: 'modernSSE' };
+    }
+
+    return { status: 'no_migration_needed' };
+  }
+
+  /**
+   * 📊 修复Sidebar数据
+   */
+  async fixSidebarData() {
+    console.log('📊 [QuickFix] Fixing sidebar data...');
+
+    try {
+      // 强制刷新聊天数据
+      if (window.chatStore && typeof window.chatStore.fetchChats === 'function') {
+        console.log('🔄 [QuickFix] Forcing chat store refresh...');
+        await window.chatStore.fetchChats();
+      }
+
+      // 强制刷新workspace数据
+      if (window.workspaceStore && typeof window.workspaceStore.fetchWorkspaceChats === 'function') {
+        console.log('🔄 [QuickFix] Forcing workspace store refresh...');
+        await window.workspaceStore.fetchWorkspaceChats();
+      }
+
+      // 检查数据加载结果
+      const chatCount = window.chatStore?.chats?.length || 0;
+      const workspaceCount = window.workspaceStore?.chats?.length || 0;
+
+      console.log(`📊 [QuickFix] Data loaded - Chat store: ${chatCount}, Workspace store: ${workspaceCount}`);
+
+      return {
+        chatStoreCount: chatCount,
+        workspaceStoreCount: workspaceCount,
+        totalCount: Math.max(chatCount, workspaceCount)
+      };
+
+    } catch (error) {
+      console.error('❌ [QuickFix] Sidebar data fix failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 📋 显示修复结果
+   */
+  showResults() {
+    console.log('');
+    console.log('🔧 ================ QUICK FIX RESULTS ================');
+    
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const result of this.fixResults) {
+      if (result.success) {
+        console.log(`✅ ${result.name}: SUCCESS`);
+        if (result.result) {
+          console.log(`   ${JSON.stringify(result.result)}`);
         }
-      }, 100);
+        successCount++;
+      } else {
+        console.log(`❌ ${result.name}: FAILED`);
+        console.log(`   Error: ${result.error}`);
+        failCount++;
+      }
     }
-  } else {
-    if (true) {
-      console.log('⚠️ Log suppressor not available');
+
+    console.log('');
+    console.log(`📊 Summary: ${successCount} successful, ${failCount} failed`);
+    
+    if (successCount > failCount) {
+      console.log('🎉 Overall result: SUCCESS - Your chat should now work!');
+    } else {
+      console.log('⚠️  Overall result: PARTIAL - Some issues may remain');
     }
-
-// Nuclear option - complete silence
-function emergencySilence() {
-  if (true) {
-    console.log('🚨 EMERGENCY SILENCE - Suppressing ALL non-error logs');
+    
+    console.log('====================================================');
+    console.log('');
   }
-
-  if (window.logSuppressor) {
-    window.logSuppressor.activate();
-
-    // Nuclear patterns - suppress almost everything
-    window.logSuppressor.addPattern(/.*/); // Suppress everything except errors/warnings
-
-    // Override to only allow errors and warnings
-    const originalConsole = window.logSuppressor.originalConsole;
-
-    console.log = () => { }; // Completely silent
-    console.info = () => { }; // Completely silent
-    console.debug = () => { }; // Completely silent
-    // Keep warn and error
-
-    console.clear();
-    originalConsole.warn('🚨 EMERGENCY SILENCE ACTIVE - Only errors and warnings will show');
-    originalConsole.warn('💡 Use window.allowLogs() to restore logging');
-  }
-
-function showFixStatus() {
-  console.group('🔍 Frontend Fix Status');
-
-  const status = {
-    logSuppression: window.logSuppressor?.isActive || false,
-    sseConnectionFix: typeof window.sseConnectionFix !== 'undefined',
-    navigationFix: typeof window.navigationFix !== 'undefined',
-    emergencyCleanup: typeof window.emergencyCleanup !== 'undefined',
-    tokenManager: typeof window.tokenManager !== 'undefined',
-    healthHelper: typeof window.healthHelper !== 'undefined'
-  };
-
-  console.table(status);
-
-  const availableCount = Object.values(status).filter(Boolean).length;
-  const totalCount = Object.keys(status).length;
-
-  if (true) {
-    console.log(`📊 Available tools: ${availableCount}/${totalCount}`);
-  console.groupEnd();
-
-  return status;
 }
 
-// Specialized function to silence test noise
-function silenceTests() {
-  if (true) {
-    console.log('🧪 Silencing test automation noise...');
-  }
+// 创建实例并暴露到全局
+const quickFix = new QuickFix();
 
-  if (window.logSuppressor) {
-    // Add test-specific patterns
-    window.logSuppressor.addPattern(/🧪.*Test/);
-    window.logSuppressor.addPattern(/🔍.*Test/);
-    window.logSuppressor.addPattern(/Test \d+:/);
-    window.logSuppressor.addPattern(/Check:/);
-    window.logSuppressor.addPattern(/Summary:/);
-    window.logSuppressor.addPattern(/Available commands:/);
-    window.logSuppressor.addPattern(/window\.\w+\(\)/);
-
-    if (true) {
-      console.log('✅ Test noise silenced');
-    }
-  } else {
-    if (true) {
-      console.log('⚠️ Log suppressor not available');
-    }
-
-// Specialized function to fix API authentication issues
-async function fixApiAuth() {
-  if (true) {
-    console.log('🔐 Fixing API authentication issues...');
-  }
-
-  try {
-    // Check token status
-    if (window.tokenManager) {
-      const isExpired = window.tokenManager.isTokenExpired();
-      if (true) {
-        console.log('  - Token expired:', isExpired);
-      }
-
-      if (isExpired) {
-        if (true) {
-          console.log('  - Refreshing token...');
-        await window.tokenManager.refreshToken();
-        if (true) {
-          console.log('  ✅ Token refreshed');
-        }
-      } else {
-        if (true) {
-          console.log('  ✅ Token is valid');
-        }
-
-    // Check auth state
-    if (window.authStateManager) {
-      const authState = window.authStateManager.getAuthState();
-      if (true) {
-        console.log('  - Auth state:', authState.isAuthenticated ? '✅ Authenticated' : '❌ Not authenticated');
-      }
-
-    if (true) {
-      console.log('✅ API authentication check completed');
-    return true;
-  } catch (error) {
-    if (true) {
-      console.error('❌ Failed to fix API auth:', error);
-    return false;
-  }
-
-// Specialized function to suppress extension conflicts
-function suppressExtensionConflicts() {
-  if (true) {
-    console.log('🧩 Suppressing extension conflicts...');
-  }
-
-  if (window.logSuppressor) {
-    // Add patterns for common extension errors
-    window.logSuppressor.addPattern(/A listener indicated an asynchronous response/);
-    window.logSuppressor.addPattern(/message channel closed before a response/);
-    window.logSuppressor.addPattern(/Extension context invalidated/);
-    window.logSuppressor.addPattern(/chrome-extension:/);
-    window.logSuppressor.addPattern(/content script\.js/);
-
-    if (true) {
-      console.log('✅ Extension conflict patterns added');
-    }
-  } else {
-    if (true) {
-      console.log('⚠️ Log suppressor not available');
-    }
-
-// Specialized function to handle API 404 errors
-function suppressApiNotFoundErrors() {
-  if (true) {
-    console.log('🚫 Suppressing expected API 404 errors...');
-  }
-
-  if (window.logSuppressor) {
-    // Add patterns for known missing API endpoints
-    window.logSuppressor.addPattern(/POST.*\/chat\/\d+\/read 404/);
-    window.logSuppressor.addPattern(/🚨 API Error.*404.*not_found/);
-    window.logSuppressor.addPattern(/\[Mark chat as read\].*not_found/);
-    window.logSuppressor.addPattern(/请求的资源未找到/);
-    window.logSuppressor.addPattern(/Request failed with status code 404/);
-
-    if (true) {
-      console.log('✅ API 404 error patterns added');
-    }
-  } else {
-    if (true) {
-      console.log('⚠️ Log suppressor not available');
-    }
-
-// Enhanced function to clear repetitive errors
-function clearRepetitiveErrors() {
-  if (true) {
-    console.log('🔄 Clearing repetitive error patterns...');
-  }
-
-  if (window.logSuppressor) {
-    // Add patterns for debug and test noise
-    window.logSuppressor.addPattern(/debugDuplicateChannels\.js/);
-    window.logSuppressor.addPattern(/testRequestIsolation\.js/);
-    window.logSuppressor.addPattern(/testExtensionConflictFix\.js/);
-    window.logSuppressor.addPattern(/testManager\.js/);
-
-    if (true) {
-      console.log('✅ Debug script patterns added');
-    }
-
-  // Clear console if possible
-  if (typeof console.clear === 'function') {
-    setTimeout(() => {
-      console.clear();
-      if (true) {
-        console.log('🧹 Console cleared - Repetitive errors suppressed');
-      }
-    }, 100);
-  }
-
-// Export for global use
-if (typeof window !== 'undefined') {
+// 开发环境暴露
+if (import.meta.env.DEV) {
   window.quickFix = quickFix;
-  window.quickSilence = quickSilence;
-  window.emergencySilence = emergencySilence;
-  window.showFixStatus = showFixStatus;
-  window.silenceTests = silenceTests;
-  window.fixApiAuth = fixApiAuth;
-  window.suppressExtensionConflicts = suppressExtensionConflicts;
-  window.suppressApiNotFoundErrors = suppressApiNotFoundErrors;
-  window.clearRepetitiveErrors = clearRepetitiveErrors;
+  window.executeQuickFix = () => quickFix.executeAllFixes();
+}
 
-  if (true) {
-    console.log('🚀 Quick Fix loaded - use window.quickFix() for one-click repair');
-  if (true) {
-    console.log('🔇 Use window.quickSilence() for maximum noise reduction');
-  if (true) {
-    console.log('🚨 Use window.emergencySilence() for nuclear silence option');
-  if (true) {
-    console.log('🔍 Use window.showFixStatus() to check available tools');
-  if (true) {
-    console.log('🧪 Use window.silenceTests() to silence test automation noise');
-  if (true) {
-    console.log('🔐 Use window.fixApiAuth() to fix authentication issues');
-  if (true) {
-    console.log('🧩 Use window.suppressExtensionConflicts() to suppress extension errors');
-  if (true) {
-    console.log('🚫 Use window.suppressApiNotFoundErrors() to suppress API 404 errors');
-  if (true) {
-    console.log('🔄 Use window.clearRepetitiveErrors() to clear repetitive errors');
-  }
-
-export { quickFix, quickSilence, emergencySilence, showFixStatus, silenceTests, fixApiAuth, suppressExtensionConflicts, suppressApiNotFoundErrors, clearRepetitiveErrors }; 
+export default quickFix; 

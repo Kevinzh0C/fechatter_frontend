@@ -167,7 +167,7 @@ onMounted(() => {
 <style scoped>
 .code-block-wrapper {
   @apply relative rounded-lg overflow-hidden shadow-sm border;
-  background: var(--code-bg, #1e1e1e);
+  background: var(--code-bg);
   border-color: var(--code-border, #333);
   margin: 1rem 0;
   font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', 'Monaco', monospace;
@@ -175,13 +175,13 @@ onMounted(() => {
 
 .code-title {
   @apply flex items-center justify-between px-4 py-2 border-b;
-  background: var(--code-title-bg, #252526);
+  background: var(--code-title-bg);
   border-color: var(--code-border, #333);
 }
 
 .title-text {
   @apply text-sm font-medium;
-  color: var(--code-title-text, #cccccc);
+  color: var(--code-title-text);
 }
 
 .title-actions {
@@ -190,12 +190,12 @@ onMounted(() => {
 
 .copy-button {
   @apply p-1 rounded transition-colors;
-  color: var(--code-muted, #858585);
+  color: var(--code-muted);
 }
 
 .copy-button:hover:not(:disabled) {
   @apply bg-gray-700;
-  color: var(--code-text, #cccccc);
+  color: var(--code-text);
 }
 
 .copy-button:disabled {
@@ -204,7 +204,7 @@ onMounted(() => {
 
 .code-loading {
   @apply flex items-center justify-center gap-3 p-8;
-  color: var(--code-muted, #858585);
+  color: var(--code-muted);
 }
 
 .loading-spinner {
@@ -273,7 +273,7 @@ onMounted(() => {
 
 :deep(.line-number) {
   @apply table-cell pr-4 text-right select-none w-1 whitespace-nowrap;
-  color: var(--code-line-number, #858585);
+  color: var(--code-line-number);
 }
 
 :deep(.line-content) {

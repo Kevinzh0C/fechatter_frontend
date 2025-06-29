@@ -2,6 +2,7 @@
  * API URL Resolver with CORS Fix
  * Development: Use Vite proxy to avoid CORS issues
  * Production: Direct Cloudflare Tunnel connection
+ * Vercel: Use Vercel proxy for proper authentication
  */
 
 import { getApiConfig } from './yamlConfigLoader.js';
@@ -19,54 +20,77 @@ function isDevelopmentWithProxy() {
 }
 
 /**
- * Get API base URL - use proxy in development to avoid CORS
+ * Detect if we're in Vercel environment that needs proxy
+ */
+function isVercelEnvironment() {
+  return typeof window !== 'undefined' && 
+         (window.location.hostname.includes('vercel.app') || 
+          window.location.hostname.includes('vercel.com') ||
+          // Also check for custom domains on Vercel
+          (window.location.protocol === 'https:' && 
+           !window.location.hostname.includes('trycloudflare.com')));
+}
+
+/**
+ * Check if we should use proxy (development or Vercel)
+ */
+function shouldUseProxy() {
+  return isDevelopmentWithProxy() || isVercelEnvironment();
+}
+
+/**
+ * Get API base URL - use proxy in development and Vercel to avoid CORS and auth issues
  */
 export async function getApiBaseUrl() {
-  if (isDevelopmentWithProxy()) {
-    console.log('🔍 [apiUrlResolver] Using Vite proxy for CORS-free development');
-    return '/api'; // Use Vite proxy
+  if (shouldUseProxy()) {
+    const env = isDevelopmentWithProxy() ? 'development' : 'Vercel';
+    console.log(`🔍 [apiUrlResolver] Using proxy for CORS-free ${env} environment`);
+    return '/api'; // Use proxy (Vite or Vercel)
   }
   
-  console.log('🔍 [apiUrlResolver] Using Cloudflare Tunnel connection');
+  console.log('🔍 [apiUrlResolver] Using direct Cloudflare Tunnel connection');
   return `${CLOUDFLARE_URL}/api`;
 }
 
 /**
- * Get file service URL - use proxy in development
+ * Get file service URL - use proxy in development and Vercel
  */
 export async function getFileUrl() {
-  if (isDevelopmentWithProxy()) {
-    console.log('🔍 [apiUrlResolver] Using Vite proxy for files');
+  if (shouldUseProxy()) {
+    const env = isDevelopmentWithProxy() ? 'development' : 'Vercel';
+    console.log(`🔍 [apiUrlResolver] Using proxy for files in ${env} environment`);
     return '/files';
   }
   
-  console.log('🔍 [apiUrlResolver] Using Cloudflare Tunnel for files');
+  console.log('🔍 [apiUrlResolver] Using direct Cloudflare Tunnel for files');
   return `${CLOUDFLARE_URL}/files`;
 }
 
 /**
- * Get SSE service URL - use proxy in development
+ * Get SSE service URL - use proxy in development and Vercel
  */
 export async function getSseUrl() {
-  if (isDevelopmentWithProxy()) {
-    console.log('🔍 [apiUrlResolver] Using Vite proxy for SSE');
+  if (shouldUseProxy()) {
+    const env = isDevelopmentWithProxy() ? 'development' : 'Vercel';
+    console.log(`🔍 [apiUrlResolver] Using proxy for SSE in ${env} environment`);
     return '/events';
   }
   
-  console.log('🔍 [apiUrlResolver] Using Cloudflare Tunnel for SSE');
+  console.log('🔍 [apiUrlResolver] Using direct Cloudflare Tunnel for SSE');
   return `${CLOUDFLARE_URL}/events`;
 }
 
 /**
- * Get notification service URL - use proxy in development
+ * Get notification service URL - use proxy in development and Vercel
  */
 export async function getNotifyUrl() {
-  if (isDevelopmentWithProxy()) {
-    console.log('🔍 [apiUrlResolver] Using Vite proxy for notifications');
+  if (shouldUseProxy()) {
+    const env = isDevelopmentWithProxy() ? 'development' : 'Vercel';
+    console.log(`🔍 [apiUrlResolver] Using proxy for notifications in ${env} environment`);
     return '/notify';
   }
   
-  console.log('🔍 [apiUrlResolver] Using Cloudflare Tunnel for notifications');
+  console.log('🔍 [apiUrlResolver] Using direct Cloudflare Tunnel for notifications');
   return `${CLOUDFLARE_URL}/notify`;
 }
 
@@ -83,9 +107,10 @@ export async function buildApiUrl(endpoint) {
  * Get current environment info for debugging
  */
 export function getEnvironmentInfo() {
-  const useProxy = isDevelopmentWithProxy();
+  const useProxy = shouldUseProxy();
+  const env = useProxy ? (isDevelopmentWithProxy() ? 'development' : 'Vercel') : 'production';
   return {
-    strategy: useProxy ? 'vite-proxy-development' : 'Cloudflare Tunnel-production',
+    strategy: useProxy ? env : 'Cloudflare Tunnel-production',
     cloudflareTunnelUrl: CLOUDFLARE_URL,
     hostname: typeof window !== 'undefined' ? window.location.hostname : 'unknown',
     port: typeof window !== 'undefined' ? window.location.port : 'unknown',
@@ -95,7 +120,7 @@ export function getEnvironmentInfo() {
 
 // Export a simple detection function for backward compatibility
 export function detectRuntimeEnvironment() {
-  return isDevelopmentWithProxy() ? 'development' : 'production';
+  return shouldUseProxy() ? 'development' : 'production';
 }
 
 export default {

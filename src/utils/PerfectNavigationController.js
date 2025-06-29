@@ -1065,7 +1065,7 @@ class RecentMessageStrategy {
       // 尝试通过API直接加载
       const token = this.getAuthToken()
       if (token) {
-        const response = await fetch(`/api/chats/${chatId}/messages?limit=${limit}`, {
+        const response = await fetch(`/api/chat/${chatId}/messages?limit=${limit}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -1317,7 +1317,7 @@ class APIDirectStrategy {
         return { success: false, error: 'No auth token available' }
       }
 
-      const response = await fetch(`/api/chats/${chatId}/messages/${messageId}/context`, {
+      const response = await fetch(`/api/chat/${chatId}/messages/${messageId}/context`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

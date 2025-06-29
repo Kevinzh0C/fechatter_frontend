@@ -89,26 +89,26 @@ defineExpose({
   justify-content: center;
   padding: 2rem;
   text-align: center;
-  background: #f8f9fa;
+  background: #2f3136;
   border-radius: 8px;
-  border: 1px solid #e9ecef;
+  border: 1px solid #202225;
   min-height: 200px;
 }
 
 .error-fallback h2 {
-  color: #dc3545;
+  color: #f84f31;
   margin-bottom: 1rem;
   font-size: 1.5rem;
 }
 
 .error-fallback p {
-  color: #6c757d;
+  color: #b9bbbe;
   margin-bottom: 1.5rem;
   max-width: 400px;
 }
 
 .retry-btn {
-  background: #007bff;
+  background: #5865f2;
   color: white;
   border: none;
   padding: 0.5rem 1rem;
@@ -119,22 +119,7 @@ defineExpose({
 }
 
 .retry-btn:hover {
-  background: #0056b3;
+  background: #4f5cda;
 }
-
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
-  .error-fallback {
-    background: #2d3748;
-    border-color: #4a5568;
-  }
-  
-  .error-fallback h2 {
-    color: #fc8181;
-  }
-  
-  .error-fallback p {
-    color: #a0aec0;
-  }
-}
-</style> 
+</style>
+ 

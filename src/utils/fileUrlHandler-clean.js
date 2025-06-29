@@ -50,7 +50,7 @@ function normalizeUrlString(url, workspaceId) {
   const workspacePattern = `/${workspaceId}/`;
 
   // 1. 已经是正确的files格式
-  const isApiFiles = url.startsWith('/api/files/');
+  const isApiFiles = url.startsWith('/files/');
   const isFiles = url.startsWith('/files/');
   const hasWorkspace = url.includes(workspacePattern);
 
@@ -58,14 +58,14 @@ function normalizeUrlString(url, workspaceId) {
     return url;
   }
 
-  // 2. 错误的API格式: /api/files/... -> /files/...
+  // 2. 错误的API格式: /files/... -> /files/...
   if (isApiFiles) {
-    const pathPart = url.substring(11); // Remove '/api/files/'
+    const pathPart = url.substring(11); // Remove '/files/'
     return `/files/${workspaceId}/${pathPart}`;
   }
 
-  // 3. 错误的download格式: /api/files/download/filename
-  if (url.includes('/api/files/download/')) {
+  // 3. 错误的download格式: /files/download/filename
+  if (url.includes('/files/download/')) {
     const filename = url.split('/download/')[1];
     return constructHashUrl(filename, workspaceId);
   }

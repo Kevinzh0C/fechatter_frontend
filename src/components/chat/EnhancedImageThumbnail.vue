@@ -143,9 +143,9 @@ const thumbnailSrc = computed(() => {
     return '';
   }
 
-  if (true) {
-    console.log('🖼️ [EnhancedImageThumbnail] Generated URL:', correctUrl);
-  }
+  // 🔧 DEBUG: Log the generated URL to verify format
+  console.log('🖼️ [EnhancedImageThumbnail] Generated URL:', correctUrl, 
+    'Using flat format:', correctUrl.includes('/files/') && !correctUrl.includes('/files/2/'));
 
   return correctUrl;
 });
@@ -379,7 +379,7 @@ onUnmounted(() => {
   display: inline-block;
   border-radius: 8px;
   overflow: hidden;
-  background: var(--bg-secondary, #f3f4f6);
+  background: var(--bg-secondary);
   transition: all 0.2s ease;
   cursor: pointer;
 }
@@ -412,14 +412,14 @@ onUnmounted(() => {
   justify-content: center;
   height: 100%;
   min-height: 150px;
-  color: var(--text-muted, #6b7280);
+  color: var(--text-muted);
 }
 
 .loading-spinner {
   width: 32px;
   height: 32px;
   border: 3px solid rgba(0, 0, 0, 0.1);
-  border-top-color: var(--primary, #3b82f6);
+  border-top-color: var(--primary);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -445,11 +445,11 @@ onUnmounted(() => {
   min-height: 150px;
   padding: 20px;
   text-align: center;
-  color: var(--text-muted, #6b7280);
+  color: var(--text-muted);
 }
 
 .error-icon {
-  color: var(--danger, #ef4444);
+  color: var(--danger);
   margin-bottom: 8px;
 }
 
@@ -460,7 +460,7 @@ onUnmounted(() => {
 
 .retry-btn {
   padding: 4px 12px;
-  background: var(--primary, #3b82f6);
+  background: var(--primary);
   color: white;
   border: none;
   border-radius: 4px;
@@ -470,7 +470,7 @@ onUnmounted(() => {
 }
 
 .retry-btn:hover {
-  background: var(--primary-hover, #2563eb);
+  background: var(--primary-hover);
 }
 
 /* Image wrapper */
@@ -582,7 +582,7 @@ onUnmounted(() => {
 
 .progress-bar {
   height: 100%;
-  background: var(--primary, #3b82f6);
+  background: var(--primary);
   transition: width 0.3s ease;
 }
 
@@ -652,12 +652,12 @@ onUnmounted(() => {
 /* Dark mode support */
 @media (prefers-color-scheme: dark) {
   .enhanced-image-thumbnail {
-    background: var(--bg-secondary, #374151);
+    background: var(--bg-secondary);
   }
 
   .thumbnail-loading,
   .thumbnail-error {
-    color: var(--text-muted, #9ca3af);
+    color: var(--text-muted);
   }
 }
 

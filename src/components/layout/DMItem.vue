@@ -187,15 +187,15 @@ const handleImageError = (event) => {
   position: relative;
   min-height: 52px;
   /* Slightly taller for avatar */
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--color-sidebar-text-muted);
   background: transparent;
   border: 1px solid transparent;
   line-height: 1.4;
 }
 
 .dm-item:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
+  background: var(--color-sidebar-hover);
+  color: var(--color-text);
   transform: none;
 }
 
@@ -205,13 +205,13 @@ const handleImageError = (event) => {
 }
 
 .dm-item.active {
-  background: #1264a3;
+  background: var(--color-primary);
   color: white;
   font-weight: 600;
 }
 
 .dm-item.active:hover {
-  background: #1264a3;
+  background: var(--color-primary);
   transform: none;
 }
 
@@ -251,28 +251,28 @@ const handleImageError = (event) => {
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  border: 3px solid #3f0f40;
+  border: 3px solid var(--color-background-secondary);
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .status-indicator.online {
-  background: #2eb67d;
-  box-shadow: 0 0 8px rgba(46, 182, 125, 0.4);
+  background: var(--color-success);
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.4);
 }
 
 .status-indicator.away {
-  background: #ecb22e;
-  box-shadow: 0 0 8px rgba(236, 178, 46, 0.4);
+  background: var(--color-warning);
+  box-shadow: 0 0 8px rgba(249, 168, 40, 0.4);
 }
 
 .status-indicator.busy {
-  background: #e01e5a;
-  box-shadow: 0 0 8px rgba(224, 30, 90, 0.4);
+  background: var(--color-danger);
+  box-shadow: 0 0 8px rgba(248, 79, 49, 0.4);
 }
 
 .status-indicator.offline {
-  background: rgba(255, 255, 255, 0.3);
+  background: var(--color-text-muted);
   box-shadow: none;
 }
 
@@ -297,13 +297,13 @@ const handleImageError = (event) => {
 
 .last-time {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--color-text-muted);
   flex-shrink: 0;
   margin-left: 8px;
 }
 
 .dm-item.active .last-time {
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--color-sidebar-text-muted);
 }
 
 .last-message {
@@ -311,24 +311,24 @@ const handleImageError = (event) => {
   align-items: center;
   gap: 4px;
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--color-sidebar-text-muted);
   overflow: hidden;
   line-height: 1.3;
 }
 
 .dm-item.active .last-message {
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--color-text);
 }
 
 .sent-icon {
   width: 12px;
   height: 12px;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--color-text-muted);
   flex-shrink: 0;
 }
 
 .dm-item.active .sent-icon {
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--color-sidebar-text-muted);
 }
 
 .message-content {
@@ -340,13 +340,13 @@ const handleImageError = (event) => {
 
 .user-status {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--color-text-muted);
   font-style: italic;
   line-height: 1.3;
 }
 
 .dm-item.active .user-status {
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--color-sidebar-text-muted);
 }
 
 /* 🔔 DM Status - Premium indicators */
@@ -359,7 +359,7 @@ const handleImageError = (event) => {
 }
 
 .unread-badge {
-  background: linear-gradient(135deg, #e01e5a, #c91346);
+  background: linear-gradient(135deg, #f84f31, #d73527);
   color: white;
   font-size: 11px;
   font-weight: 700;
@@ -371,13 +371,13 @@ const handleImageError = (event) => {
   align-items: center;
   justify-content: center;
   text-align: center;
-  box-shadow: 0 2px 4px rgba(224, 30, 90, 0.3);
-  border: 2px solid #3f0f40;
+  box-shadow: 0 2px 4px rgba(248, 79, 49, 0.3);
+  border: 2px solid #2f3136;
 }
 
 .unread-badge.mention {
-  background: linear-gradient(135deg, #f59e0b, #d97706);
-  box-shadow: 0 2px 4px rgba(245, 158, 11, 0.4);
+  background: linear-gradient(135deg, #f9a828, #f59e0b);
+  box-shadow: 0 2px 4px rgba(249, 168, 40, 0.4);
   animation: pulse-mention 2s infinite;
 }
 
@@ -386,21 +386,21 @@ const handleImageError = (event) => {
   0%,
   100% {
     transform: scale(1);
-    box-shadow: 0 2px 4px rgba(245, 158, 11, 0.4);
+    box-shadow: 0 2px 4px rgba(249, 168, 40, 0.4);
   }
 
   50% {
     transform: scale(1.05);
-    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.6);
+    box-shadow: 0 2px 8px rgba(249, 168, 40, 0.6);
   }
 }
 
 .activity-indicator {
   width: 8px;
   height: 8px;
-  background: #2eb67d;
+  background: var(--color-success);
   border-radius: 50%;
-  box-shadow: 0 0 6px rgba(46, 182, 125, 0.5);
+  box-shadow: 0 0 6px rgba(34, 197, 94, 0.5);
   animation: pulse-activity 2s infinite;
 }
 
@@ -423,14 +423,14 @@ const handleImageError = (event) => {
   display: flex;
   align-items: center;
   padding: 2px 6px;
-  background: rgba(255, 255, 255, 0.1);
+  background: #40444b;
   border-radius: 8px;
 }
 
 .typing-icon {
   width: 14px;
   height: 14px;
-  color: #1264a3;
+  color: #5865f2;
   animation: typing-pulse 1.5s infinite;
 }
 
@@ -450,11 +450,11 @@ const handleImageError = (event) => {
 
 /* 🌟 Online State Enhancement */
 .dm-item.online .user-avatar {
-  box-shadow: 0 0 0 2px rgba(46, 182, 125, 0.3);
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.3);
 }
 
 .dm-item.online:hover .user-avatar {
-  box-shadow: 0 0 0 2px rgba(46, 182, 125, 0.5);
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.5);
 }
 
 /* 📱 Responsive Design - Mobile optimizations */
@@ -578,7 +578,7 @@ const handleImageError = (event) => {
   height: 16px;
   border-radius: 50%;
   background: linear-gradient(135deg, #36c5f0, #2eb67d);
-  border: 3px solid #3f0f40;
+  border: 3px solid var(--color-background-secondary);
   display: flex;
   align-items: center;
   justify-content: center;

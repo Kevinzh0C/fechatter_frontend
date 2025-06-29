@@ -256,7 +256,7 @@ class ChannelSwitchRootCauseFix {
         // Skip cache entirely for now to ensure fresh data
         if (true) {
           console.log('📡 [FIXED] Fetching fresh data from API');
-        const response = await api.get(`/chat/${validChatId}/messages`, {
+        const response = await api.get(`/chat/${chatId}/messages`, {
           params: { limit }
         });
 

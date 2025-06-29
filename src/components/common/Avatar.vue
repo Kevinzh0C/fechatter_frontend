@@ -1,6 +1,7 @@
 <template>
   <div class="avatar-container"
-    :style="{ '--avatar-size': `${size}px`, width: `${size}px`, height: `${size}px`, fontSize: `${size * 0.45}px` }">
+    :class="{ 'avatar-admin': isAdmin }"
+    :style="{ '--avatar-size': `${actualSize}px`, width: `${actualSize}px`, height: `${actualSize}px`, fontSize: `${actualSize * 0.45}px` }">
     <img v-if="!error && src" :src="src" :alt="alt" class="avatar-image" @error="handleImageError" />
     <div v-else-if="initials && initials !== '?'" class="avatar-initials" :style="{ backgroundColor: avatarColor }">
       {{ initials }}
@@ -11,7 +12,7 @@
       </svg>
     </div>
     <span v-if="status" class="status-indicator" :class="`status-${status}`"
-      :style="{ borderWidth: `${Math.max(1, size * 0.08)}px` }"></span>
+      :style="{ borderWidth: `${Math.max(1, actualSize * 0.08)}px` }"></span>
   </div>
 </template>
 
@@ -33,20 +34,51 @@ const props = defineProps({
     default: 0,
   },
   size: {
-    type: Number,
+    type: [Number, String],
     default: 40,
   },
   status: {
     type: String,
     default: null, // 'online', 'away', 'busy', 'offline'
   },
+  role: {
+    type: String,
+    default: null, // 'admin', 'super', 'moderator'
+  },
 });
 
-const { src, alt, userId, size, status } = toRefs(props);
+const { src, alt, userId, status, role } = toRefs(props);
 const error = ref(false);
 
+// Convert string size values to actual pixel sizes
+const actualSize = computed(() => {
+  if (typeof props.size === 'number') return props.size;
+  
+  // Convert named sizes to pixel values
+  switch(props.size) {
+    case 'small': return 24;
+    case 'medium': return 36;
+    case 'large': return 72;
+    case 'xlarge': return 96;
+    default: return 40; // Default size
+  }
+});
+
+const isAdmin = computed(() => role.value === 'admin');
+
 const initials = computed(() => getUserInitials(alt.value));
-const avatarColor = computed(() => generateAvatarColor(userId.value));
+
+// 🎨 Admin用户使用蓝色调头像
+const avatarColor = computed(() => {
+  if (role.value === 'admin') {
+    return 'linear-gradient(135deg, #3b82f6, #1d4ed8)'; // 蓝色渐变
+  } else if (role.value === 'super') {
+    return 'linear-gradient(135deg, #ef4444, #dc2626)'; // 红色渐变
+  } else if (role.value === 'moderator') {
+    return 'linear-gradient(135deg, #10b981, #059669)'; // 绿色渐变
+  }
+  return generateAvatarColor(userId.value);
+});
 
 const handleImageError = () => {
   error.value = true;
@@ -82,6 +114,24 @@ const handleImageError = () => {
   transition: transform 0.1s ease;
 }
 
+/* 🎨 Admin用户专用蓝色头像样式 */
+.avatar-container.avatar-admin {
+  box-shadow:
+    inset 0 1px 1px rgba(0, 0, 0, 0.08),
+    0 0 0 2px rgba(59, 130, 246, 0.3),
+    0 3px 12px rgba(59, 130, 246, 0.2),
+    0 6px 20px rgba(59, 130, 246, 0.1);
+}
+
+.avatar-container.avatar-admin:hover {
+  transform: scale(1.08);
+  box-shadow:
+    inset 0 1px 2px rgba(0, 0, 0, 0.1),
+    0 0 0 3px rgba(59, 130, 246, 0.4),
+    0 8px 25px rgba(59, 130, 246, 0.25),
+    0 12px 35px rgba(59, 130, 246, 0.15);
+}
+
 .avatar-image {
   width: 100%;
   height: 100%;
@@ -113,7 +163,7 @@ const handleImageError = () => {
   width: 25%;
   height: 25%;
   border-radius: 50%;
-  background-color: #64748b;
+  background-color: #747f8d;
   border-style: solid;
   border-color: #ffffff;
   box-sizing: border-box;
@@ -162,17 +212,17 @@ const handleImageError = () => {
 }
 
 .status-online {
-  background-color: #22c55e;
+  background-color: #23a55a;
   animation: pulse-online 2.5s infinite ease-in-out;
 }
 
 .status-away {
   background-color: transparent;
-  border: calc(var(--avatar-size, 40px) * 0.07) solid #f59e0b;
+  border: calc(var(--avatar-size, 40px) * 0.07) solid #f9a828;
 }
 
 .status-busy {
-  background-color: #ef4444;
+  background-color: #f84f31;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -189,6 +239,6 @@ const handleImageError = () => {
 
 .status-offline {
   background-color: transparent;
-  border: calc(var(--avatar-size, 40px) * 0.05) solid #64748b;
+  border: calc(var(--avatar-size, 40px) * 0.05) solid #747f8d;
 }
 </style>

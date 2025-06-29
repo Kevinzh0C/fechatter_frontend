@@ -57,7 +57,7 @@ export class UnifiedMessageServiceFixed {
       this._markRequestStart(normalizedChatId, 'fetchMessages');
       this.stats.totalFetches++;
 
-      const response = await api.get(`/api/chats/${normalizedChatId}/messages`, {
+      const response = await api.get(`/api/chat/${chatId}/messages`, {
         params: { limit, offset: 0 }
       });
 
@@ -102,7 +102,7 @@ export class UnifiedMessageServiceFixed {
       const oldestMessage = existing[0];
       const beforeId = oldestMessage ? oldestMessage.id : null;
 
-      const response = await api.get(`/api/chats/${normalizedChatId}/messages`, {
+      const response = await api.get(`/api/chat/${chatId}/messages`, {
         params: { limit, before: beforeId }
       });
 

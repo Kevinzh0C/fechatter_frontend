@@ -98,7 +98,7 @@ class MarkChatAsReadDiagnostic {
 
       // Test different endpoints that might work
       const testEndpoints = [
-        `/chat/${currentChatId}/messages/read`,
+        `/chat/${chatId}/messages/read`,
         `/chat/${currentChatId}/mark-read`,
         `/chat/${currentChatId}/read`
       ];

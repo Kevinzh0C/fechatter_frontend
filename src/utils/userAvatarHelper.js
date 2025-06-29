@@ -72,7 +72,7 @@ const baseColors = [
   { h: 185, s: 75, l: 40 }, // Teal
   { h: 330, s: 85, l: 60 }, // Magenta Pink
   // Add a near-black, but with a hint of color for personality.
-  { h: 220, s: 15, l: 25 }, // Graphite (very dark, slightly blue)
+  { h: 220, s: 30, l: 60 }, // Light Blue-Grey
 ];
 
 /**

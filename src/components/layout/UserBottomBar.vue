@@ -3,7 +3,7 @@
     <div class="user-section" @click="toggleUserMenu" ref="userSection">
       <!-- User Avatar -->
       <div class="user-avatar">
-        <Avatar :user="currentUser" :size="32" :show-status="true" :status="currentUserStatus" />
+        <Avatar :user="currentUser" :size="32" :show-status="true" :status="currentUserStatus" :role="currentUser?.role" />
       </div>
 
       <!-- User Info -->
@@ -23,7 +23,7 @@
       <div v-if="showUserMenu" class="user-menu" @click.stop>
         <div class="menu-header">
           <div class="menu-user-info">
-            <div class="menu-user-name">{{ currentUser?.name || 'User' }}</div>
+            <div class="menu-user-name">{{ currentUser?.fullname || currentUser?.name || 'User' }}</div>
             <div class="menu-user-email">{{ currentUser?.email || 'No email' }}</div>
           </div>
         </div>
@@ -72,8 +72,40 @@
             <span>Settings</span>
           </button>
 
+          <div class="menu-item theme-toggle-container">
+            <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+            </svg>
+            <span>Theme</span>
+            <div class="theme-switch-wrapper">
+              <div class="theme-switch" @click="toggleTheme" :class="{ 'dark': currentTheme === 'dark' }">
+                <div class="switch-track" :class="{ 'dark': currentTheme === 'dark' }">
+                  <div class="switch-thumb" :class="{ 'dark': currentTheme === 'dark' }">
+                    <!-- Sun Icon -->
+                    <svg v-if="currentTheme !== 'dark'" class="switch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <circle cx="12" cy="12" r="5"/>
+                      <line x1="12" y1="1" x2="12" y2="3"/>
+                      <line x1="12" y1="21" x2="12" y2="23"/>
+                      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                      <line x1="1" y1="12" x2="3" y2="12"/>
+                      <line x1="21" y1="12" x2="23" y2="12"/>
+                      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                    </svg>
+                    <!-- Moon Icon -->
+                    <svg v-else class="switch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <button v-if="canSwitchRole" @click="switchRole" class="menu-item">
-            <Icon name="shield" class="menu-icon" />
+            <Icon name="user-plus" class="menu-icon" />
             <span>Switch role</span>
           </button>
         </div>
@@ -97,6 +129,7 @@ import { useUserStore } from '@/stores/user'
 import Icon from '@/components/ui/Icon.vue'
 import presenceService from '@/services/presence'
 import Avatar from '@/components/ui/Avatar.vue'
+import themeManager from '@/services/ThemeManager.js'
 
 // Props
 const props = defineProps({
@@ -117,6 +150,23 @@ const userStore = useUserStore()
 // State
 const showUserMenu = ref(false)
 const userSection = ref(null)
+const currentTheme = ref('light')
+
+// Theme management
+const setTheme = (theme) => {
+  themeManager.setTheme(theme)
+  currentTheme.value = theme
+}
+
+const toggleTheme = () => {
+  const newTheme = currentTheme.value === 'light' ? 'dark' : 'light'
+  setTheme(newTheme)
+}
+
+// Listen for theme changes
+const handleThemeChange = (event) => {
+  currentTheme.value = event.detail.theme
+}
 
 // Reactive presence status - this will track changes automatically
 const currentUserStatus = computed(() => {
@@ -211,8 +261,8 @@ const openProfile = () => {
 
 const openSettings = () => {
   closeUserMenu()
-  emit('settings-opened')
-  // Could open settings modal or navigate to settings page
+  router.push('/settings')
+  console.log('🔧 [UserBottomBar] Navigating to user settings page')
 }
 
 const switchRole = () => {
@@ -281,204 +331,148 @@ const handleClickOutside = (event) => {
 // Lifecycle
 onMounted(() => {
   document.addEventListener('click', handleClickOutside)
+  
+  // Initialize theme
+  currentTheme.value = themeManager.getCurrentTheme()
+  window.addEventListener('theme-changed', handleThemeChange)
 })
 
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
+  window.removeEventListener('theme-changed', handleThemeChange)
 })
 </script>
 
 <style scoped>
-/* User Bottom Bar Design */
+/* 🎨 [FIX] User Bottom Bar: Polished Design System */
 .user-bottom-bar {
   position: relative;
-  padding: 12px 16px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(10px);
+  padding: 12px;
+  border-top: 1px solid var(--color-sidebar-border);
+  background: var(--color-sidebar-bg);
+  min-height: 64px;
+  display: flex;
+  align-items: center;
 }
 
-/* User Section */
+/* User Section: Clickable Area */
 .user-section {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 8px 12px;
+  padding: 8px;
   border-radius: 8px;
   cursor: pointer;
-  transition: all 0.2s ease;
-  background: transparent;
-  position: relative;
+  transition: background-color 0.2s ease;
+  width: 100%;
 }
 
 .user-section:hover {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.user-section:active {
-  background: rgba(255, 255, 255, 0.15);
+  background-color: var(--color-sidebar-hover);
 }
 
 /* User Avatar */
 .user-avatar {
-  position: relative;
   flex-shrink: 0;
 }
 
-.user-avatar:hover {
-  border-color: rgba(255, 255, 255, 0.4);
-  transform: scale(1.05);
-}
-
-/* Status Indicator */
-.status-indicator {
-  position: absolute;
-  bottom: -1px;
-  right: -1px;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  border: 2px solid var(--bg-primary);
-  transition: all 0.2s ease;
-}
-
-.status-indicator.status-online {
-  background: #23a55a;
-  box-shadow: 0 0 6px rgba(35, 165, 90, 0.5);
-}
-
-.status-indicator.status-away {
-  background: #f0b132;
-  box-shadow: 0 0 6px rgba(240, 177, 50, 0.5);
-}
-
-.status-indicator.status-busy {
-  background: #f23f43;
-  box-shadow: 0 0 6px rgba(242, 63, 67, 0.5);
-}
-
-.status-indicator.status-offline {
-  background: #80848e;
-}
-
-/* User Info */
+/* User Info Text Block */
 .user-info {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .user-name {
   font-size: 14px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.9);
-  line-height: 1.2;
+  color: var(--color-sidebar-text);
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .user-status {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.6);
-  line-height: 1.2;
+  color: var(--color-sidebar-text-muted);
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
-/* Menu Indicator */
+/* Menu Indicator Arrow */
 .menu-indicator {
   flex-shrink: 0;
-  width: 20px;
-  height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 4px;
-  transition: all 0.2s ease;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .menu-indicator.active {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.chevron-icon {
-  width: 14px;
-  height: 14px;
-  color: rgba(255, 255, 255, 0.5);
-  transition: all 0.2s ease;
-}
-
-.menu-indicator.active .chevron-icon {
-  color: rgba(255, 255, 255, 0.8);
   transform: rotate(180deg);
 }
 
-/* User Menu Dropdown */
+.chevron-icon {
+  width: 18px;
+  height: 18px;
+  color: var(--color-sidebar-text-muted);
+}
+
+/* User Menu Dropdown: Main Container */
 .user-menu {
   position: absolute;
-  bottom: 100%;
-  left: 16px;
-  right: 16px;
-  background: #ffffff;
-  border: none;
+  bottom: calc(100% + 8px); /* Position above the bar with margin */
+  left: 12px;
+  right: 12px;
+  background-color: var(--color-background-secondary);
   border-radius: 12px;
-  box-shadow:
-    0 16px 32px rgba(0, 0, 0, 0.2),
-    0 8px 16px rgba(0, 0, 0, 0.1),
-    0 0 0 1px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-xl);
   overflow: hidden;
   z-index: var(--z-dropdown, 1000);
-  backdrop-filter: blur(20px);
-  margin-bottom: 8px;
-  /* Ensure proper stacking context */
-  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  gap: 4px; /* Consistent gap between sections */
+  padding: 8px;
 }
 
 /* Menu Header */
 .menu-header {
-  padding: 16px;
-  background: linear-gradient(135deg, #f8fafc, #f1f5f9);
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.menu-user-info {
-  text-align: left;
+  padding: 8px;
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: 4px;
 }
 
 .menu-user-name {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
-  color: #1a1a1a;
-  line-height: 1.2;
-  margin-bottom: 2px;
+  color: var(--color-text);
 }
 
 .menu-user-email {
   font-size: 13px;
-  color: #666;
-  line-height: 1.2;
+  color: var(--color-text-muted);
 }
 
 /* Menu Divider */
 .menu-divider {
   height: 1px;
-  background: #e2e8f0;
-  margin: 8px 0;
+  background-color: var(--color-border);
+  margin: 4px 8px; /* Consistent margin */
 }
 
-/* Menu Section */
+/* Menu Section: For Status Options */
 .menu-section {
-  padding: 8px 16px;
+  padding: 0 8px;
 }
 
 .menu-section-title {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
-  color: #666;
+  color: var(--color-text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.05em;
   margin-bottom: 8px;
+  padding: 0 4px;
 }
 
 /* Status Options */
@@ -491,27 +485,27 @@ onUnmounted(() => {
 .status-option {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   padding: 8px 12px;
   border: none;
-  background: none;
-  color: #1a1a1a;
+  background-color: transparent;
+  color: var(--color-text);
   font-size: 14px;
-  font-weight: 500;
   text-align: left;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease, color 0.15s ease;
   border-radius: 6px;
   width: 100%;
 }
 
 .status-option:hover {
-  background: #f5f7fa;
+  background-color: var(--color-background-muted);
 }
 
 .status-option.active {
-  background: #e8f4fd;
-  color: #1d4ed8;
+  background-color: var(--color-primary);
+  color: white;
+  font-weight: 500;
 }
 
 .status-dot {
@@ -520,142 +514,176 @@ onUnmounted(() => {
   border-radius: 50%;
   flex-shrink: 0;
 }
+.status-dot.status-online { background-color: var(--color-online); }
+.status-dot.status-away { background-color: var(--color-warning); }
+.status-dot.status-busy { background-color: var(--color-danger); }
 
-.status-dot.status-online {
-  background: #23a55a;
-}
-
-.status-dot.status-away {
-  background: #f0b132;
-}
-
-.status-dot.status-busy {
-  background: #f23f43;
-}
-
-/* Menu Items */
+/* Menu Items: General Buttons */
 .menu-items {
-  padding: 8px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0;
 }
 
 .menu-item {
   width: 100%;
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
+  gap: 10px;
+  padding: 10px 12px;
   border: none;
-  background: none;
-  color: #1a1a1a;
+  background-color: transparent;
+  color: var(--color-text);
   font-size: 14px;
-  font-weight: 500;
   text-align: left;
   cursor: pointer;
-  transition: all 0.15s ease;
-  min-height: 44px;
-  /* Touch-friendly */
+  transition: background-color 0.15s ease;
+  border-radius: 6px;
+  min-height: 40px;
 }
 
 .menu-item:hover {
-  background: #f5f7fa;
-}
-
-.menu-item:active {
-  background: #e8ecef;
+  background-color: var(--color-background-muted);
 }
 
 .menu-item-danger {
-  color: #dc2626;
+  color: var(--color-danger);
 }
 
 .menu-item-danger:hover {
-  background: #fef2f2;
-  color: #b91c1c;
+  background-color: var(--color-danger);
+  color: white;
+}
+.menu-item-danger:hover .menu-icon {
+  color: white;
 }
 
 .menu-icon {
   width: 16px;
   height: 16px;
-  color: #666;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+  transition: color 0.15s ease;
+}
+
+/* Theme Switch - Modern Toggle Design */
+.theme-toggle-container {
+  justify-content: space-between;
+}
+
+.theme-switch-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.theme-switch {
+  width: 44px;
+  height: 24px;
+  border-radius: 12px;
+  background-color: var(--color-background-muted);
+  cursor: pointer;
+  position: relative;
+  transition: background-color 0.3s ease;
+  border: 1px solid var(--color-border);
+}
+
+.theme-switch:hover {
+  background-color: var(--color-background-soft);
+}
+
+.switch-track {
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  background-color: transparent;
+  transition: background-color 0.3s ease;
+}
+
+.switch-track.dark {
+  background-color: var(--color-primary);
+}
+
+.switch-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: white;
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.switch-thumb.dark {
+  transform: translateX(20px);
+  background-color: white;
+}
+
+.switch-icon {
+  width: 12px;
+  height: 12px;
+  color: var(--color-primary);
+  transition: color 0.2s ease;
+  stroke-width: 2;
   flex-shrink: 0;
 }
 
-.menu-item-danger .menu-icon {
-  color: #dc2626;
+.switch-thumb.dark .switch-icon {
+  color: var(--color-primary);
+}
+
+/* Hover effects */
+.theme-switch:hover .switch-track {
+  box-shadow: 0 0 0 2px var(--color-primary-alpha);
+}
+
+.theme-switch:hover .switch-thumb {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 /* Menu Transitions */
 .menu-slide-enter-active,
 .menu-slide-leave-active {
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   transform-origin: bottom center;
 }
 
 .menu-slide-enter-from,
 .menu-slide-leave-to {
   opacity: 0;
-  transform: translateY(8px) scale(0.95);
-}
-
-.menu-slide-enter-to,
-.menu-slide-leave-from {
-  opacity: 1;
-  transform: translateY(0) scale(1);
+  transform: translateY(10px) scale(0.95);
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
   .user-bottom-bar {
-    padding: 16px;
+    padding: 8px;
   }
-
-  .user-section {
-    padding: 12px;
-  }
-
-  .user-name {
-    font-size: 15px;
-  }
-
-  .user-status {
-    font-size: 13px;
-  }
-
-  .menu-item {
-    padding: 16px;
-    font-size: 15px;
-    min-height: 48px;
-  }
-
-  .menu-icon {
-    width: 18px;
-    height: 18px;
-  }
-}
-
-/* High contrast mode support */
-@media (prefers-contrast: high) {
-  .user-section {
-    border: 1px solid rgba(255, 255, 255, 0.3);
-  }
-
   .user-menu {
-    border: 2px solid #333;
+    left: 8px;
+    right: 8px;
+  }
+  .menu-item {
+    padding: 12px;
+    min-height: 44px;
   }
 }
 
-/* Reduced motion support */
-@media (prefers-reduced-motion: reduce) {
-
-  .user-section,
-  .user-avatar,
-  .menu-indicator,
-  .chevron-icon {
-    transition: none;
+/* High Contrast & Reduced Motion */
+@media (prefers-contrast: high) {
+  .user-menu {
+    border: 2px solid var(--color-border);
   }
+}
 
-  .menu-slide-enter-active,
-  .menu-slide-leave-active {
+@media (prefers-reduced-motion: reduce) {
+  .menu-indicator, .menu-slide-enter-active, .menu-slide-leave-active {
     transition: none;
   }
 }

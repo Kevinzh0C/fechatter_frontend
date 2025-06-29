@@ -3,9 +3,9 @@
     <h2 class="text-xl font-bold mb-4">Login Test Component</h2>
 
     <div class="space-y-4">
-      <input v-model="email" type="email" placeholder="Email" class="w-full p-2 border rounded" />
+      <input v-model="email" type="email" placeholder="Email" class="w-full p-2 border rounded bg-gray-700 text-white border-gray-600" />
 
-      <input v-model="password" type="password" placeholder="Password" class="w-full p-2 border rounded" />
+      <input v-model="password" type="password" placeholder="Password" class="w-full p-2 border rounded bg-gray-700 text-white border-gray-600" />
 
       <div class="flex gap-2 flex-wrap">
         <button @click="testDirectAPI" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
@@ -28,7 +28,7 @@
 
       <div v-if="logs.length > 0" class="mt-4">
         <h3 class="font-bold">Logs:</h3>
-        <div class="bg-gray-100 p-2 rounded max-h-64 overflow-y-auto">
+        <div class="bg-gray-700 p-2 rounded max-h-64 overflow-y-auto">
           <div v-for="(log, index) in logs" :key="index" class="text-xs font-mono">
             [{{ log.time }}] {{ log.message }}
           </div>

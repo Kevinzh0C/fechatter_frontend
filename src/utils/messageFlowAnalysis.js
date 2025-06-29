@@ -189,7 +189,7 @@ async sendMessage(chatId, messageData) {
     const apiFlow = {
       request: {
         method: 'POST',
-        url: '/api/chat/6/messages',
+        url: '/chat/6/messages',
         payload: {
           content: 'hi',
           files: [],

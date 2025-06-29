@@ -1,10 +1,10 @@
 <template>
-  <div class="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+  <div class="min-h-screen bg-gray-900 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
     <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-      <div class="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10 text-center">
+      <div class="bg-gray-800 py-8 px-4 shadow sm:rounded-lg sm:px-10 text-center">
         <div class="mb-6">
-          <div class="mx-auto h-24 w-24 bg-red-100 rounded-full flex items-center justify-center">
-            <svg class="h-12 w-12 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="mx-auto h-24 w-24 bg-red-900 rounded-full flex items-center justify-center">
+            <svg class="h-12 w-12 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path v-if="errorCode === '404'" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                     d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.467-.881-6.072-2.33" />
               <path v-else-if="errorCode === '403'" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
@@ -15,11 +15,11 @@
           </div>
         </div>
         
-        <h2 class="text-2xl font-bold text-gray-900 mb-2">
+        <h2 class="text-2xl font-bold text-white mb-2">
           {{ errorTitle }}
         </h2>
         
-        <p class="text-gray-600 mb-6">
+        <p class="text-gray-400 mb-6">
           {{ errorMessage }}
         </p>
         
@@ -33,16 +33,16 @@
           
           <router-link 
             to="/demo" 
-            class="w-full flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            class="w-full flex justify-center py-2 px-4 border border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-300 bg-gray-700 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
             Go to Demo
           </router-link>
         </div>
         
         <!-- Debug info (development only) -->
-        <div v-if="showDebugInfo" class="mt-6 p-4 bg-gray-100 rounded text-left text-xs">
-          <h4 class="font-medium text-gray-700 mb-2">Debug Information:</h4>
-          <pre class="text-gray-600">{{ debugInfo }}</pre>
+        <div v-if="showDebugInfo" class="mt-6 p-4 bg-gray-700 rounded text-left text-xs">
+          <h4 class="font-medium text-gray-300 mb-2">Debug Information:</h4>
+          <pre class="text-gray-400">{{ debugInfo }}</pre>
         </div>
       </div>
     </div>

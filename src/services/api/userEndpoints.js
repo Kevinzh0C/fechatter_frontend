@@ -10,8 +10,8 @@ export class UserEndpointManager {
   constructor() {
     this.endpointStrategy = 'auto'; // auto, workspace, profile, mock
     this.fallbackEndpoints = [
-      '/users',              // Primary: Correct backend endpoint (requires auth + workspace)
-      '/users/profile',      // Secondary: User profile endpoint
+      '/users',          // Primary: Correct backend endpoint (requires auth + workspace)
+      '/users/profile',  // Secondary: User profile endpoint
     ];
     this.lastSuccessfulEndpoint = null;
     this.userCache = new Map();
@@ -44,32 +44,62 @@ export class UserEndpointManager {
 
     console.log('🔍 [UserEndpoints] Attempting endpoints:', endpointsToTry);
 
-    // Try endpoints with enhanced error categorization
-    for (const endpoint of endpointsToTry) {
-      try {
-        console.log(`🔍 [UserEndpoints] Attempting endpoint: ${endpoint}`);
+    // Check cache first (forceRefresh is not defined in this scope, removing the check)
+    const cachedUsers = this.getCachedUsers();
+    if (cachedUsers && cachedUsers.length > 0) {
+      console.log('✅ [UserEndpoints] 返回缓存的用户数据');
+      return cachedUsers;
+    }
 
-        const response = await this.tryEndpointWithRetry(endpoint);
-        if (response && response.data) {
-          this.lastSuccessfulEndpoint = endpoint;
-          const users = this.normalizeUserData(response.data);
-          this.cacheUsers(users);
+    // 🔧 ENHANCED: 只尝试主要端点，在登录期间减少端点尝试
+    const primaryEndpoint = endpointsToTry[0];
+    
+    try {
+      console.log(`🔍 [UserEndpoints] Attempting primary endpoint: ${primaryEndpoint}`);
 
-          console.log(`✅ [UserEndpoints] Successfully fetched ${users.length} users from ${endpoint}`);
-          this.authRetryCount = 0; // Reset on success
-          return users;
-        }
-      } catch (error) {
-        const errorType = this.categorizeError(error);
-        console.warn(`⚠️ [UserEndpoints] Endpoint ${endpoint} failed (${errorType}):`, error.message);
+      const response = await this.tryEndpointWithRetry(primaryEndpoint);
+      if (response && response.data) {
+        this.lastSuccessfulEndpoint = primaryEndpoint;
+        const users = this.normalizeUserData(response.data);
+        this.cacheUsers(users);
+
+        console.log(`✅ [UserEndpoints] Successfully fetched ${users.length} users from ${primaryEndpoint}`);
+        this.authRetryCount = 0; // Reset on success
+        return users;
+      }
+    } catch (error) {
+      const errorType = this.categorizeError(error);
+      console.warn(`⚠️ [UserEndpoints] Primary endpoint ${primaryEndpoint} failed (${errorType}):`, error.message);
+      
+      // 🔧 ENHANCED: 只在非认证错误且非登录期间尝试其他端点
+      if (errorType !== 'auth' && endpointsToTry.length > 1) {
+        console.log('🔍 [UserEndpoints] 尝试备用端点...');
         
-        // Don't continue trying other endpoints if this is an auth issue that affects all
-        if (errorType === 'auth' && this.authRetryCount >= this.maxAuthRetries) {
-          console.error('❌ [UserEndpoints] Max auth retries exceeded, stopping endpoint attempts');
-          break;
+        for (let i = 1; i < endpointsToTry.length; i++) {
+          const endpoint = endpointsToTry[i];
+          try {
+            console.log(`🔍 [UserEndpoints] Attempting fallback endpoint: ${endpoint}`);
+            
+            const response = await this.tryEndpointWithRetry(endpoint);
+            if (response && response.data) {
+              this.lastSuccessfulEndpoint = endpoint;
+              const users = this.normalizeUserData(response.data);
+              this.cacheUsers(users);
+
+              console.log(`✅ [UserEndpoints] Successfully fetched ${users.length} users from fallback ${endpoint}`);
+              this.authRetryCount = 0;
+              return users;
+            }
+          } catch (fallbackError) {
+            console.warn(`⚠️ [UserEndpoints] Fallback endpoint ${endpoint} failed:`, fallbackError.message);
+          }
         }
-        
-        continue;
+      }
+      
+      // 如果是认证错误，直接抛出
+      if (errorType === 'auth') {
+        console.error('❌ [UserEndpoints] Authentication error, stopping endpoint attempts');
+        throw error;
       }
     }
 
@@ -138,7 +168,9 @@ export class UserEndpointManager {
   async tryEndpoint(endpoint) {
     try {
       const startTime = Date.now();
-      const response = await api.get(endpoint);
+      const response = await api.get(endpoint, {
+        timeout: 30000, // 增加到30秒，与其他服务保持一致
+      });
       const responseTime = Date.now() - startTime;
 
       console.log(`✅ [UserEndpoints] ${endpoint} succeeded (${responseTime}ms)`);
@@ -373,7 +405,9 @@ export class UserEndpointManager {
       console.log(`🔍 [UserEndpoints] Fetching users by IDs:`, userIds);
       
       // Try batch endpoint first
-      const response = await api.post('/users/batch', { user_ids: userIds });
+      const response = await api.post('/users/batch', { user_ids: userIds }, {
+        timeout: 30000
+      });
       const users = this.normalizeUserData(response.data);
       
       console.log(`✅ [UserEndpoints] Batch fetch successful: ${users.length} users`);
@@ -403,7 +437,9 @@ export class UserEndpointManager {
     try {
       console.log('🔍 [UserEndpoints] Fetching current user profile...');
       
-      const response = await api.get('/users/profile');
+      const response = await api.get('/users/profile', {
+        timeout: 30000
+      });
       const user = this.normalizeUserData(response.data)[0];
       
       if (user) {
@@ -415,6 +451,105 @@ export class UserEndpointManager {
       
     } catch (error) {
       console.error('❌ [UserEndpoints] Failed to fetch current user profile:', error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * Update current user profile
+   */
+  async updateCurrentUserProfile(profileData) {
+    try {
+      console.log('🔄 [UserEndpoints] Updating current user profile...');
+      
+      const response = await api.put('/users/profile', profileData, {
+        timeout: 30000
+      });
+      const user = this.normalizeUserData(response.data)[0];
+      
+      if (user) {
+        console.log('✅ [UserEndpoints] Current user profile updated:', user.email);
+        // Clear cache to force refresh on next fetch
+        this.clearCache();
+        return user;
+      } else {
+        throw new Error('No user data in update response');
+      }
+      
+    } catch (error) {
+      console.error('❌ [UserEndpoints] Failed to update current user profile:', error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * Get specific user profile by ID
+   */
+  async getUserProfile(userId) {
+    try {
+      console.log(`🔍 [UserEndpoints] Fetching user profile for ID: ${userId}...`);
+      
+      const response = await api.get(`/users/${userId}/profile`, {
+        timeout: 30000
+      });
+      const user = this.normalizeUserData(response.data)[0];
+      
+      if (user) {
+        console.log('✅ [UserEndpoints] User profile fetched:', user.fullname);
+        return user;
+      } else {
+        throw new Error('No user data in profile response');
+      }
+      
+    } catch (error) {
+      console.error(`❌ [UserEndpoints] Failed to fetch user profile for ID ${userId}:`, error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * Update specific user profile by ID (admin function)
+   */
+  async updateUserProfile(userId, profileData) {
+    try {
+      console.log(`🔄 [UserEndpoints] Updating user profile for ID: ${userId}...`);
+      
+      const response = await api.put(`/users/${userId}/profile`, profileData, {
+        timeout: 30000
+      });
+      const user = this.normalizeUserData(response.data)[0];
+      
+      if (user) {
+        console.log('✅ [UserEndpoints] User profile updated:', user.fullname);
+        // Clear cache to force refresh on next fetch
+        this.clearCache();
+        return user;
+      } else {
+        throw new Error('No user data in update response');
+      }
+      
+    } catch (error) {
+      console.error(`❌ [UserEndpoints] Failed to update user profile for ID ${userId}:`, error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * Change user password
+   */
+  async changePassword(passwordData) {
+    try {
+      console.log('🔄 [UserEndpoints] Changing user password...');
+      
+      const response = await api.post('/users/change-password', passwordData, {
+        timeout: 30000
+      });
+      
+      console.log('✅ [UserEndpoints] Password changed successfully');
+      return response.data;
+      
+    } catch (error) {
+      console.error('❌ [UserEndpoints] Failed to change password:', error.message);
       throw error;
     }
   }

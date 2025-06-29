@@ -1,12 +1,13 @@
 /**
  * 🚀 BACKEND-ALIGNED FILE SERVICE
  * Based on Rust backend analysis:
- * - Upload: POST /api/files/single (multipart/form-data, requires auth)
- * - Download: GET /api/files/download/{file_id} (requires auth)  
+ * - Upload: POST /files/single (multipart/form-data, requires auth)
+ * - Download: GET /files/download/{file_id} (requires auth)  
  * - Static: /files/{workspace_id}/{hash_path} (no auth, served by nginx)
  */
 
 import api from './api.js';
+import { buildStaticFileUrl, buildAuthFileUrl } from '../utils/fileUrlHandler.js';
 
 export class ProductionFileService {
   constructor() {
@@ -82,7 +83,7 @@ export class ProductionFileService {
 
   /**
    * 🎯 BACKEND ALIGNED: Download file using authenticated endpoint
-   * Backend: GET /api/files/download/{file_id} where file_id = hash.extension
+   * Backend: GET /files/download/{file_id} where file_id = hash.extension
    */
   async downloadFile(fileId, options = {}) {
     console.log('📥 [FileService] Backend-aligned download:', fileId);
@@ -123,7 +124,7 @@ export class ProductionFileService {
    * 🎯 BACKEND ALIGNED: Build file URLs matching backend storage structure
    * Backend creates: symlinks in root + hash directory structure
    * Static access: /files/{workspace_id}/{hash_path} (no auth)
-   * Auth access: /api/files/download/{file_id} (with auth)
+   * Auth access: /files/download/{file_id} (with auth)
    */
   buildFileUrl(fileId, options = {}) {
     const { useStatic = true, workspaceId = 2 } = options;
@@ -134,23 +135,15 @@ export class ProductionFileService {
     }
 
     if (useStatic) {
-      // Static URL: /files/{workspace_id}/{hash_path}
-      const hashPath = this._buildHashPath(fileId);
-      return `${this.config.staticPrefix}/${workspaceId}/${hashPath}`;
+      // Use the unified handler for static URLs
+      return buildStaticFileUrl(fileId, workspaceId);
     } else {
-      // Authenticated URL: /api/files/download/{file_id}
-      return `/api${this.config.downloadEndpoint}/${fileId}`;
+      // Use the unified handler for authenticated URLs
+      return buildAuthFileUrl(fileId);
     }
   }
 
-  /**
-   * 🔧 BACKEND ALIGNED: Return fileId as-is since backend expects full filename
-   * No hash splitting required for flat storage structure
-   */
-  _buildHashPath(fileId) {
-    // Return fileId as-is since backend expects full filename without directory structure
-    return fileId;
-  }
+  
 
   /**
    * 🔧 BACKEND ALIGNED: Parse UploadResponse from ApiResponse<UploadResponse>

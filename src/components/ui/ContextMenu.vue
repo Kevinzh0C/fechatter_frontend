@@ -143,8 +143,8 @@ onUnmounted(() => {
 
 .context-menu {
   position: absolute;
-  background: var(--bg-primary);
-  border: 1px solid var(--border-primary);
+  background: #2f3136;
+  border: 1px solid #202225;
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
   padding: 4px;
@@ -159,7 +159,7 @@ onUnmounted(() => {
 
 .context-menu-divider {
   height: 1px;
-  background: var(--border-primary);
+  background: #202225;
   margin: 4px 0;
 }
 
@@ -176,27 +176,28 @@ onUnmounted(() => {
   transition: all var(--transition-fast);
   font-size: 14px;
   text-align: left;
-  color: var(--text-primary);
+  color: #dcddde;
 }
 
 .context-menu-item:hover {
-  background: var(--bg-tertiary);
+  background: #40444b;
 }
 
 .context-menu-item:active {
-  background: var(--bg-quaternary);
+  background: #4f545c;
 }
 
 .context-menu-item.danger {
-  color: var(--error-color);
+  color: #f84f31;
 }
 
 .context-menu-item.danger:hover {
-  background: var(--error-color-alpha);
+  background: #f84f31;
+  color: white;
 }
 
 .context-menu-item.disabled {
-  color: var(--text-muted);
+  color: #747f8d;
   cursor: not-allowed;
   opacity: 0.5;
 }
@@ -220,7 +221,7 @@ onUnmounted(() => {
 .menu-item-shortcut {
   flex-shrink: 0;
   font-size: 12px;
-  color: var(--text-muted);
+  color: #747f8d;
   font-family: var(--font-family-mono);
 }
 

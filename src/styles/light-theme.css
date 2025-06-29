@@ -1,0 +1,402 @@
+/* ☀️ 亮色主题 - 恢复原始未被篡改的样式 */
+/* Discord-like Light Theme System */
+
+[data-theme="light"], :root {
+  /* 🌟 Discord 亮色主题 */
+  --color-primary: #5865f2;
+  --color-primary-hover: #4752c4;
+  --color-primary-light: #a5b4fc;
+  --color-primary-dark: #3c45a5;
+
+  /* Sidebar Colors - Light Theme */
+  --color-sidebar-bg: #f2f3f5;
+  --color-sidebar-text: #4e5058;
+  --color-sidebar-text-muted: #6b7280;
+  --color-sidebar-active: #5865f2;
+  --color-sidebar-hover: #e3e5e8;
+
+  /* Main Content Colors */
+  --color-background: #ffffff;
+  --color-background-secondary: #f2f3f5;
+  --color-background-soft: #f6f6f7;
+  --color-background-muted: #e3e5e8;
+  --color-text: #060607;
+  --color-text-secondary: #4e5058;
+  --color-text-muted: #6b7280;
+  --color-border: #e3e5e8;
+  --color-border-muted: #d7d9dc;
+  --color-border-hover: #a5b4fc;
+
+  /* Status Colors */
+  --color-success: #248046;
+  --color-warning: #f0b232;
+  --color-info: #006ce7;
+  --color-online: #23a55a;
+  --color-danger: #da373c;
+
+  /* Discord Message System */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f2f3f5;
+  --bg-tertiary: #e3e5e8;
+  --bg-accent: #f6f6f7;
+  --bg-floating: #ffffff;
+  --bg-input: #ebedef;
+  --bg-message-hover: rgba(4, 4, 5, 0.07);
+
+  /* Text Colors - 提升对比度以符合WCAG AA标准 */
+  --text-primary: #060607;
+  --text-secondary: #4e5058;
+  --text-muted: #6b7280;
+  --text-link: #006ce7;
+  --text-positive: #248046;
+  --text-warning: #f0b232;
+  --text-danger: #da373c;
+  --text-brand: #5865f2;
+
+  /* Border Colors */
+  --border-primary: #e3e5e8;
+  --border-secondary: #d7d9dc;
+  --border-focus: #5865f2;
+
+  /* 头像边框 */
+  --avatar-border: #e3e5e8;
+
+  /* Code highlighting */
+  --code-bg: #f6f6f7;
+  --code-border: #e3e5e8;
+  --code-text: #2e3338;
+
+  /* 引用块 */
+  --quote-border: #4e5058;
+  --quote-bg: rgba(79, 84, 92, 0.05);
+
+  /* Shadows */
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+
+  /* Scrollbar Colors */
+  --scrollbar-track: rgba(0, 0, 0, 0.1);
+  --scrollbar-thumb: rgba(0, 0, 0, 0.2);
+  --scrollbar-thumb-hover: rgba(0, 0, 0, 0.4);
+
+  /* Interactive States */
+  --interactive-normal: #4e5058;
+  --interactive-hover: #2e3338;
+  --interactive-active: #060607;
+
+  /* Border Radius */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+
+  /* Spacing */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+
+  /* 🎨 Slack特有的颜色 */
+  --color-slack-mention: #e01e5a;
+  --color-slack-mention-bg: rgba(224, 30, 90, 0.1);
+  --color-slack-link: #1264a3;
+  --color-slack-code-bg: #f8f8f8;
+  --color-slack-code-border: #e8e8e8;
+  
+  /* 🎨 登录页面专用鲜艳蓝色 */
+  --login-primary: #3b82f6;
+  --login-primary-hover: #2563eb;
+  --login-primary-light: #93c5fd;
+  --login-primary-dark: #1d4ed8;
+  --login-primary-darker: #1e40af;
+
+  /* 🎨 Modal专用增强阴影 - 浅色主题下更强的层次感 */
+  --shadow-modal-light: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.25),
+    0 12px 25px -8px rgba(0, 0, 0, 0.15),
+    0 8px 16px -4px rgba(0, 0, 0, 0.1),
+    0 4px 8px -2px rgba(0, 0, 0, 0.08),
+    0 0 0 1px rgba(0, 0, 0, 0.05);
+    
+  --shadow-modal-floating: 
+    0 35px 70px -15px rgba(0, 0, 0, 0.3),
+    0 20px 40px -10px rgba(0, 0, 0, 0.2),
+    0 12px 24px -6px rgba(0, 0, 0, 0.15),
+    0 8px 16px -4px rgba(0, 0, 0, 0.1),
+    0 0 0 1px rgba(0, 0, 0, 0.08);
+
+  /* 🎨 Admin专用颜色 */
+  --color-admin-primary: #3b82f6;
+  --color-admin-secondary: #1d4ed8;
+  --color-admin-light: #93c5fd;
+  --color-admin-dark: #1e40af;
+  --color-admin-bg: rgba(59, 130, 246, 0.1);
+  --color-admin-border: rgba(59, 130, 246, 0.2);
+  --color-admin-shadow: rgba(59, 130, 246, 0.3);
+}
+
+/* 亮色主题专属样式 */
+[data-theme="light"] body,
+:root body {
+  background-color: var(--color-background);
+  color: var(--color-text);
+}
+
+[data-theme="light"] .discord-chat-container,
+.discord-chat-container {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: "gg sans", "Noto Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.375;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+[data-theme="light"] .sidebar,
+.sidebar {
+  background-color: var(--color-sidebar-bg);
+  color: var(--color-sidebar-text);
+}
+
+/* 亮色主题滚动条 */
+[data-theme="light"] ::-webkit-scrollbar,
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+[data-theme="light"] ::-webkit-scrollbar-track,
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb,
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 4px;
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover,
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+/* 亮色主题代码块 */
+[data-theme="light"] .code-highlight-container,
+.code-highlight-container {
+  background: #f6f8fa;
+  border-color: #e1e4e8;
+}
+
+[data-theme="light"] .code-header,
+.code-header {
+  background: linear-gradient(135deg, #f1f3f4 0%, #e8eaed 100%);
+  border-color: #e1e4e8;
+}
+
+[data-theme="light"] .language-label,
+.language-label {
+  color: #24292e;
+  background: #f1f3f4;
+  border-color: #d1d5da;
+}
+
+[data-theme="light"] .code-block,
+.code-block {
+  background: #f6f8fa;
+  color: #24292e;
+}
+
+[data-theme="light"] .line-numbers,
+.line-numbers {
+  background: #f6f8fa;
+  border-color: #e1e4e8;
+  color: #656d76;
+}
+
+/* 亮色主题消息输入 */
+[data-theme="light"] .message-input,
+.message-input {
+  background: var(--color-background);
+  border-top-color: var(--color-border);
+}
+
+[data-theme="light"] .input-btn,
+.input-btn {
+  background: var(--color-background-soft);
+  border-color: var(--color-border);
+  color: var(--color-text-muted);
+}
+
+[data-theme="light"] .input-btn:hover,
+.input-btn:hover {
+  background: var(--color-background-muted);
+  border-color: var(--color-border-hover);
+  color: var(--color-text);
+}
+
+/* 亮色主题表单元素 */
+[data-theme="light"] input,
+[data-theme="light"] textarea,
+[data-theme="light"] select,
+input,
+textarea,
+select {
+  background: var(--bg-input);
+  border-color: var(--border-primary);
+  color: var(--text-primary);
+}
+
+[data-theme="light"] input:focus,
+[data-theme="light"] textarea:focus,
+[data-theme="light"] select:focus,
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px rgba(88, 101, 242, 0.1);
+}
+
+/* 亮色主题按钮 */
+[data-theme="light"] .btn-primary,
+.btn-primary {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+}
+
+[data-theme="light"] .btn-primary:hover,
+.btn-primary:hover {
+  background: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+}
+
+[data-theme="light"] .btn-secondary,
+.btn-secondary {
+  background: var(--color-background-soft);
+  border-color: var(--color-border);
+  color: var(--color-text);
+}
+
+[data-theme="light"] .btn-secondary:hover,
+.btn-secondary:hover {
+  background: var(--color-background-muted);
+  border-color: var(--color-border-hover);
+}
+
+/* 🎯 消息布局锚定 */
+[data-theme="light"] .discord-message,
+.discord-message {
+  /* 固定行高和最小高度，确保视觉锚点稳定 */
+  min-height: 44px;
+  line-height: 1.375;
+  /* 使用contain防止布局偏移 */
+  contain: layout style;
+}
+
+/* ☀️ Slack生产级浅色主题 - 真正的Slack紫色 + 黄金分割设计 */
+:root {
+  /* 🎨 主色调 - 真正的Slack紫色（#611f69） */
+  --color-primary: #611f69;
+  --color-primary-hover: #4c1a54;
+  --color-primary-light: #d4b8db;
+  --color-primary-dark: #3d1440;
+  --color-primary-darker: #2a0e2c;
+  --color-primary-alpha: rgba(97, 31, 105, 0.1);
+  --color-primary-bg: #f7f4f8;
+  --color-primary-border: #d4b8db;
+  --color-primary-soft: rgba(97, 31, 105, 0.06);
+
+  /* 🎨 次要色调 - 优化对比度 */
+  --color-secondary: #5a5a5a;
+  --color-secondary-hover: #2c2c2c;
+  --color-secondary-light: #8a8a8a;
+  --color-secondary-dark: #1a1a1a;
+
+  /* 🎨 背景色 - 主区域极致柔和 */
+  --color-background: #ffffff;
+  --color-background-soft: #fafafa;
+  --color-background-muted: #f5f5f5;
+  --color-background-secondary: #fcfcfc;
+
+  /* 🎨 侧边栏专用色彩 - 更深沉的Slack紫色主题 */
+  --color-sidebar-bg: #4a1458;
+  --color-sidebar-bg-light: #5a1968;
+  --color-sidebar-text: #ffffff;
+  --color-sidebar-text-muted: rgba(255, 255, 255, 0.8);
+  --color-sidebar-text-secondary: rgba(255, 255, 255, 0.7);
+  --color-sidebar-hover: rgba(255, 255, 255, 0.1);
+  --color-sidebar-active: rgba(255, 255, 255, 0.15);
+  --color-sidebar-border: rgba(255, 255, 255, 0.12);
+
+  /* 🎨 工作区头部特殊色彩 */
+  --color-workspace-bg: #3d1145;
+  --color-workspace-hover: rgba(255, 255, 255, 0.06);
+  --color-workspace-active: rgba(255, 255, 255, 0.08);
+
+  /* 🎨 文本色 - 优化阅读体验 */
+  --color-text: #1a1a1a;
+  --color-text-secondary: #5a5a5a;
+  --color-text-muted: #8a8a8a;
+  --color-text-on-primary: #ffffff;
+
+  /* 🎨 边框色 - 极致细腻，几乎不可见 */
+  --color-border: #f0f0f0;
+  --color-border-hover: #e8e8e8;
+  --color-border-soft: #f8f8f8;
+  --color-border-focus: #611f69;
+
+  /* 🎨 状态色 - Slack风格 */
+  --color-success: #007a5a;
+  --color-success-bg: #d1f2eb;
+  --color-success-border: #95d5c4;
+  --color-warning: #e01e5a;
+  --color-warning-bg: #ffeaef;
+  --color-warning-border: #ffb3c6;
+  --color-danger: #e01e5a;
+  --color-danger-bg: #ffeaef;
+  --color-danger-border: #ffb3c6;
+  --color-danger-dark: #c91448;
+  --color-info: #1264a3;
+  --color-online: #007a5a;
+
+  /* 🎨 滚动条样式 */
+  --color-scrollbar-track: rgba(0, 0, 0, 0.04);
+  --color-scrollbar-thumb: rgba(0, 0, 0, 0.15);
+  --color-scrollbar-thumb-hover: rgba(0, 0, 0, 0.25);
+
+  /* 🎨 圆角 - 黄金分割比例 */
+  --radius-sm: 0.236rem;  /* φ^-2 */
+  --radius-md: 0.382rem;  /* φ^-1 */
+  --radius-lg: 0.618rem;  /* φ^0 */
+  --radius-xl: 1rem;      /* φ^1 */
+
+  /* 🎨 间距 - 黄金分割比例 */
+  --space-xs: 0.236rem;
+  --space-sm: 0.382rem;
+  --space-md: 0.618rem;
+  --space-lg: 1rem;
+  --space-xl: 1.618rem;
+  --space-2xl: 2.618rem;
+
+  /* 🎨 Slack特有的颜色 */
+  --color-slack-mention: #e01e5a;
+  --color-slack-mention-bg: rgba(224, 30, 90, 0.1);
+  --color-slack-link: #1264a3;
+  --color-slack-code-bg: #f8f8f8;
+  --color-slack-code-border: #e8e8e8;
+}
+
+/* 🎨 浅色主题应用 */
+[data-theme="light"] {
+  /* 继承所有上述变量 */
+}
+
+/* 🎨 默认主题（浅色） */
+html:not([data-theme]) {
+  /* 继承所有上述变量 */
+} 

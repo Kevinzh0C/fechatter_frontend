@@ -91,7 +91,6 @@ const analytics = new AnalyticsClient({
 | `/events` | 30s | ✅ | SSE错误流 |
 | `/notify` | 5s | ✅ | 503 + JSON错误 |
 | `/online-users` | 5s | ✅ | 空用户列表 |
-| `/ws` | 5s | ✅ | WebSocket错误处理 |
 
 ## 🎯 修复结果
 

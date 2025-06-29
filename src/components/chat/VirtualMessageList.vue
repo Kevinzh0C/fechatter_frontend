@@ -70,7 +70,7 @@ console.log(`🧹 [VirtualMessageList] CLEARED - Chat ${props.chatId} virtual me
   height: 100%;
   overflow-y: auto;
   position: relative;
-  background: var(--bg-primary, #313338);
+  background: var(--bg-primary);
   display: flex;
   flex-direction: column;
 }
@@ -86,20 +86,20 @@ console.log(`🧹 [VirtualMessageList] CLEARED - Chat ${props.chatId} virtual me
 .cleared-notice {
   text-align: center;
   padding: 40px 20px;
-  background: var(--bg-secondary, #2b2d31);
-  border: 2px dashed var(--border-primary, #3e4146);
+  background: var(--bg-secondary);
+  border: 2px dashed var(--border-primary);
   border-radius: 12px;
   max-width: 500px;
 }
 
 .cleared-notice h3 {
-  color: var(--text-primary, #dbdee1);
+  color: var(--text-primary);
   margin-bottom: 12px;
   font-size: 18px;
 }
 
 .cleared-notice p {
-  color: var(--text-muted, #949ba4);
+  color: var(--text-muted);
   margin: 8px 0;
   font-size: 14px;
 }
@@ -114,7 +114,7 @@ console.log(`🧹 [VirtualMessageList] CLEARED - Chat ${props.chatId} virtual me
   display: flex;
   align-items: center;
   gap: 12px;
-  color: var(--text-muted, #949ba4);
+  color: var(--text-muted);
   font-size: 14px;
 }
 
@@ -127,7 +127,7 @@ console.log(`🧹 [VirtualMessageList] CLEARED - Chat ${props.chatId} virtual me
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--text-muted, #949ba4);
+  background: var(--text-muted);
   animation: pulse 1.5s ease-in-out infinite;
 }
 

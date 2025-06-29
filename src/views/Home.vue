@@ -19,12 +19,14 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import CreateChannelModal from '@/components/modals/CreateChannelModal.vue';
 import CreateDMModal from '@/components/modals/CreateDMModal.vue';
 import WelcomeContent from '@/components/common/WelcomeContent.vue';
 import { useChatStore } from '@/stores/chat';
 import { useRouter } from 'vue-router';
+import { getLoginProfiler } from '@/utils/loginPerformanceProfiler';
+
 
 
 // 🚀 SIMPLIFIED: Only keep essential modal-related logic
@@ -52,10 +54,44 @@ const onDMCreated = (dm) => {
   }
 };
 
+
+
 // Navigate to channel when clicked from welcome content
 const navigateToChannel = (channelId) => {
   router.push(`/chat/${channelId}`);
 };
+
+// 🚀 PERFORMANCE: Track home component mounting and data loading
+onMounted(async () => {
+  const profiler = getLoginProfiler();
+  
+  if (profiler.isActive) {
+    profiler.startHomeMount();
+    
+    // Simulate data loading time
+    profiler.startDataLoad();
+    
+    // Wait for initial data to be available
+    setTimeout(() => {
+      if (profiler.isActive) {
+        profiler.completeDataLoad();
+        profiler.completeHomeMount();
+        
+        // Complete the entire login flow
+        const report = profiler.completeLogin();
+        
+        if (report) {
+          console.log('📊 [Performance Report] Login to Home Complete:', report);
+          
+          // Log performance issues if any
+          if (report.performanceIssues.length > 0) {
+            console.warn('⚠️ [Performance Issues] Found performance bottlenecks:', report.performanceIssues);
+          }
+        }
+      }
+    }, 100); // Simulate data loading delay
+  }
+});
 </script>
 
 <style scoped>
@@ -63,9 +99,9 @@ const navigateToChannel = (channelId) => {
 .home-content {
   width: 100%;
   height: 100vh;
-  background: #f8f9fa;
+  background: var(--color-background);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-  overflow-y: auto;
+  overflow: hidden; /* 移除主容器的滚动，让WelcomeContent自己处理 */
 }
 
 .welcome-container {

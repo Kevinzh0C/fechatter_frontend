@@ -64,7 +64,7 @@ fechatter.user.events                    # 用户行为分析
 
 ### 1. notify-server (通知推送服务)
 
-**职责**: SSE推送、WebSocket、邮件通知
+**职责**: SSE推送、邮件通知
 
 **订阅配置** (当前生产环境):
 ```yaml

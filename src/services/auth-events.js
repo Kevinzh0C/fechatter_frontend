@@ -48,6 +48,8 @@ export const authEventBus = new AuthEventBus();
 // Define event types to avoid magic strings
 export const AuthEvents = {
   AUTH_ERROR: 'auth-error',
-  LOGOUT: 'logout',
-  TOKEN_REFRESHED: 'token-refreshed',
+  LOGGED_IN: 'logged-in',        // User has logged in
+  LOGGED_OUT: 'logged-out',      // User has logged out
+  TOKEN_UPDATED: 'token-updated',  // Token has been updated (e.g., login, refresh)
+  TOKEN_REFRESHED: 'token-refreshed', // Token has been specifically refreshed
 }; 

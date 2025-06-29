@@ -93,6 +93,7 @@
       <div class="section-header">
         <button @click="toggleGroupsExpanded" class="section-toggle" :class="{ 'expanded': isGroupsExpanded }">
           <Icon name="chevron-down" class="toggle-icon" />
+          <Icon name="user" class="section-icon" />
           <span class="section-title">Groups</span>
           <span class="section-count">{{ groupMessages.length }}</span>
         </button>
@@ -104,7 +105,7 @@
           <!-- Groups Dropdown Menu -->
           <div v-if="showGroupsDropdown" class="dropdown-menu" @click.stop>
             <div class="dropdown-item" @click="createGroupMessage">
-              <Icon name="users" class="dropdown-icon" />
+              <Icon name="user" class="dropdown-icon" />
               <span>Create group</span>
             </div>
             <div class="dropdown-item" @click="browseGroups">
@@ -261,7 +262,33 @@ const closeAllDropdowns = () => {
 }
 
 const selectChannel = (channel) => {
-  emit('channel-selected', channel)
+  console.log('🎯 [ChannelList] Channel selected:', channel);
+  
+  // 发出事件给父组件处理导航
+  emit('channel-selected', channel);
+  
+  // 🚨 MOBILE FIX: 在移动端点击channel后自动关闭sidebar
+  const isMobile = window.innerWidth <= 768;
+  if (isMobile) {
+    // 检查是否有移动端滑动管理器
+    const mobileSwipeManager = window.mobileSwipeManager;
+    if (mobileSwipeManager && mobileSwipeManager.sidebarVisible.value) {
+      console.log('📱 [ChannelList] Auto-closing sidebar on mobile after channel selection');
+      mobileSwipeManager.closeSidebar();
+    }
+    
+    // 备用方案：直接操作DOM
+    const sidebar = document.querySelector('.global-sidebar.mobile-sidebar');
+    const overlay = document.querySelector('.mobile-overlay');
+    if (sidebar && sidebar.classList.contains('mobile-visible')) {
+      sidebar.classList.remove('mobile-visible');
+      sidebar.style.transform = 'translateX(-100%)';
+      if (overlay) {
+        overlay.remove();
+      }
+      document.body.style.overflow = '';
+    }
+  }
 }
 
 const refreshChannels = async () => {
@@ -281,6 +308,7 @@ const refreshChannels = async () => {
 // Dropdown menu actions
 const createChannel = () => {
   closeAllDropdowns()
+  console.log('🎯 [ChannelList] Emitting create-channel event')
   emit('create-channel')
 }
 
@@ -292,6 +320,7 @@ const browseChannels = () => {
 
 const startDirectMessage = () => {
   closeAllDropdowns()
+  console.log('🎯 [ChannelList] Emitting create-dm event')
   emit('create-dm')
 }
 
@@ -427,29 +456,30 @@ onUnmounted(() => {
 .section-toggle {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   background: none;
   border: none;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--color-sidebar-text-muted);
   font-weight: 600;
-  font-size: 12px;
+  font-size: 13px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   cursor: pointer;
-  padding: 4px;
-  margin: -4px;
-  border-radius: 4px;
+  padding: 6px;
+  margin: -6px;
+  border-radius: 6px;
   transition: all 0.15s ease;
   flex: 1;
+  line-height: 1.2;
 }
 
 .section-toggle:hover {
-  color: rgba(255, 255, 255, 0.8);
-  background: rgba(255, 255, 255, 0.04);
+  color: var(--color-sidebar-text);
+  background: var(--color-sidebar-hover);
 }
 
 .section-toggle:active {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--color-background-muted);
 }
 
 .toggle-icon {
@@ -457,11 +487,23 @@ onUnmounted(() => {
   height: 10px;
   transition: transform 0.15s ease;
   flex-shrink: 0;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--color-text-muted);
 }
 
 .section-toggle:hover .toggle-icon {
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--color-sidebar-text-muted);
+}
+
+.section-icon {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+  margin-right: 2px;
+}
+
+.section-toggle:hover .section-icon {
+  color: var(--color-sidebar-text-muted);
 }
 
 .section-toggle.expanded .toggle-icon {
@@ -478,10 +520,16 @@ onUnmounted(() => {
 }
 
 .section-count {
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.4);
+  font-size: 12px;
+  color: var(--color-text-muted);
   font-weight: 500;
-  margin-left: 4px;
+  margin-left: 6px;
+  background: var(--color-background-muted);
+  padding: 2px 6px;
+  border-radius: 10px;
+  line-height: 1;
+  min-width: 18px;
+  text-align: center;
 }
 
 /* 🎯 Header Actions */
@@ -498,7 +546,7 @@ onUnmounted(() => {
   border: none;
   border-radius: 4px;
   background: none;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--color-text-muted);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -508,12 +556,12 @@ onUnmounted(() => {
 }
 
 .action-btn:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.7);
+  background: var(--color-sidebar-hover);
+  color: var(--color-sidebar-text-muted);
 }
 
 .action-btn:active {
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--color-background-muted);
 }
 
 .action-btn svg {
@@ -527,10 +575,10 @@ onUnmounted(() => {
   top: 100%;
   right: 0;
   margin-top: 4px;
-  background: #111214;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--bg-floating);
+  border: 1px solid var(--border-primary);
   border-radius: 8px;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.24);
+  box-shadow: var(--shadow-lg);
   min-width: 180px;
   z-index: var(--z-dropdown, 1000);
   overflow: hidden;
@@ -555,22 +603,25 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 8px 12px;
-  color: rgba(255, 255, 255, 0.9);
+  padding: 10px 14px;
+  color: var(--text-primary);
   font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.1s ease;
+  line-height: 1.3;
+  min-height: 40px;
 }
 
 .dropdown-item:hover {
-  background: #5865F2;
+  background: var(--color-primary);
   color: white;
 }
 
 .dropdown-icon {
   width: 16px;
   height: 16px;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-secondary);
   flex-shrink: 0;
 }
 
@@ -592,31 +643,33 @@ onUnmounted(() => {
 }
 
 .empty-text {
-  margin: 0 0 8px;
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.4);
+  margin: 0 0 12px;
+  font-size: 14px;
+  color: var(--color-text-muted);
   font-weight: 400;
+  line-height: 1.4;
 }
 
 .empty-action {
   background: none;
   border: none;
-  color: #5865F2;
-  font-size: 13px;
+  color: var(--color-primary);
+  font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 4px;
+  padding: 6px 12px;
+  border-radius: 6px;
   transition: all 0.15s ease;
+  line-height: 1.3;
 }
 
 .empty-action:hover {
-  background: rgba(88, 101, 242, 0.1);
-  color: #7289DA;
+  background: var(--color-sidebar-hover);
+  color: var(--color-primary-hover);
 }
 
 .empty-action:active {
-  background: rgba(88, 101, 242, 0.15);
+  background: var(--color-background-muted);
 }
 
 /* 🎬 Removed channel list animations to ensure sidebar stability */
@@ -645,19 +698,54 @@ onUnmounted(() => {
 
 /* 📱 Mobile Responsive Design */
 @media (max-width: 768px) {
+  .channel-list {
+    /* 📱 移动端滚动优化 */
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    scroll-behavior: smooth;
+    /* 启用硬件加速 */
+    transform: translateZ(0);
+    will-change: scroll-position;
+  }
+
+  /* 📱 隐藏滚动条但保持功能 */
+  .channel-list::-webkit-scrollbar {
+    display: none;
+  }
+
+  .channel-list {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
   .channel-section {
     margin-bottom: 20px;
+    /* 📱 移动端触摸优化 */
+    touch-action: manipulation;
   }
 
   .section-header {
     padding: 0 8px;
     height: 32px;
+    /* 📱 移动端点击区域优化 */
+    min-height: 44px;
+    display: flex;
+    align-items: center;
   }
 
   .section-toggle {
     font-size: 13px;
     padding: 6px;
     margin: -6px;
+    /* 📱 触摸友好的点击区域 */
+    min-height: 44px;
+    min-width: 44px;
+    display: flex;
+    align-items: center;
+    touch-action: manipulation;
   }
 
   .section-count {
@@ -667,6 +755,13 @@ onUnmounted(() => {
   .action-btn {
     width: 24px;
     height: 24px;
+    /* 📱 移动端按钮优化 */
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: manipulation;
   }
 
   .action-btn svg {
@@ -676,39 +771,88 @@ onUnmounted(() => {
 
   .dropdown-menu {
     min-width: 200px;
+    /* 📱 移动端下拉菜单优化 */
+    max-width: 90vw;
+    left: 50%;
+    transform: translateX(-50%);
+    right: auto;
   }
 
   .dropdown-item {
     padding: 10px 14px;
     font-size: 15px;
+    /* 📱 触摸友好的菜单项 */
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    touch-action: manipulation;
   }
 
   .empty-state {
     padding: 20px 16px;
+    /* 📱 移动端空状态优化 */
+    text-align: center;
   }
 
   .empty-text {
     font-size: 14px;
+    line-height: 1.5;
   }
 
   .empty-action {
     font-size: 14px;
     padding: 6px 12px;
+    /* 📱 触摸友好的按钮 */
+    min-height: 44px;
+    min-width: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: manipulation;
+  }
+
+  /* 📱 频道容器滚动优化 */
+  .channels-container {
+    padding: 0 8px;
+    /* 📱 确保容器不会阻止滚动 */
+    overflow: visible;
+    height: auto;
+    max-height: none;
   }
 
   /* 🎯 Touch-friendly enhancements */
   @media (hover: none) and (pointer: coarse) {
-
     .section-toggle,
     .action-btn,
     .dropdown-item,
     .empty-action {
       min-height: 44px;
+      /* 📱 增加触摸反馈 */
+      transition: background-color 0.15s ease, transform 0.1s ease;
+    }
+
+    .section-toggle:active,
+    .action-btn:active,
+    .dropdown-item:active,
+    .empty-action:active {
+      transform: scale(0.98);
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    /* 📱 移动端悬停状态调整 */
+    .section-toggle:hover,
+    .action-btn:hover,
+    .dropdown-item:hover,
+    .empty-action:hover {
+      background-color: rgba(255, 255, 255, 0.08);
     }
   }
 
   /* 🎭 Reduced Motion */
   @media (prefers-reduced-motion: reduce) {
+    .channel-list {
+      scroll-behavior: auto;
+    }
 
     .toggle-icon,
     .action-btn,
@@ -754,6 +898,36 @@ onUnmounted(() => {
     .empty-text {
       color: rgba(255, 255, 255, 0.7);
     }
+  }
+
+  /* 📱 移动端性能优化 */
+  .channel-section,
+  .channels-container,
+  .dropdown-menu {
+    /* 启用硬件加速 */
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+
+  /* 📱 移动端滚动指示器 */
+  .channel-list::before {
+    content: '';
+    position: sticky;
+    top: 0;
+    height: 1px;
+    background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.1), transparent);
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  .channel-list::after {
+    content: '';
+    position: sticky;
+    bottom: 0;
+    height: 1px;
+    background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.1), transparent);
+    z-index: 1;
+    pointer-events: none;
   }
 }
 </style>

@@ -59,7 +59,7 @@ class PerfectSearchService {
    */
   async loadSearchConfig() {
     try {
-      const response = await api.get('/api/search/config')
+      const response = await api.get('/search/config')
       this.config = response.data || {}
     } catch (error) {
       // Fallback configuration
@@ -138,7 +138,7 @@ class PerfectSearchService {
     const strategy = this.selectSearchStrategy(query)
 
     try {
-      let endpoint = '/api/search/messages'
+      let endpoint = '/search/messages'
       let searchData = {
         q: query,
         limit,
@@ -149,7 +149,7 @@ class PerfectSearchService {
 
       // Chat-specific search
       if (chatId) {
-        endpoint = `/api/chat/${chatId}/messages/search`
+        endpoint = `/search/chat/${chatId}/messages`
       }
 
       // Execute search

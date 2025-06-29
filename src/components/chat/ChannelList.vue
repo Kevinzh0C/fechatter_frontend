@@ -160,14 +160,39 @@ const isInitialized = ref(false);
 const fetchDebounceTimer = ref<NodeJS.Timeout | null>(null);
 const hasFailedFetch = ref(false);
 
-// Navigation function
+// Navigation function - Enhanced with mobile support
 async function navigateToChat(chatId: number) {
   try {
-    console.log('🔧 Navigating to chat:', chatId);
+    console.log('🎯 [ChannelList] Navigating to chat:', chatId);
+    
+    // Validate chat ID
+    if (!chatId || isNaN(chatId)) {
+      console.error('❌ [ChannelList] Invalid chat ID:', chatId);
+      return;
+    }
+    
+    // Navigate to chat
     await router.push(`/chat/${chatId}`);
+    
+    // 📱 Mobile: Auto-close sidebar after navigation
+    if (window.mobileSwipeManager && window.mobileSwipeManager.isMobile?.value && window.mobileSwipeManager.sidebarVisible?.value) {
+      console.log('📱 [ChannelList] Auto-closing mobile sidebar after navigation');
+      window.mobileSwipeManager.closeSidebar();
+    }
+    
+    console.log('✅ [ChannelList] Navigation completed to chat:', chatId);
+    
   } catch (error) {
-    console.error('Navigation error:', error);
-    // Fallback to direct navigation
+    console.error('❌ [ChannelList] Navigation error:', error);
+    
+    // Enhanced fallback navigation
+    if (error.name === 'NavigationDuplicated' || error.message?.includes('redundant')) {
+      console.log('ℹ️ [ChannelList] Redundant navigation detected, treating as success');
+      return;
+    }
+    
+    // Last resort: direct navigation
+    console.log('🔄 [ChannelList] Using fallback navigation');
     window.location.href = `/chat/${chatId}`;
   }
 }

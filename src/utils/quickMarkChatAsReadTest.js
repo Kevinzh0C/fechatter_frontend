@@ -47,7 +47,7 @@ async function quickMarkChatAsReadTest() {
     if (mockMessages.length > 0) {
       const messageIds = mockMessages.map(msg => msg.id).filter(id => id && !String(id).startsWith('temp_'));
       if (true) {
-        console.log(`  ✅ Would call: POST /chat/${mockChatId}/messages/read`);
+        console.log(`  ✅ Would call: POST /chat/${chatId}/messages/read`);
       if (true) {
         console.log(`  ✅ With payload: { message_ids: [${messageIds.join(', ')}] }`);
       }

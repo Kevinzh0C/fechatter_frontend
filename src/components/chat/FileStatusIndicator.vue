@@ -1,42 +1,42 @@
 <template>
   <div class="file-status-indicator" :class="{
-    'status-uploading': file.upload_status === 'uploading',
-    'status-uploaded': file.upload_status === 'uploaded',
-    'status-failed': file.upload_status === 'failed',
+    'status-uploading': file.status === 'uploading',
+    'status-uploaded': file.status === 'completed',
+    'status-failed': file.status === 'error',
     'message-sending': messageStatus === 'sending',
     'message-sent': messageStatus === 'sent',
     'message-delivered': messageStatus === 'delivered',
     'message-failed': messageStatus === 'failed'
   }">
     <!-- Upload Progress Bar for Files -->
-    <div v-if="file.upload_status === 'uploading'" class="upload-progress-container">
+    <div v-if="file.status === 'uploading'" class="upload-progress-container">
       <div class="upload-progress-bar">
-        <div class="upload-progress-fill" :style="{ width: `${file.upload_progress || 0}%` }"></div>
+        <div class="upload-progress-fill" :style="{ width: `${file.progress || 0}%` }"></div>
       </div>
       <div class="upload-progress-text">
-        📤 上传中 {{ file.upload_progress || 0 }}%
+        📤 上传中 {{ file.progress || 0 }}%
       </div>
     </div>
 
     <!-- File Upload Success -->
-    <div v-else-if="file.upload_status === 'uploaded'" class="upload-success">
+    <div v-else-if="file.status === 'completed'" class="upload-success">
       <div class="upload-success-icon">✅</div>
       <div class="upload-success-text">文件已上传</div>
     </div>
 
     <!-- File Upload Failed -->
-    <div v-else-if="file.upload_status === 'failed'" class="upload-failed">
+    <div v-else-if="file.status === 'error'" class="upload-failed">
       <div class="upload-failed-icon">❌</div>
       <div class="upload-failed-text">
         上传失败
-        <div v-if="file.upload_error" class="upload-error-detail">
-          {{ file.upload_error }}
+        <div v-if="file.error" class="upload-error-detail">
+          {{ file.error }}
         </div>
       </div>
     </div>
 
     <!-- Message Status (for uploaded files) -->
-    <div v-if="file.upload_status === 'uploaded' && messageStatus" class="message-status-indicator">
+    <div v-if="file.status === 'completed' && messageStatus" class="message-status-indicator">
       <div class="message-status-icon">
         <span v-if="messageStatus === 'sending'">📨</span>
         <span v-else-if="messageStatus === 'sent'">✅</span>

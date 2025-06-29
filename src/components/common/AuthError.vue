@@ -1,7 +1,7 @@
 <template>
   <div 
     v-if="error" 
-    class="rounded-md bg-red-50 p-4"
+    class="rounded-md bg-red-900 p-4"
     role="alert"
     aria-live="assertive"
     data-testid="auth-error"
@@ -22,14 +22,14 @@
         </svg>
       </div>
       <div class="ml-3">
-        <h3 class="text-sm font-medium text-red-800">
+        <h3 class="text-sm font-medium text-red-300">
           {{ title }}
         </h3>
-        <p class="mt-1 text-sm text-red-700">
+        <p class="mt-1 text-sm text-red-400">
           {{ error }}
         </p>
         <div v-if="suggestion" class="mt-2">
-          <p class="text-xs text-red-600">
+          <p class="text-xs text-red-500">
             {{ suggestion }}
           </p>
         </div>
@@ -39,7 +39,7 @@
           <button
             type="button"
             @click="$emit('dismiss')"
-            class="inline-flex bg-red-50 rounded-md p-1.5 text-red-500 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-red-50 focus:ring-red-600"
+            class="inline-flex bg-red-900 rounded-md p-1.5 text-red-400 hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-red-900 focus:ring-red-500"
             data-testid="auth-error-dismiss"
           >
             <span class="sr-only">Dismiss</span>

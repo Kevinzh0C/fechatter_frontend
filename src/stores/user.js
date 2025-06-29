@@ -4,6 +4,7 @@ import { userEndpointManager } from '../services/api/userEndpoints.js';
 export const useUserStore = defineStore('user', {
   state: () => ({
     workspaceUsers: [],
+    currentUserProfile: null,
     loading: false,
     error: null,
     userCache: new Map(),
@@ -13,7 +14,9 @@ export const useUserStore = defineStore('user', {
     fetchPromise: null,
     initializationAttempts: 0,
     maxInitializationAttempts: 3,
-    initializationInProgress: false
+    initializationInProgress: false,
+    profileLoading: false,
+    profileError: null
   }),
 
   actions: {
@@ -141,6 +144,114 @@ export const useUserStore = defineStore('user', {
       }
     },
 
+    /**
+     * Get current user profile
+     */
+    async getCurrentUserProfile() {
+      try {
+        this.profileLoading = true;
+        this.profileError = null;
+        
+        const profile = await userEndpointManager.getCurrentUserProfile();
+        this.currentUserProfile = profile;
+        
+        console.log('✅ [UserStore] Current user profile fetched');
+        return profile;
+      } catch (error) {
+        this.profileError = error.message;
+        console.error('❌ [UserStore] Failed to fetch current user profile:', error);
+        throw error;
+      } finally {
+        this.profileLoading = false;
+      }
+    },
+
+    /**
+     * Update current user profile
+     */
+    async updateCurrentUserProfile(profileData) {
+      try {
+        this.profileLoading = true;
+        this.profileError = null;
+        
+        const updatedProfile = await userEndpointManager.updateCurrentUserProfile(profileData);
+        this.currentUserProfile = updatedProfile;
+        
+        console.log('✅ [UserStore] Current user profile updated');
+        return updatedProfile;
+      } catch (error) {
+        this.profileError = error.message;
+        console.error('❌ [UserStore] Failed to update current user profile:', error);
+        throw error;
+      } finally {
+        this.profileLoading = false;
+      }
+    },
+
+    /**
+     * Get specific user profile by ID
+     */
+    async getUserProfile(userId) {
+      try {
+        const profile = await userEndpointManager.getUserProfile(userId);
+        
+        // Update cache with the profile data
+        this.userCache.set(userId, profile);
+        
+        console.log('✅ [UserStore] User profile fetched for ID:', userId);
+        return profile;
+      } catch (error) {
+        console.error(`❌ [UserStore] Failed to fetch user profile for ID ${userId}:`, error);
+        throw error;
+      }
+    },
+
+    /**
+     * Update specific user profile by ID (admin function)
+     */
+    async updateUserProfile(userId, profileData) {
+      try {
+        const updatedProfile = await userEndpointManager.updateUserProfile(userId, profileData);
+        
+        // Update cache with the updated profile data
+        this.userCache.set(userId, updatedProfile);
+        
+        // Update workspace users array if the user exists there
+        const userIndex = this.workspaceUsers.findIndex(u => u.id === userId);
+        if (userIndex !== -1) {
+          this.workspaceUsers[userIndex] = updatedProfile;
+        }
+        
+        console.log('✅ [UserStore] User profile updated for ID:', userId);
+        return updatedProfile;
+      } catch (error) {
+        console.error(`❌ [UserStore] Failed to update user profile for ID ${userId}:`, error);
+        throw error;
+      }
+    },
+
+    /**
+     * Change user password
+     */
+    async changePassword(passwordData) {
+      try {
+        const result = await userEndpointManager.changePassword(passwordData);
+        
+        console.log('✅ [UserStore] Password changed successfully');
+        return result;
+      } catch (error) {
+        console.error('❌ [UserStore] Failed to change password:', error);
+        throw error;
+      }
+    },
+
+    /**
+     * Clear profile-related errors
+     */
+    clearProfileError() {
+      this.profileError = null;
+    },
+
     getDiagnostics() {
       return {
         workspaceUsersCount: this.workspaceUsers.length,
@@ -151,7 +262,10 @@ export const useUserStore = defineStore('user', {
         lastFetch: this.lastFetch,
         lastFetchAge: this.lastFetch ? Date.now() - this.lastFetch : null,
         initializationAttempts: this.initializationAttempts,
-        initializationInProgress: this.initializationInProgress
+        initializationInProgress: this.initializationInProgress,
+        currentUserProfile: !!this.currentUserProfile,
+        profileLoading: this.profileLoading,
+        profileError: this.profileError
       };
     }
   },

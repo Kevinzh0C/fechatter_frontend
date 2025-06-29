@@ -170,7 +170,7 @@ class MessageServiceDiagnostics {
       // Test basic endpoints
       const endpointsToTest = [
         { name: 'health', url: '/api/health' },
-        { name: 'workspaceChats', url: '/api/workspace/chats' }
+        { name: 'workspaceChats', url: '/workspace/chats' }
       ];
 
       for (const endpoint of endpointsToTest) {

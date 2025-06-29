@@ -201,35 +201,57 @@ class SystemMonitor {
   }
 
   /**
-   * Check overall system health with improved resilience
+   * Check overall system health with improved resilience and context awareness
    */
   _checkSystemHealth() {
+    // 🔧 CRITICAL FIX: Context-aware health checks
+    const currentPath = window.location.pathname;
+    const isOnAuthPage = ['/login', '/register', '/forgot-password', '/reset-password'].includes(currentPath);
+    const isOnChatPage = currentPath.includes('/chat') || currentPath === '/home' || currentPath === '/';
+    
+    // 🔧 CRITICAL FIX: Check if we're on a file-related page
+    const isOnFilePage = currentPath.includes('/files') || 
+                         currentPath.includes('/attachments') || 
+                         currentPath.includes('/download');
+    
     const checks = [
       {
         name: 'unifiedMessageService',
-        test: !!window.unifiedMessageService,
-        critical: true
+        test: !!window.unifiedMessageService || !isOnChatPage, // Only needed on chat pages
+        critical: isOnChatPage // Only critical on chat pages
       },
       {
         name: 'messageDisplayGuarantee',
-        test: !!window.messageDisplayGuarantee,
-        critical: true
+        test: !!window.messageDisplayGuarantee || !isOnChatPage, // Only needed on chat pages
+        critical: isOnChatPage // Only critical on chat pages
       },
       {
         name: 'simple-message-list-dom',
-        test: document.querySelectorAll('.simple-message-list').length > 0,
+        test: document.querySelectorAll('.simple-message-list').length > 0 || !isOnChatPage,
         critical: false // Not critical - user might not be on chat page
+      },
+      {
+        name: 'authStore',
+        test: !!window.authStore || !!document.querySelector('[data-page]'),
+        critical: true // Always critical - auth should be available
       }
     ];
 
     const failedChecks = checks.filter(check => !check.test);
     const criticalFailures = failedChecks.filter(check => check.critical);
 
-    // Only report unhealthy if critical services are missing
+    // Only report unhealthy if critical services are missing for current context
     const isHealthy = criticalFailures.length === 0;
 
     if (!isHealthy && true) {
-      console.log('🔍 [SystemMonitor] Failed health checks:', failedChecks.map(c => c.name));
+      console.log('🔍 [SystemMonitor] Failed health checks:', {
+        currentPath,
+        isOnAuthPage,
+        isOnChatPage,
+        isOnFilePage,
+        failedChecks: failedChecks.map(c => ({ name: c.name, critical: c.critical })),
+        criticalFailures: criticalFailures.map(c => c.name)
+      });
     }
 
     return isHealthy;

@@ -47,7 +47,7 @@ class SearchFixFinal {
 
     try {
       // Login with test credentials
-      const response = await fetch('/api/signin', {
+      const response = await fetch('/signin', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

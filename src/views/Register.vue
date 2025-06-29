@@ -1,13 +1,13 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+  <div class="min-h-screen flex items-center justify-center bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-md w-full space-y-8">
       <div>
         <div class="flex justify-center mb-4">
           <AppIcon :size="64" :preserve-gradient="true" start-color="#6366f1" end-color="#8b5cf6"
             title="Fechatter Logo" />
         </div>
-        <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">Create your account</h2>
-        <p class="mt-2 text-center text-sm text-gray-600">
+        <h2 class="mt-6 text-center text-3xl font-extrabold text-white">Create your account</h2>
+        <p class="mt-2 text-center text-sm text-gray-400">
           Join Fechatter and start collaborating
         </p>
       </div>
@@ -17,35 +17,45 @@
         dismissible />
 
       <form class="mt-8 space-y-6" @submit.prevent="handleSubmit" data-testid="register-form">
-        <div class="rounded-md shadow-xl border-2 border-blue-200 bg-white -space-y-px">
-          <div>
-            <label for="fullname" class="sr-only">Full Name</label>
-            <input v-model="fullname" id="fullname" name="fullname" type="text" required autocomplete="name"
-              :disabled="loading || isSubmitting"
-              class="appearance-none rounded-none relative block w-full px-3 py-2 border-0 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed bg-transparent"
-              placeholder="Full Name" data-testid="fullname-input" />
+        <div class="rounded-md shadow-xl border-2 border-blue-500 bg-gray-800 -space-y-px">
+          <!-- First Name and Last Name Fields -->
+          <div class="grid grid-cols-2 gap-0">
+            <div>
+              <label for="firstName" class="sr-only">First Name</label>
+              <input v-model="firstName" id="firstName" name="firstName" type="text" required autocomplete="given-name"
+                :disabled="loading || isSubmitting"
+                class="appearance-none rounded-none relative block w-full px-3 py-2 border-0 placeholder-gray-500 text-white rounded-tl-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed bg-transparent border-r border-blue-500"
+                placeholder="First Name" data-testid="firstName-input" />
+            </div>
+            <div>
+              <label for="lastName" class="sr-only">Last Name</label>
+              <input v-model="lastName" id="lastName" name="lastName" type="text" required autocomplete="family-name"
+                :disabled="loading || isSubmitting"
+                class="appearance-none rounded-none relative block w-full px-3 py-2 border-0 placeholder-gray-500 text-white rounded-tr-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed bg-transparent"
+                placeholder="Last Name" data-testid="lastName-input" />
+            </div>
           </div>
-          <div class="border-t border-blue-200">
+          <div class="border-t border-blue-500">
             <label for="email" class="sr-only">Email address</label>
             <input v-model="email" id="email" name="email" type="email" required autocomplete="email"
               :disabled="loading || isSubmitting"
-              class="appearance-none rounded-none relative block w-full px-3 py-2 border-0 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed bg-transparent"
+              class="appearance-none rounded-none relative block w-full px-3 py-2 border-0 placeholder-gray-500 text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed bg-transparent"
               placeholder="Email address" data-testid="email-input" />
           </div>
-          <div class="border-t border-blue-200">
+          <div class="border-t border-blue-500">
             <label for="password" class="sr-only">Password</label>
             <input v-model="password" id="password" name="password" type="password" required autocomplete="new-password"
               :disabled="loading || isSubmitting" minlength="8" @input="validatePassword" :class="[
-                'appearance-none rounded-none relative block w-full px-3 py-2 border-0 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed bg-transparent',
+                'appearance-none rounded-none relative block w-full px-3 py-2 border-0 placeholder-gray-500 text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed bg-transparent',
               ]" placeholder="Password (8+ chars with number)" data-testid="password-input" />
-            <p v-if="passwordError" class="mt-1 text-xs text-red-600 px-3 pb-2">
+            <p v-if="passwordError" class="mt-1 text-xs text-red-400 px-3 pb-2">
               {{ passwordError }}
             </p>
           </div>
-          <div class="border-t border-blue-200">
+          <div class="border-t border-blue-500">
             <label for="workspace" class="sr-only">Workspace</label>
             <select v-model="workspace" id="workspace" name="workspace" required :disabled="loading || isSubmitting"
-              class="appearance-none rounded-none relative block w-full px-3 py-2 border-0 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed bg-transparent"
+              class="appearance-none rounded-none relative block w-full px-3 py-2 border-0 placeholder-gray-500 text-white rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed bg-transparent"
               data-testid="workspace-select">
               <option value="" disabled>Select Workspace</option>
               <option v-for="ws in availableWorkspaces" :key="ws.value" :value="ws.value">
@@ -57,7 +67,7 @@
 
         <div class="flex items-center justify-between">
           <div class="text-sm">
-            <router-link to="/login" class="font-medium text-indigo-600 hover:text-indigo-500" data-testid="login-link">
+            <router-link to="/login" class="font-medium text-indigo-400 hover:text-indigo-300" data-testid="login-link">
               Already have an account? Sign in
             </router-link>
           </div>
@@ -91,8 +101,9 @@ const router = useRouter();
 const authStore = useAuthStore();
 // const { startRegisterGuard, stopRegisterGuard } = useRegisterGuard();
 
-// Form data
-const fullname = ref('');
+// Form data - Split name fields
+const firstName = ref('');
+const lastName = ref('');
 const email = ref('');
 const password = ref('');
 const workspace = ref('Acme'); // Set default to Acme
@@ -101,6 +112,20 @@ const errorSuggestion = ref('');
 const passwordError = ref('');
 const loading = ref(false);
 const isSubmitting = ref(false);
+
+// Computed fullname from firstName and lastName
+const fullname = computed(() => {
+  const first = firstName.value.trim();
+  const last = lastName.value.trim();
+  if (first && last) {
+    return `${first} ${last}`;
+  } else if (first) {
+    return first;
+  } else if (last) {
+    return last;
+  }
+  return '';
+});
 
 // Available workspaces - currently only Acme under Super
 const availableWorkspaces = ref([
@@ -121,9 +146,10 @@ const validatePassword = () => {
   }
 };
 
-// Form validation
+// Form validation - Updated to use firstName and lastName
 const isFormValid = computed(() => {
-  return fullname.value.trim().length > 0 &&
+  return firstName.value.trim().length > 0 &&
+    lastName.value.trim().length > 0 &&
     email.value.trim().length > 0 &&
     password.value.length >= 8 &&
     /\d/.test(password.value) &&
@@ -174,8 +200,9 @@ const handleSubmit = async () => {
       console.log('CSRF token detected for registration');
     }
 
+    // Use computed fullname for registration
     const success = await authStore.register(
-      fullname.value.trim(),
+      fullname.value, // Combined first and last name
       email.value.trim(),
       password.value,
       workspace.value.trim()
@@ -238,3 +265,119 @@ onUnmounted(() => {
   console.log('Register page unmounted');
 });
 </script>
+
+<style scoped>
+/* 📱 移动端姓名字段优化 */
+@media (max-width: 768px) {
+  /* 📱 移动端姓名字段网格布局 */
+  .grid.grid-cols-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+  }
+
+  /* 📱 移动端First Name字段 */
+  .grid.grid-cols-2 > div:first-child input {
+    border-right: 1px solid #dbeafe;
+    border-radius: 0.375rem 0 0 0; /* rounded-tl-md */
+    /* 📱 确保触摸友好 */
+    min-height: 44px;
+    font-size: 16px; /* 防止iOS缩放 */
+  }
+
+  /* 📱 移动端Last Name字段 */
+  .grid.grid-cols-2 > div:last-child input {
+    border-radius: 0 0.375rem 0 0; /* rounded-tr-md */
+    /* 📱 确保触摸友好 */
+    min-height: 44px;
+    font-size: 16px; /* 防止iOS缩放 */
+  }
+
+  /* 📱 移动端焦点状态优化 */
+  .grid.grid-cols-2 input:focus {
+    /* 📱 增强焦点边框 */
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+    border-color: #6366f1;
+    z-index: 20;
+  }
+
+  /* 📱 移动端placeholder优化 */
+  .grid.grid-cols-2 input::placeholder {
+    color: #9ca3af;
+    font-size: 14px;
+  }
+}
+
+/* 📱 超小屏幕适配 (≤480px) */
+@media (max-width: 480px) {
+  /* 📱 超小屏幕姓名字段 */
+  .grid.grid-cols-2 > div input {
+    padding: 10px 12px;
+    min-height: 42px;
+    font-size: 16px; /* 保持防缩放 */
+  }
+
+  /* 📱 超小屏幕placeholder */
+  .grid.grid-cols-2 input::placeholder {
+    font-size: 13px;
+  }
+}
+
+/* 📱 键盘适配 */
+@media (max-width: 768px) {
+  /* 📱 键盘弹出时的输入框优化 */
+  .grid.grid-cols-2 input:focus {
+    /* 📱 确保输入框在键盘上方可见 */
+    scroll-margin-top: 100px;
+    /* 📱 硬件加速 */
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+  }
+}
+
+/* 📱 高对比度模式适配 */
+@media (prefers-contrast: high) {
+  .grid.grid-cols-2 > div:first-child input {
+    border-right: 2px solid #4338ca;
+  }
+
+  .grid.grid-cols-2 input:focus {
+    border-color: #4338ca;
+    box-shadow: 0 0 0 3px rgba(67, 56, 202, 0.3);
+  }
+}
+
+/* 📱 触摸设备优化 */
+@media (pointer: coarse) {
+  .grid.grid-cols-2 > div input {
+    /* 📱 增大触摸目标 */
+    min-height: 48px;
+    padding: 12px 16px;
+  }
+
+  /* 📱 触摸反馈 */
+  .grid.grid-cols-2 input:active {
+    background-color: rgba(99, 102, 241, 0.05);
+    transition: background-color 0.1s ease;
+  }
+}
+
+/* 📱 横屏模式适配 */
+@media (max-width: 768px) and (orientation: landscape) {
+  .grid.grid-cols-2 > div input {
+    min-height: 40px;
+    padding: 8px 12px;
+  }
+}
+
+/* 📱 无障碍适配：减少动画偏好 */
+@media (prefers-reduced-motion: reduce) {
+  .grid.grid-cols-2 input {
+    transition: none !important;
+  }
+
+  .grid.grid-cols-2 input:active {
+    transition: none !important;
+  }
+}
+</style>

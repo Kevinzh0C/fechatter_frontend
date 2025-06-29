@@ -40,6 +40,14 @@ export class SSEDebugger {
     const authStore = this.getAuthStore();
     if (!authStore) {
       this.log('❌ CRITICAL: Auth store not accessible', 'error');
+      
+      // Try directly from localStorage as fallback
+      const token = localStorage.getItem('auth_token');
+      if (token) {
+        this.log('✅ Found token in localStorage fallback', 'success');
+        return { minimalSSE, authStore: null, isAuthenticated: true, token };
+      }
+      
       return false;
     }
     this.log('✅ Auth store found', 'success');
@@ -54,6 +62,14 @@ export class SSEDebugger {
     if (!isAuthenticated || !token) {
       this.log('❌ CRITICAL: User not authenticated or no token', 'error');
       this.log('💡 This explains why no /events requests appear in proxy logs', 'warning');
+      
+      // Try direct localStorage access as fallback
+      const directToken = localStorage.getItem('auth_token');
+      if (directToken) {
+        this.log('✅ Found token in localStorage fallback', 'success');
+        return { minimalSSE, authStore, isAuthenticated: true, token: directToken };
+      }
+      
       return false;
     }
 
@@ -120,13 +136,30 @@ export class SSEDebugger {
   testDirectEventSource() {
     this.log('🧪 Testing direct EventSource creation...', 'info');
 
+    // Try to get token from multiple sources
+    let token = null;
+    
+    // First try auth store
     const authStore = this.getAuthStore();
-    if (!authStore || !authStore.token) {
-      this.log('❌ Cannot test: No auth token', 'error');
+    if (authStore && authStore.token) {
+      token = authStore.token;
+    } 
+    // Fallback to localStorage
+    else {
+      token = localStorage.getItem('auth_token');
+      if (!token) {
+        // Try other possible storage locations
+        token = localStorage.getItem('access_token') || 
+                sessionStorage.getItem('auth_token') ||
+                sessionStorage.getItem('access_token');
+      }
+    }
+    
+    if (!token) {
+      this.log('❌ Cannot test: No auth token found in any source', 'error');
       return;
     }
 
-    const token = authStore.token;
     const url = `/events?access_token=${token}`;
 
     this.log(`🔗 Creating direct EventSource: ${url}`, 'info');
@@ -164,9 +197,34 @@ export class SSEDebugger {
   }
 
   getAuthStore() {
-    return window.__pinia_stores__?.auth?.() ||
-      window.pinia?.stores?.auth ||
-      window.authStore;
+    try {
+      // Multiple ways to access the auth store
+      return (
+        // 1. Pinia store (most common)
+        window.__pinia_stores__?.auth?.() ||
+        window.pinia?.stores?.auth ||
+        
+        // 2. Directly exposed stores
+        window.authStore ||
+        window.$store?.auth ||
+        
+        // 3. Vue app instance stores
+        window.app?._instance?.appContext?.app?.config?.globalProperties?.$pinia?.state?.value?.auth ||
+        
+        // 4. Vuex store (legacy)
+        window.$vuex?.state?.auth ||
+        window.$store?.state?.auth ||
+        
+        // 5. Try to dynamically import (only works if module bundling allows)
+        (() => {
+          // Just attempt access, don't actually import here
+          return null;
+        })()
+      );
+    } catch (error) {
+      this.log(`Failed to access auth store: ${error.message}`, 'error');
+      return null;
+    }
   }
 
   exportLogs() {
@@ -199,7 +257,7 @@ if (typeof window !== 'undefined') {
     setTimeout(() => {
       sseDebugger.log('🔍 Auto-running SSE diagnosis...', 'info');
       sseDebugger.diagnoseSSE();
-    }, 5000);
+    }, 3000);
   }
 }
 

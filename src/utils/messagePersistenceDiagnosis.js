@@ -214,7 +214,7 @@ class MessagePersistenceDiagnosis {
 
       // 测试消息获取API
       const startTime = Date.now();
-      const response = await fetch(`/api/chat/${currentChatId}/messages?limit=5`, {
+      const response = await fetch(`/api/chat/${chatId}/messages?limit=5`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -226,7 +226,7 @@ class MessagePersistenceDiagnosis {
       const responseTime = endTime - startTime;
 
       if (true) {
-        console.log(`   GET /api/chat/${currentChatId}/messages`);
+        console.log(`   GET /api/chat/${chatId}/messages`);
       if (true) {
         console.log(`   Status: ${response.status}`);
       if (true) {
@@ -350,7 +350,7 @@ class MessagePersistenceDiagnosis {
       if (true) {
         console.log('   1. Create temp message → UI shows immediately');
       if (true) {
-        console.log('   2. Send API request → POST /api/chat/{id}/messages');
+        console.log('   2. Send API request → POST /chat/{id}/messages');
       if (true) {
         console.log('   3. Replace temp with real → Server ID assigned');
       if (true) {

@@ -210,8 +210,8 @@ class AuthDiagnostics {
     const endpointsToTest = [
       { name: 'health', url: '/api/health', requiresAuth: false },
       { name: 'refresh', url: '/api/refresh', requiresAuth: false },
-      { name: 'users', url: '/api/users', requiresAuth: true },
-      { name: 'userProfile', url: '/api/users/profile', requiresAuth: true }
+      { name: 'users', url: '/users', requiresAuth: true },
+      { name: 'userProfile', url: '/users/profile', requiresAuth: true }
     ];
 
     for (const endpoint of endpointsToTest) {

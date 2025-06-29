@@ -468,8 +468,8 @@ class Auth401ErrorFix {
   getRecent401Errors() {
     // This would track recent 401 errors in a real implementation
     return [
-      { url: '/api/users', timestamp: new Date().toISOString() },
-      { url: '/api/workspace/chats', timestamp: new Date().toISOString() },
+      { url: '/users', timestamp: new Date().toISOString() },
+      { url: '/workspace/chats', timestamp: new Date().toISOString() },
       { url: '/events', timestamp: new Date().toISOString() },
     ];
   }

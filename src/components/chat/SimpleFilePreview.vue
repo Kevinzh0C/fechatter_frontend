@@ -55,23 +55,7 @@ const isImage = (file) => file?.type?.startsWith('image/');
 const removeFile = (id) => store.removeFile?.(id);
 const clearAll = () => store.clearAll?.();
 
-// 生成图片预览
-watch(files, (newFiles) => {
-  newFiles?.forEach(file => {
-    if (isImage(file) && !file.preview && !file.loading) {
-      file.loading = true;
-      const reader = new FileReader();
-      reader.onload = e => {
-        file.preview = e.target.result;
-        file.loading = false;
-      };
-      reader.onerror = () => {
-        file.loading = false;
-      };
-      reader.readAsDataURL(file);
-    }
-  });
-}, { deep: true, immediate: true });
+
 
 // 🔧 拖拽上传功能
 onMounted(() => {

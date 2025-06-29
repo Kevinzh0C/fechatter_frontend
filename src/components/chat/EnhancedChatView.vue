@@ -50,27 +50,27 @@ defineExpose({
   justify-content: center;
   height: 100%;
   width: 100%;
-  background: var(--bg-primary, #313338);
+  background: var(--bg-primary);
   padding: 20px;
 }
 
 .cleared-notice {
   text-align: center;
   padding: 40px 20px;
-  background: var(--bg-secondary, #2b2d31);
-  border: 2px dashed var(--border-primary, #3e4146);
+  background: var(--bg-secondary);
+  border: 2px dashed var(--border-primary);
   border-radius: 12px;
   max-width: 500px;
 }
 
 .cleared-notice h3 {
-  color: var(--text-primary, #dbdee1);
+  color: var(--text-primary);
   margin-bottom: 12px;
   font-size: 18px;
 }
 
 .cleared-notice p {
-  color: var(--text-muted, #949ba4);
+  color: var(--text-muted);
   margin: 8px 0;
   font-size: 14px;
 }

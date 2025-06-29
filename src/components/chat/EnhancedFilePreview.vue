@@ -349,25 +349,7 @@ const openImageViewer = (file) => {
 };
 
 // Watcher remains the same
-watch(() => fileUploadStore.pendingFiles, (newFiles) => {
-  if (!newFiles || !Array.isArray(newFiles)) return;
 
-  newFiles.forEach(file => {
-    if (isImageFile(file) && !file.preview && !file.previewLoading) {
-      file.previewLoading = true;
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        file.preview = e.target.result;
-        file.previewLoading = false;
-      };
-      reader.onerror = () => {
-        file.previewLoading = false;
-        file.previewError = true;
-      };
-      reader.readAsDataURL(file);
-    }
-  });
-}, { deep: true, immediate: true });
 
 onMounted(() => {
   const dropZoneElement = document.body;

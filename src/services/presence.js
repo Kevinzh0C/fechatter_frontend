@@ -307,52 +307,31 @@ const presenceService = {
   },
 
   /**
-   * Get authentication token with multiple fallback strategies
+   * Get authentication token using centralized tokenSynchronizer
    */
   async getAuthToken() {
-    // Strategy 1: Auth store
     try {
-      const authStore = useAuthStore();
-      if (authStore.token && authStore.token.length > 20) {
-        return authStore.token;
-      }
-    } catch (error) {
-      console.debug('[Presence] Auth store token retrieval failed:', error);
-    }
-
-    // Strategy 2: Direct localStorage
-    try {
-      const token = localStorage.getItem('auth_token');
+      // Use tokenSynchronizer for centralized token management
+      const { default: tokenSynchronizer } = await import('./tokenSynchronizer');
+      const token = await tokenSynchronizer.getToken();
+      
       if (token && token.length > 20) {
+        console.debug('[Presence] Token retrieved from tokenSynchronizer');
         return token;
       }
     } catch (error) {
-      console.debug('[Presence] localStorage token retrieval failed:', error);
+      console.error('[Presence] Failed to get token from tokenSynchronizer:', error);
     }
 
-    // Strategy 3: TokenManager
+    // Fallback: Try auth store directly only if tokenSynchronizer fails
     try {
-      if (window.tokenManager) {
-        const token = window.tokenManager.getAccessToken();
-        if (token && token.length > 20) {
-          return token;
-        }
+      const authStore = useAuthStore();
+      if (authStore.token && authStore.token.length > 20) {
+        console.warn('[Presence] Using fallback: auth store token');
+        return authStore.token;
       }
     } catch (error) {
-      console.debug('[Presence] TokenManager token retrieval failed:', error);
-    }
-
-    // Strategy 4: Alternative localStorage keys
-    try {
-      const keys = ['access_token', 'token'];
-      for (const key of keys) {
-        const token = localStorage.getItem(key);
-        if (token && token.length > 20) {
-          return token;
-        }
-      }
-    } catch (error) {
-      console.debug('[Presence] Alternative localStorage token retrieval failed:', error);
+      console.debug('[Presence] Fallback auth store token retrieval failed:', error);
     }
 
     return null;
