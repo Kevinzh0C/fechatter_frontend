@@ -8,7 +8,7 @@
 
 /**
  * Extract file ID from various URL formats
- * Handles both static URLs and auth URLs
+ * Handles both static URLs and auth URLs, plus legacy formats
  */
 export function extractFileId(url) {
   if (!url || typeof url !== 'string') return null;
@@ -19,7 +19,23 @@ export function extractFileId(url) {
     return authMatch[1];
   }
   
-  // Handle static URLs: /api/files/{workspace_id}/{hash_path} or /files/{workspace_id}/{hash_path}
+  // Handle OLD storage format where filename includes directory prefix (first 6 chars):
+  // OLD: /files/60c155658fcb... (directory structure embedded in filename)
+  // NEW: /files/658fcb... (directory structure removed from filename)
+  // Storage migration removed first 6 chars from filename as they're now used as directory names
+  const oldFormatMatch = url.match(/\/(?:api\/)?files\/([a-f0-9]{6})([a-f0-9]+\.[a-zA-Z0-9]+)$/);
+  if (oldFormatMatch) {
+    const prefix = oldFormatMatch[1]; // First 6 chars (used as directory in new format)
+    const restOfHash = oldFormatMatch[2]; // Rest of the hash + extension
+    // Validate: rest should be valid file_id format
+    if (isValidFileId(restOfHash)) {
+      // New format: remove prefix since it's now directory structure
+      console.log(`🔧 [extractFileId] Converting old format filename to new format: ${prefix}${restOfHash} -> ${restOfHash}`);
+      return restOfHash;
+    }
+  }
+  
+  // Handle legacy static URLs: /api/files/{workspace_id}/{hash_path} or /files/{workspace_id}/{hash_path}
   const staticMatch = url.match(/\/(?:api\/)?files\/\d+\/(.+)$/);
   if (staticMatch) {
     const hashPath = staticMatch[1];
@@ -45,8 +61,9 @@ export function extractFileId(url) {
 }
 
 /**
- * Convert hash path back to file_id
+ * Extract file_id from hash path (legacy support)
  * Example: "60c/155/60c155658fcb1ef14145b5c9e359a571c504b8e1a7449d9965f720d3c1eebb68.png" -> "60c155658fcb1ef14145b5c9e359a571c504b8e1a7449d9965f720d3c1eebb68.png"
+ * Note: Backend now uses flat structure, but keep for backward compatibility with old URLs
  */
 function convertHashPathToFileId(hashPath) {
   const parts = hashPath.split('/');
@@ -58,39 +75,15 @@ function convertHashPathToFileId(hashPath) {
 }
 
 /**
- * Build hash path from file_id
- * Example: "60c155658fcb1ef14145b5c9e359a571c504b8e1a7449d9965f720d3c1eebb68.png" -> "60c/155/60c155658fcb1ef14145b5c9e359a571c504b8e1a7449d9965f720d3c1eebb68.png"
- * Backend uses hash-split directory structure for performance
- */
-function buildHashPath(fileId) {
-  if (!fileId || typeof fileId !== 'string') return fileId;
-  
-  // Extract hash and extension
-  const parts = fileId.split('.');
-  if (parts.length !== 2) return fileId;
-  
-  const hash = parts[0];
-  const extension = parts[1];
-  
-  // Must have at least 6 characters to split into directories
-  if (hash.length < 6) return fileId;
-  
-  // Split hash into directory structure: first 3 chars / next 3 chars / full filename
-  const dir1 = hash.substring(0, 3);
-  const dir2 = hash.substring(3, 6);
-  
-  return `${dir1}/${dir2}/${fileId}`;
-}
-
-/**
  * Build static file URL (no authentication required)
- * Uses backend API static file serving structure: /api/files/{workspace_id}/{hash_path}
+ * Backend uses flat file structure: /files/{filename}
+ * No workspace_id or hash directory structure needed
  */
 export function buildStaticFileUrl(fileId, workspaceId = 2) {
   if (!fileId) return null;
   
-  const hashPath = buildHashPath(fileId);
-  return `/api/files/${workspaceId}/${hashPath}`;
+  // Return direct flat URL - backend serves files at /files/{filename}
+  return `/files/${fileId}`;
 }
 
 /**

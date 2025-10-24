@@ -1,9 +1,9 @@
 /**
  * 🚀 BACKEND-ALIGNED FILE SERVICE
- * Based on Rust backend analysis:
+ * Based on Rust backend actual implementation:
  * - Upload: POST /api/files/single (multipart/form-data, requires auth)
  * - Download: GET /api/files/download/{file_id} (requires auth)  
- * - Static: /files/{workspace_id}/{hash_path} (no auth, served by nginx)
+ * - Static: /files/{filename} (no auth, flat structure served by nginx -> ServeDir)
  */
 
 import api from './api.js';
@@ -120,13 +120,12 @@ export class ProductionFileService {
   }
 
   /**
-   * 🎯 BACKEND ALIGNED: Build file URLs matching backend storage structure
-   * Backend creates: symlinks in root + hash directory structure
-   * Static access: /files/{workspace_id}/{hash_path} (no auth)
+   * 🎯 BACKEND ALIGNED: Build file URLs matching backend flat storage structure
+   * Static access: /files/{filename} (no auth, served by nginx -> ServeDir)
    * Auth access: /api/files/download/{file_id} (with auth)
    */
   buildFileUrl(fileId, options = {}) {
-    const { useStatic = true, workspaceId = 2 } = options;
+    const { useStatic = true } = options;
 
     if (!this._isValidFileId(fileId)) {
       console.error('❌ [FileService] Invalid file ID for URL building:', fileId);
@@ -134,22 +133,12 @@ export class ProductionFileService {
     }
 
     if (useStatic) {
-      // Static URL: /files/{workspace_id}/{hash_path}
-      const hashPath = this._buildHashPath(fileId);
-      return `${this.config.staticPrefix}/${workspaceId}/${hashPath}`;
+      // Static URL: /files/{filename} - direct flat structure
+      return `${this.config.staticPrefix}/${fileId}`;
     } else {
       // Authenticated URL: /api/files/download/{file_id}
       return `/api${this.config.downloadEndpoint}/${fileId}`;
     }
-  }
-
-  /**
-   * 🔧 BACKEND ALIGNED: Return fileId as-is since backend expects full filename
-   * No hash splitting required for flat storage structure
-   */
-  _buildHashPath(fileId) {
-    // Return fileId as-is since backend expects full filename without directory structure
-    return fileId;
   }
 
   /**
