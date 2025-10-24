@@ -55,3 +55,23 @@ temp/
 
 # Local development
 .cache/
+# Temporary test files
+public/test-*.html
+
+# Temporary documentation
+IMAGE_DISPLAY_ISSUE_ANALYSIS.md
+NAMED_TUNNEL_NEXT_STEPS.md
+TUNNEL_FINAL_SETUP.md
+TUNNEL_SETUP_COMPLETE.md
+UPDATE_SUMMARY.md
+
+# Temporary scripts
+scripts/get-named-tunnel-url.sh
+scripts/manual-update-config.sh
+scripts/quick-health-check.sh
+scripts/remote-setup-named-tunnel.sh
+scripts/server-sse-monitor.sh
+scripts/setup-cloudflare-named-tunnel.sh
+scripts/sse-quality-test.sh
+scripts/tunnel-one-click-setup.sh
+scripts/update-local-config-from-remote.sh
