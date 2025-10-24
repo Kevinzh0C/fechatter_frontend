@@ -7,7 +7,7 @@
 import { getApiConfig } from './yamlConfigLoader.js';
 
 // Cloudflare Tunnel URL for production access
-const CLOUDFLARE_URL = 'https://hook-nav-attempt-size.trycloudflare.com';
+const CLOUDFLARE_URL = 'https://api.fechatter.com';
 
 /**
  * Detect if we're in development mode with Vite proxy available

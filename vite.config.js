@@ -66,7 +66,7 @@ export default defineConfig(({ mode }) => {
       // 🔧 CORS FIX: Add proxy to avoid CORS issues
       proxy: {
         '/api': {
-          target: 'https://hook-nav-attempt-size.trycloudflare.com',
+          target: 'https://api.fechatter.com',
           changeOrigin: true,
           secure: true,
           configure: (proxy, options) => {
@@ -80,7 +80,7 @@ export default defineConfig(({ mode }) => {
           }
         },
         '/health': {
-          target: 'https://hook-nav-attempt-size.trycloudflare.com',
+          target: 'https://api.fechatter.com',
           changeOrigin: true,
           secure: true,
           configure: (proxy, options) => {
@@ -91,7 +91,7 @@ export default defineConfig(({ mode }) => {
           }
         },
         '/presence': {
-          target: 'https://hook-nav-attempt-size.trycloudflare.com',
+          target: 'https://api.fechatter.com',
           changeOrigin: true,
           secure: true,
           configure: (proxy, options) => {
@@ -105,7 +105,7 @@ export default defineConfig(({ mode }) => {
           }
         },
         '/events': {
-          target: 'https://hook-nav-attempt-size.trycloudflare.com',
+          target: 'https://api.fechatter.com',
           changeOrigin: true,
           secure: true,
           ws: true, // Enable WebSocket proxying for SSE
@@ -119,7 +119,7 @@ export default defineConfig(({ mode }) => {
           }
         },
         '/files': {
-          target: 'https://hook-nav-attempt-size.trycloudflare.com',
+          target: 'https://api.fechatter.com',
           changeOrigin: true,
           secure: true,
           configure: (proxy, options) => {
@@ -130,7 +130,7 @@ export default defineConfig(({ mode }) => {
           }
         },
         '/notify': {
-          target: 'https://hook-nav-attempt-size.trycloudflare.com',
+          target: 'https://api.fechatter.com',
           changeOrigin: true,
           secure: true,
           configure: (proxy, options) => {

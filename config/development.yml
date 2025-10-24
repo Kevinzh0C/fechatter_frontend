@@ -16,13 +16,13 @@ frontend:
 # API配置 - 直接连接 ngrok 后端
 api:
   # 直接连接 ngrok，避免 Vercel 代理限制
-  gateway_url: "https://hook-nav-attempt-size.trycloudflare.com"
+  gateway_url: "https://api.fechatter.com"
 
   # 直接 Cloudflare Tunnel URLs - 所有环境统一策略
-  base_url: "https://hook-nav-attempt-size.trycloudflare.com/api"
-  file_url: "https://hook-nav-attempt-size.trycloudflare.com/files"
-  sse_url: "https://hook-nav-attempt-size.trycloudflare.com/events"
-  notify_url: "https://hook-nav-attempt-size.trycloudflare.com/notify"
+  base_url: "https://api.fechatter.com/api"
+  file_url: "https://api.fechatter.com/files"
+  sse_url: "https://api.fechatter.com/events"
+  notify_url: "https://api.fechatter.com/notify"
 
   # 请求配置
   timeout: 30000
@@ -71,7 +71,7 @@ test_accounts:
 
 # 🔧 SSE Configuration
 sse:
-  base_url: "https://hook-nav-attempt-size.trycloudflare.com"
+  base_url: "https://api.fechatter.com/api"
   endpoint: "/events"
   reconnect_interval: 3000
   max_reconnect_attempts: 5
@@ -80,7 +80,7 @@ sse:
 
 # 🎯 File Service Configuration  
 files:
-  base_url: "https://hook-nav-attempt-size.trycloudflare.com"
+  base_url: "https://api.fechatter.com/api"
   upload_endpoint: "/api/files/single"
   download_endpoint: "/api/files/download"
   static_endpoint: "/files"
@@ -138,10 +138,10 @@ cache:
 development:
   # 🚀 PRODUCTION-ALIGNED: Direct Cloudflare Tunnel connection for all environments
   api:
-    base_url: "https://hook-nav-attempt-size.trycloudflare.com/api"
-    file_url: "https://hook-nav-attempt-size.trycloudflare.com/files"
-    sse_url: "https://hook-nav-attempt-size.trycloudflare.com/events"
-    notify_url: "https://hook-nav-attempt-size.trycloudflare.com/notify"
+    base_url: "https://api.fechatter.com/api"
+    file_url: "https://api.fechatter.com/files"
+    sse_url: "https://api.fechatter.com/events"
+    notify_url: "https://api.fechatter.com/notify"
     timeout: 30000
     max_retries: 3
     retry_delay: 1000
@@ -149,7 +149,7 @@ development:
 
   # 🔧 SSE Configuration
   sse:
-    base_url: "https://hook-nav-attempt-size.trycloudflare.com"
+    base_url: "https://api.fechatter.com/api"
     endpoint: "/events"
     reconnect_interval: 3000
     max_reconnect_attempts: 5
@@ -158,7 +158,7 @@ development:
 
   # 🎯 File Service Configuration  
   files:
-    base_url: "https://hook-nav-attempt-size.trycloudflare.com"
+    base_url: "https://api.fechatter.com/api"
     upload_endpoint: "/api/files/single"
     download_endpoint: "/api/files/download"
     static_endpoint: "/files"
