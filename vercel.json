@@ -13,27 +13,27 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://hook-nav-attempt-size.trycloudflare.com/api/$1"
+      "destination": "https://api.fechatter.com/api/$1"
     },
     {
       "source": "/events(.*)",
-      "destination": "https://hook-nav-attempt-size.trycloudflare.com/events$1"
+      "destination": "https://api.fechatter.com/events$1"
     },
     {
       "source": "/files/(.*)",
-      "destination": "https://hook-nav-attempt-size.trycloudflare.com/files/$1"
+      "destination": "https://api.fechatter.com/files/$1"
     },
     {
       "source": "/presence(.*)",
-      "destination": "https://hook-nav-attempt-size.trycloudflare.com/presence$1"
+      "destination": "https://api.fechatter.com/presence$1"
     },
     {
       "source": "/health(.*)",
-      "destination": "https://hook-nav-attempt-size.trycloudflare.com/health$1"
+      "destination": "https://api.fechatter.com/health$1"
     },
     {
       "source": "/notify(.*)",
-      "destination": "https://hook-nav-attempt-size.trycloudflare.com/notify$1"
+      "destination": "https://api.fechatter.com/notify$1"
     },
     {
       "source": "/(.*)",
@@ -71,7 +71,7 @@
   "env": {
     "NODE_ENV": "development",
     "VITE_APP_ENV": "development",
-    "VITE_API_URL": "https://hook-nav-attempt-size.trycloudflare.com/api",
+    "VITE_API_URL": "https://api.fechatter.com/api",
     "VITE_SSE_ENDPOINT": "/events",
     "VITE_ENABLE_DEBUG": "true"
   }
